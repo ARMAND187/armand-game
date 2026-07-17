@@ -16,9 +16,9 @@ export default function HomePage() {
   return (
     <div style={{ background: "#09090b", minHeight: "100vh", padding: "16px", paddingBottom: "100px" }}>
       {/* ── Header ── */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", position: "relative" }}>
-        <span style={{ fontSize: "20px", fontWeight: 800, color: "white", letterSpacing: "-0.5px" }}>Armand Games</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <header className="flex items-center justify-between w-full mb-8 relative">
+        <span className="whitespace-nowrap text-xl sm:text-2xl font-extrabold text-white tracking-tight">Armand Games</span>
+        <div className="flex items-center gap-3">
           <NotificationBell />
           <WalletDisplay />
         </div>

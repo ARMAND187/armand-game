@@ -10,7 +10,7 @@ export default function WalletDisplay() {
     <div className="wallet-pill">
       <Wallet size={15} className="wallet-icon" />
       <span className="wallet-text">
-        Armand Balance = <strong>{armandBalance.toLocaleString()}</strong>
+        <span className="hidden sm:inline">Armand Balance = </span><strong>{armandBalance.toLocaleString()}</strong>
       </span>
     </div>
   );

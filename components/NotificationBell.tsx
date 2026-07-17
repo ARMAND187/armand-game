@@ -118,20 +118,13 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div style={{
-          position: "absolute", top: "48px", right: 0,
-          width: "320px", maxHeight: "400px", overflowY: "auto",
-          background: "#18181b", border: "1px solid #27272a",
-          borderRadius: "16px", boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-          zIndex: 50, display: "flex", flexDirection: "column"
-        }}>
+        <div 
+          className="fixed top-20 left-[5%] w-[90%] z-50 sm:absolute sm:top-16 sm:right-0 sm:left-auto sm:w-80 sm:mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl flex flex-col"
+          style={{ maxHeight: "400px", overflowY: "auto" }}
+        >
           {/* Header */}
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "16px", borderBottom: "1px solid #27272a",
-            position: "sticky", top: 0, background: "rgba(24,24,27,0.9)", backdropFilter: "blur(8px)", zIndex: 2
-          }}>
-            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "white" }}>Notifications</h3>
+          <div className="flex items-center justify-between p-4 border-b border-zinc-800 sticky top-0 z-10" style={{ background: "rgba(24,24,27,0.9)", backdropFilter: "blur(8px)" }}>
+            <h3 className="m-0 text-base font-bold text-white">Notifications</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {unreadCount > 0 && (
                 <button 
