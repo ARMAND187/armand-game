@@ -369,32 +369,24 @@ export default function FriendsPage() {
           <div>
             <p className="text-sm text-zinc-400 mb-4">Create a new voice party or jump into an existing one with your friends.</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               {/* Create Section */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col justify-between h-full min-h-[140px]">
-                <div>
-                  <h3 className="text-white font-bold text-sm mb-1">Start a Party</h3>
-                  <p className="text-zinc-500 text-xs">Create a new private room and invite your friends.</p>
-                </div>
+              <div className="flex items-center justify-center">
                 <button 
                   onClick={handleCreateParty}
-                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap w-full mt-4 flex items-center justify-center gap-2"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 w-full shadow-lg"
                 >
-                  <Plus size={16} /> Create Party
+                  <Plus size={18} /> Create Party
                 </button>
               </div>
 
               {/* Join Section */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col justify-between h-full min-h-[140px]">
-                <div>
-                  <h3 className="text-white font-bold text-sm mb-1">Join a Party</h3>
-                  <p className="text-zinc-500 text-xs">Enter a room code to instantly connect.</p>
-                </div>
-                <div className="flex items-center gap-3 w-full mt-4">
+              <div className="flex items-center justify-center w-full">
+                <div className="relative w-full">
                   <input 
                     type="text" 
-                    placeholder="Code" 
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all uppercase font-mono text-sm"
+                    placeholder="Enter Code..." 
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-full pl-6 pr-24 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all uppercase font-mono shadow-lg"
                     value={partyCodeInput}
                     onChange={(e) => setPartyCodeInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleJoinParty()}
@@ -402,7 +394,7 @@ export default function FriendsPage() {
                   <button 
                     onClick={() => handleJoinParty()}
                     disabled={!partyCodeInput.trim()}
-                    className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="absolute right-1.5 top-1.5 bottom-1.5 bg-purple-600 hover:bg-purple-500 text-white px-6 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                   >
                     Join
                   </button>
