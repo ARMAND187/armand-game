@@ -288,7 +288,7 @@ export default function FriendsPage() {
 
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto px-4 md:px-0 mt-8">
+    <div className="w-full max-w-6xl mx-auto flex flex-col gap-6 mt-8 px-4 md:px-8">
 
       {/* ── Incoming Invites Toasts ── */}
       <div className="fixed top-24 right-4 z-50 flex flex-col gap-2">
@@ -370,7 +370,7 @@ export default function FriendsPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               {/* Create Section */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between min-h-[140px]">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col justify-between h-full min-h-[140px]">
                 <div>
                   <h3 className="text-white font-bold text-sm mb-1">Start a Party</h3>
                   <p className="text-zinc-500 text-xs">Create a new private room and invite your friends.</p>
@@ -384,7 +384,7 @@ export default function FriendsPage() {
               </div>
 
               {/* Join Section */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between min-h-[140px]">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col justify-between h-full min-h-[140px]">
                 <div>
                   <h3 className="text-white font-bold text-sm mb-1">Join a Party</h3>
                   <p className="text-zinc-500 text-xs">Enter a room code to instantly connect.</p>
