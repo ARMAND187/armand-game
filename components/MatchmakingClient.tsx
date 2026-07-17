@@ -46,7 +46,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             // Trigger ready if we are exactly 4
             setTimeout(() => {
               channel.send({ type: "broadcast", event: "ROOM_READY", payload: {} });
-              router.push(playRoute);
+              router.push(`${playRoute}?roomId=${roomId}`);
             }, 1000);
           }
           return newPlayers;
@@ -56,7 +56,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         setPlayers((prev) => prev.filter((p) => p !== payload.payload.username));
       })
       .on("broadcast", { event: "ROOM_READY" }, () => {
-        router.push(playRoute);
+        router.push(`${playRoute}?roomId=${roomId}`);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -125,6 +125,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             is_public: true,
             player_count: 1,
             host_username: myUsername,
+            total_rounds: 5
           })
           .select()
           .single();
@@ -133,14 +134,17 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
         setPlayers([myUsername]);
         setRoomId(newRoom.id);
+        setIsHost(true);
         setMatchState("waiting");
       }
     } catch (err) {
       console.error("Matchmaking error:", err);
       setMatchState("idle");
-      alert("Failed to connect to matchmaking. Make sure the 'rooms' table exists in Supabase.");
+      alert("Failed to connect to matchmaking. Make sure the 'rooms' table exists in Supabase, and total_rounds is added.");
     }
   };
+
+  const [totalRounds, setTotalRounds] = useState<number>(5);
 
   const createPrivateGame = async () => {
     setMatchState("searching");
@@ -155,7 +159,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           is_public: false,
           player_count: 1,
           host_username: myUsername,
-          room_code: shortCode
+          room_code: shortCode,
+          total_rounds: totalRounds
         })
         .select()
         .single();
@@ -170,7 +175,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     } catch (err) {
       console.error("Private room creation error:", err);
       setMatchState("idle");
-      alert("Failed to create private room. Make sure you ran the SQL command to add 'room_code'!");
+      alert("Failed to create private room. Make sure you ran the SQL command to add 'room_code' and 'total_rounds'!");
     }
   };
 
@@ -246,6 +251,28 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           </button>
         </div>
         <div className="divider" style={{ margin: "16px 0" }} />
+        <div style={{ marginBottom: 12, fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Create Private Room</div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          {[5, 10, 25].map(r => (
+            <button
+              key={r}
+              onClick={() => setTotalRounds(r)}
+              style={{
+                flex: 1,
+                padding: "8px 0",
+                background: totalRounds === r ? "var(--neon)" : "var(--bg-elevated)",
+                color: totalRounds === r ? "#000" : "var(--text-muted)",
+                border: `1px solid ${totalRounds === r ? "var(--neon)" : "var(--border)"}`,
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer"
+              }}
+            >
+              {r} Rounds
+            </button>
+          ))}
+        </div>
         <button className="btn-redeem-ghost" style={{ width: "100%", justifyContent: "center", margin: 0 }} onClick={createPrivateGame}>
             Create Private Room
         </button>

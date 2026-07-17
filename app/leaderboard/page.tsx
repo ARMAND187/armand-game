@@ -13,16 +13,15 @@ export default async function LeaderboardPage() {
   const supabase = await createClient();
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("username")
-    .order("username", { ascending: true })
+    .select("username, wins")
+    .order("wins", { ascending: false, nullsFirst: false })
     .limit(50);
 
-  // For now, give them a mock score based on index since we don't have a score column yet
-  const leaders = (profiles || []).map((p: { username: string | null }, i: number) => ({
+  const leaders = (profiles || []).map((p: { username: string | null; wins: number | null }, i: number) => ({
     rank: i + 1,
     name: p.username ? (p.username.charAt(0).toUpperCase() + p.username.slice(1)) : "Anonymous",
     username: p.username || "anonymous",
-    score: 0,
+    score: p.wins || 0,
     games: 0,
   }));
 

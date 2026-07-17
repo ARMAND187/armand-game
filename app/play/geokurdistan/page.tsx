@@ -1,270 +1,417 @@
 "use client";
 
-/**
- * GeoKurdistan Game Page
- *
- * Split view:
- *  - Top  : Mapillary street-level imagery viewer (mapillary-js)
- *  - Bottom: react-leaflet map — click to drop a single marker
- *
- * The game is 100% free-to-play. Nothing is deducted from armandBalance.
- */
-
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ArrowLeft, RotateCcw, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, Trophy, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import { kurdistanLocations, KurdistanLocation } from "@/data/locations";
 import { calculateHaversineDistance } from "@/utils/haversine";
 
-// ── Dynamically import both panels (no SSR — both need window / DOM) ──
-const MapillaryViewer = dynamic(
-  () => import("@/components/MapillaryViewer"),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#0a0a14",
-          color: "#a1a1aa",
-          fontSize: 13,
-          gap: 8,
-        }}
-      >
-        <div className="mly-spinner" />
-        Initialising viewer…
-      </div>
-    ),
-  }
-);
+const MapillaryViewer = dynamic(() => import("@/components/MapillaryViewer"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full items-center justify-center bg-[#0a0a14] text-[#a1a1aa] text-[13px] gap-2">
+      <div className="mly-spinner" /> Initialising viewer…
+    </div>
+  ),
+});
 
 const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
   loading: () => (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#0d0d1a",
-        color: "#a1a1aa",
-        fontSize: 13,
-      }}
-    >
+    <div className="flex h-full items-center justify-center bg-[#0d0d1a] text-[#a1a1aa] text-[13px]">
       Loading map…
     </div>
   ),
 });
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-export interface GuessResult {
-  location: KurdistanLocation;
+export interface MultiplayerGuess {
+  username: string;
   guessLat: number;
   guessLng: number;
   distanceKm: number;
+  score: number;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+type GameState = "WAITING" | "PLAYING" | "ROUND_END" | "GAME_OVER";
 
+function calculateScore(distanceKm: number): number {
+  if (distanceKm < 1) return 100;
+  if (distanceKm > 500) return 0;
+  // Exponential decay: 100 * e^(-k * distance)
+  const k = 0.01;
+  return Math.max(0, Math.round(100 * Math.exp(-k * distanceKm)));
+}
 
-function gradeDistance(km: number): {
-  emoji: string;
-  label: string;
-  color: string;
-} {
+function gradeDistance(km: number) {
   if (km < 5)   return { emoji: "🎯", label: "Incredible! Under 5 km!", color: "#4ade80" };
   if (km < 20)  return { emoji: "🔥", label: "Excellent! Very close.",   color: "#a78bfa" };
   if (km < 50)  return { emoji: "👍", label: "Great guess!",             color: "#60a5fa" };
-  if (km < 100) return { emoji: "🗺️", label: "Not bad — keep exploring.", color: "#fbbf24" };
-  return             { emoji: "😅", label: "Far off — explore more!",   color: "#f87171" };
+  if (km < 100) return { emoji: "🗺️", label: "Not bad.",                 color: "#fbbf24" };
+  return             { emoji: "😅", label: "Far off!",                  color: "#f87171" };
 }
 
-// ---------------------------------------------------------------------------
-// Result Modal
-// ---------------------------------------------------------------------------
-function ResultModal({
-  result,
-  onNextRound,
-}: {
-  result: GuessResult;
-  onNextRound: () => void;
-}) {
-  const grade = gradeDistance(result.distanceKm);
-  return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <div className="modal-sheet">
-        <div className="modal-handle" />
-        <div className="modal-emoji">{grade.emoji}</div>
-        <h2 className="modal-title">{result.location.name}</h2>
-        <p className="modal-location">
-          {result.location.city} · {result.location.lat.toFixed(4)}°N,{" "}
-          {result.location.lng.toFixed(4)}°E
-        </p>
-        <div className="modal-distance-card">
-          <div className="modal-distance-label">You missed by</div>
-          <div
-            className="modal-distance-value"
-            style={{ color: grade.color }}
-          >
-            {result.distanceKm < 1
-              ? `${Math.round(result.distanceKm * 1000)}`
-              : result.distanceKm.toFixed(1)}
-          </div>
-          <div className="modal-distance-unit">
-            {result.distanceKm < 1 ? "metres" : "kilometres"}
-          </div>
-          <div
-            className="modal-distance-grade"
-            style={{ color: grade.color }}
-          >
-            {grade.label}
-          </div>
-        </div>
-        <button
-          className="btn-next-round"
-          onClick={onNextRound}
-          id="next-round-btn"
-        >
-          Play Next Round →
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 export default function GeoKurdistanPage() {
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId");
+  const supabase = createClient();
+
+  const [gameState, setGameState] = useState<GameState>("WAITING");
   const [round, setRound] = useState(1);
-  const location = kurdistanLocations[(round - 1) % kurdistanLocations.length];
+  const [totalRounds, setTotalRounds] = useState(5);
+  const [locationIndices, setLocationIndices] = useState<number[]>([]);
+  const [timer, setTimer] = useState(30);
+  
+  const [myUsername, setMyUsername] = useState("Player");
+  const [isHost, setIsHost] = useState(false);
+  const [players, setPlayers] = useState<string[]>([]);
+  const [totalScores, setTotalScores] = useState<Record<string, number>>({});
+  
+  const [guessMarker, setGuessMarker] = useState<{ lat: number; lng: number } | null>(null);
+  const [hasGuessed, setHasGuessed] = useState(false);
+  const [roundGuesses, setRoundGuesses] = useState<MultiplayerGuess[]>([]);
 
-  const [guessMarker, setGuessMarker] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [result, setResult] = useState<GuessResult | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.user_metadata?.username) {
+        setMyUsername(data.user.user_metadata.username);
+      }
+    });
+  }, [supabase]);
 
-  const handleMapClick = useCallback(
-    (lat: number, lng: number) => {
-      if (result) return;
-      setGuessMarker({ lat, lng });
-    },
-    [result]
-  );
+  // Initialise Multiplayer Connection
+  useEffect(() => {
+    if (!roomId) {
+      // Single player fallback if no room ID provided
+      setLocationIndices([0, 1, 2, 3, 4]);
+      setTotalRounds(5);
+      setGameState("PLAYING");
+      return;
+    }
 
-  const handleGuess = () => {
-    if (!guessMarker) return;
-    const distanceKm = calculateHaversineDistance(
-      guessMarker.lat,
-      guessMarker.lng,
-      location.lat,
-      location.lng
-    );
-    setResult({
-      location,
-      guessLat: guessMarker.lat,
-      guessLng: guessMarker.lng,
-      distanceKm,
+    const initRoom = async () => {
+      const { data: room } = await supabase.from("rooms").select("*").eq("id", roomId).single();
+      if (!room) return;
+      
+      setTotalRounds(room.total_rounds || 5);
+      const isRoomHost = room.host_username === myUsername;
+      setIsHost(isRoomHost);
+
+      const channel = supabase.channel(`game:${roomId}`);
+      channelRef.current = channel;
+
+      channel
+        .on("broadcast", { event: "GAME_START" }, (payload) => {
+          setLocationIndices(payload.payload.indices);
+          setPlayers(payload.payload.players);
+          setGameState("PLAYING");
+          setTimer(30);
+          setRound(1);
+          setRoundGuesses([]);
+          setHasGuessed(false);
+          setGuessMarker(null);
+        })
+        .on("broadcast", { event: "PLAYER_GUESS" }, (payload) => {
+          setRoundGuesses((prev) => {
+            const exists = prev.find(g => g.username === payload.payload.username);
+            if (exists) return prev;
+            return [...prev, payload.payload as MultiplayerGuess];
+          });
+        })
+        .on("broadcast", { event: "NEXT_ROUND" }, () => {
+          setRound((r) => r + 1);
+          setGameState("PLAYING");
+          setTimer(30);
+          setRoundGuesses([]);
+          setHasGuessed(false);
+          setGuessMarker(null);
+        })
+        .subscribe(async (status) => {
+          if (status === "SUBSCRIBED" && isRoomHost) {
+            // Wait a sec for others to subscribe before sending game start
+            setTimeout(async () => {
+              // Generate random locations
+              const indices = Array.from({ length: room.total_rounds || 5 }, () => 
+                Math.floor(Math.random() * kurdistanLocations.length)
+              );
+              // Fetch players from room
+              const { data: updatedRoom } = await supabase.from("rooms").select("player_count").eq("id", roomId).single();
+              // Broadcast start
+              // Note: without Presence we don't strictly know who is here right now. 
+              // We'll use a dummy player list based on the room's player_count, 
+              // but actually the guesses rely on who sends PLAYER_GUESS. 
+              // For a true multiplayer we should use Presence, but Broadcast is fine for testing.
+              // To handle "end round when everyone guesses", we need to know the number of players.
+              const pCount = updatedRoom?.player_count || 1;
+              channel.send({
+                type: "broadcast",
+                event: "GAME_START",
+                payload: { indices, players: Array.from({length: pCount}, (_, i) => `Player${i+1}`) }, 
+              });
+              
+              setLocationIndices(indices);
+              setPlayers(Array.from({length: pCount}, (_, i) => `Player${i+1}`));
+              setGameState("PLAYING");
+              setTimer(30);
+            }, 2000);
+          }
+        });
+    };
+
+    initRoom();
+    
+    return () => {
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
+    };
+  }, [roomId, myUsername, supabase]);
+
+  // Timer logic
+  useEffect(() => {
+    if (gameState !== "PLAYING") return;
+    
+    const interval = setInterval(() => {
+      setTimer((t) => {
+        if (t <= 1) {
+          clearInterval(interval);
+          handleTimeUp();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [gameState]);
+
+  // End round if everyone guessed
+  useEffect(() => {
+    if (gameState === "PLAYING" && roundGuesses.length > 0 && players.length > 0) {
+      if (roundGuesses.length >= players.length) {
+        setGameState("ROUND_END");
+        updateTotalScores();
+      }
+    }
+  }, [roundGuesses, players, gameState]);
+
+  const handleTimeUp = () => {
+    if (!hasGuessed) {
+      submitGuess(null);
+    }
+    setGameState("ROUND_END");
+    updateTotalScores();
+  };
+
+  const updateTotalScores = () => {
+    setTotalScores(prev => {
+      const newScores = { ...prev };
+      roundGuesses.forEach(g => {
+        newScores[g.username] = (newScores[g.username] || 0) + g.score;
+      });
+      return newScores;
     });
   };
 
-  const handleNextRound = () => {
-    setGuessMarker(null);
-    setResult(null);
-    setRound((r) => r + 1);
+  const submitGuess = (marker: { lat: number; lng: number } | null) => {
+    setHasGuessed(true);
+    const location = kurdistanLocations[locationIndices[round - 1]] || kurdistanLocations[0];
+    
+    let distanceKm = 99999;
+    let score = 0;
+
+    if (marker) {
+      distanceKm = calculateHaversineDistance(marker.lat, marker.lng, location.lat, location.lng);
+      score = calculateScore(distanceKm);
+    }
+
+    const myGuess: MultiplayerGuess = {
+      username: myUsername,
+      guessLat: marker?.lat || 0,
+      guessLng: marker?.lng || 0,
+      distanceKm,
+      score,
+    };
+
+    if (channelRef.current && roomId) {
+      channelRef.current.send({
+        type: "broadcast",
+        event: "PLAYER_GUESS",
+        payload: myGuess
+      });
+    }
+
+    setRoundGuesses(prev => {
+      if (prev.find(g => g.username === myUsername)) return prev;
+      return [...prev, myGuess];
+    });
   };
 
+  const handleGuessBtn = () => {
+    if (!guessMarker || hasGuessed) return;
+    submitGuess(guessMarker);
+  };
+
+  const handleNextRound = async () => {
+    if (round >= totalRounds) {
+      setGameState("GAME_OVER");
+      
+      // Update wins if I am the host, I will calculate the winner
+      if (isHost) {
+        let maxScore = -1;
+        let winner = "";
+        Object.entries(totalScores).forEach(([user, score]) => {
+          if (score > maxScore) {
+            maxScore = score;
+            winner = user;
+          }
+        });
+        
+        if (winner) {
+          // Fire and forget updating the wins
+          fetch("/api/game/winner", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ winnerUsername: winner })
+          }).catch(console.error);
+        }
+      }
+    } else {
+      if (channelRef.current && roomId) {
+        channelRef.current.send({ type: "broadcast", event: "NEXT_ROUND" });
+      }
+      setRound((r) => r + 1);
+      setGameState("PLAYING");
+      setTimer(30);
+      setRoundGuesses([]);
+      setHasGuessed(false);
+      setGuessMarker(null);
+    }
+  };
+
+  if (gameState === "WAITING") {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#0d0d1a] text-white flex-col gap-4">
+        <Loader2 className="animate-spin" size={48} color="var(--neon)" />
+        <h2 className="text-xl font-bold">Waiting for host to start the game...</h2>
+      </div>
+    );
+  }
+
+  const location = kurdistanLocations[locationIndices[round - 1]] || kurdistanLocations[0];
+  const myCurrentGuess = roundGuesses.find(g => g.username === myUsername);
+  
   return (
     <>
       <div className="geo-page">
-        {/* ── Top bar ── */}
         <div className="geo-top-bar">
-          <Link
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              color: "var(--text-muted)",
-              textDecoration: "none",
-            }}
-          >
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", textDecoration: "none" }}>
             <ArrowLeft size={18} />
           </Link>
           <div style={{ textAlign: "center" }}>
-            <div className="geo-round-badge">GeoKurdistan</div>
-            <div className="geo-round-number">Round {round}</div>
+            <div className="geo-round-badge">Round {round} / {totalRounds}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: timer <= 10 ? "#ef4444" : "var(--neon)", fontVariantNumeric: "tabular-nums" }}>
+              {timer}s
+            </div>
           </div>
-          <button
-            onClick={handleNextRound}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--text-muted)",
-              display: "flex",
-              alignItems: "center",
-              padding: 4,
-            }}
-            title="Skip round"
-          >
-            <RotateCcw size={16} />
-          </button>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 700 }}>
+            {myUsername} <span style={{ color: "var(--neon)", marginLeft: 4 }}>{totalScores[myUsername] || 0} pts</span>
+          </div>
         </div>
 
-        {/* ── Split view ── */}
         <div className="geo-split">
-          {/* TOP: Mapillary street-level viewer */}
           <div className="geo-streetview flex-1 min-h-0 relative h-full w-full">
-            <MapillaryViewer
-              lat={location.lat}
-              lng={location.lng}
-              locationName={location.name}
-              onSkip={handleNextRound}
-            />
+            <MapillaryViewer lat={location.lat} lng={location.lng} locationName={location.name} onSkip={() => {}} />
           </div>
 
-          {/* BOTTOM: Leaflet guess map */}
           <div className="geo-map-panel flex-1 min-h-0 relative flex flex-col h-full w-full overflow-hidden">
             <LeafletMap
-              onMapClick={handleMapClick}
+              onMapClick={(lat, lng) => { if (!hasGuessed && gameState === "PLAYING") setGuessMarker({lat, lng})}}
               guessMarker={guessMarker}
-              realLocation={
-                result ? { lat: location.lat, lng: location.lng } : null
-              }
-              guessResult={result}
-              locked={!!result}
+              realLocation={gameState === "ROUND_END" ? { lat: location.lat, lng: location.lng } : null}
+              guessResult={myCurrentGuess ? { location, guessLat: myCurrentGuess.guessLat, guessLng: myCurrentGuess.guessLng, distanceKm: myCurrentGuess.distanceKm } : null}
+              locked={hasGuessed || gameState !== "PLAYING"}
             />
 
-            {/* Floating Guess button */}
-            <button
-              className="guess-btn"
-              onClick={handleGuess}
-              disabled={!guessMarker || !!result}
-              id="guess-location-btn"
-              aria-label="Guess Location"
-            >
-              <MapPin size={18} />
-              {guessMarker ? "Guess Location" : "Tap Map to Pin"}
-            </button>
+            {gameState === "PLAYING" && (
+              <button
+                className="guess-btn"
+                onClick={handleGuessBtn}
+                disabled={!guessMarker || hasGuessed}
+                style={{ opacity: hasGuessed ? 0.5 : 1 }}
+              >
+                <MapPin size={18} />
+                {hasGuessed ? "Waiting for others..." : (guessMarker ? "Guess Location" : "Tap Map to Pin")}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Result modal */}
-      {result && (
-        <ResultModal result={result} onNextRound={handleNextRound} />
+      {gameState === "ROUND_END" && (
+        <div className="modal-backdrop">
+          <div className="modal-sheet" style={{ maxWidth: 500 }}>
+            <h2 className="modal-title" style={{ marginBottom: 16 }}>Round {round} Results</h2>
+            <p className="modal-location" style={{ marginBottom: 24 }}>
+              {location.name}, {location.city}
+            </p>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
+              {roundGuesses.sort((a,b) => b.score - a.score).map((g, i) => {
+                const grade = gradeDistance(g.distanceKm);
+                return (
+                  <div key={g.username} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: g.username === myUsername ? "rgba(167,139,250,0.1)" : "var(--bg-elevated)", padding: 12, borderRadius: 12, border: g.username === myUsername ? "1px solid rgba(167,139,250,0.3)" : "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: i === 0 ? "#fbbf24" : "var(--text-muted)" }}>#{i+1}</div>
+                      <div style={{ fontWeight: 700, color: g.username === myUsername ? "var(--neon)" : "var(--text-primary)" }}>{g.username}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                      <div style={{ fontSize: 12, color: grade.color }}>{g.distanceKm > 9000 ? "Time's up" : `${g.distanceKm.toFixed(1)} km`}</div>
+                      <div style={{ fontWeight: 800, color: "#fff", background: "rgba(255,255,255,0.1)", padding: "4px 10px", borderRadius: 8 }}>+{g.score}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            
+            {isHost ? (
+              <button className="btn-next-round" onClick={handleNextRound}>
+                {round >= totalRounds ? "View Final Results" : "Start Next Round →"}
+              </button>
+            ) : (
+              <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 14, fontWeight: 700 }}>Waiting for host to start next round...</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {gameState === "GAME_OVER" && (
+        <div className="modal-backdrop">
+          <div className="modal-sheet" style={{ maxWidth: 500, padding: 32 }}>
+            <Trophy size={48} color="#fbbf24" style={{ margin: "0 auto 16px" }} />
+            <h2 className="modal-title" style={{ fontSize: 32, marginBottom: 8 }}>Game Over!</h2>
+            <div style={{ marginBottom: 32, color: "var(--text-muted)", fontWeight: 700 }}>Final Standings</div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
+              {Object.entries(totalScores)
+                .sort((a,b) => b[1] - a[1])
+                .map(([username, score], i) => (
+                  <div key={username} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: i === 0 ? "rgba(251,191,36,0.1)" : "var(--bg-elevated)", padding: 16, borderRadius: 12, border: i === 0 ? "1px solid rgba(251,191,36,0.3)" : "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#b45309" : "var(--text-muted)" }}>#{i+1}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: username === myUsername ? "var(--neon)" : "var(--text-primary)" }}>{username}</div>
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{score} <span style={{ fontSize: 14, color: "var(--text-muted)" }}>pts</span></div>
+                  </div>
+                ))}
+            </div>
+
+            <Link href="/" className="btn-lobby-play" style={{ display: "flex", justifyContent: "center", textDecoration: "none" }}>
+              Return to Lobby
+            </Link>
+          </div>
+        </div>
       )}
     </>
   );
