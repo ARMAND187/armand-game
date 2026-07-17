@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-
+import InstallAppButton from "@/components/InstallAppButton";
 const menuItems = [
   { icon: Gift,    label: "Redeem Code",    sub: "Enter a gift code",      href: "/redeem" },
   { icon: Shield,  label: "Privacy & Security", sub: "Manage your account", href: "/settings" },
@@ -239,6 +239,8 @@ export default function ProfilePage() {
           </Link>
         )}
         
+        <InstallAppButton />
+
         {menuItems.map(({ icon: Icon, label, sub, href }, i) => (
           <Link
             key={label}
