@@ -189,8 +189,12 @@ function GeoKurdistanInner() {
             return [...prev, payload.payload as MultiplayerGuess];
           });
         })
-        .on("broadcast", { event: "NEXT_ROUND" }, () => {
-          setRound((r) => r + 1);
+        .on("broadcast", { event: "NEXT_ROUND" }, (payload) => {
+          if (payload.payload && payload.payload.round) {
+            setRound(payload.payload.round);
+          } else {
+            setRound((r) => r + 1); // fallback
+          }
           setGameState("PLAYING");
           setTimer(30);
           setRoundGuesses([]);
@@ -327,10 +331,11 @@ function GeoKurdistanInner() {
         }
       }
     } else {
+      const nextRoundNum = round + 1;
       if (channelRef.current && roomId) {
-        channelRef.current.send({ type: "broadcast", event: "NEXT_ROUND" });
+        channelRef.current.send({ type: "broadcast", event: "NEXT_ROUND", payload: { round: nextRoundNum } });
       }
-      setRound((r) => r + 1);
+      setRound(nextRoundNum);
       setGameState("PLAYING");
       setTimer(30);
       setRoundGuesses([]);
