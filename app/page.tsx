@@ -17,7 +17,7 @@ export default function HomePage() {
   return (
     <div style={{ background: "#09090b", minHeight: "100vh", padding: "16px", paddingBottom: "100px" }}>
       {/* ── Header ── */}
-      <header className="flex items-center justify-between w-full mb-8 relative">
+      <header className="flex items-center justify-between w-full mb-8 relative pt-[max(env(safe-area-inset-top),1rem)]">
         <UserAvatar />
         <div className="flex items-center gap-3">
           <NotificationBell />

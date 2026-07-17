@@ -16,7 +16,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav pb-[max(env(safe-area-inset-bottom),1rem)]">
       {tabs.map(({ href, label, icon: Icon, match }) => {
         const isActive = match(pathname);
         return (
