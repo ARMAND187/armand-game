@@ -19,7 +19,6 @@ export default async function LeaderboardPage() {
 
   const leaders = (profiles || []).map((p: { username: string | null; wins: number | null }, i: number) => ({
     rank: i + 1,
-    name: p.username ? (p.username.charAt(0).toUpperCase() + p.username.slice(1)) : "Anonymous",
     username: p.username || "anonymous",
     score: p.wins || 0,
     games: 0,
@@ -55,10 +54,10 @@ export default async function LeaderboardPage() {
                         boxShadow: i === 1 ? "0 0 0 3px #09090b, 0 0 0 5px #fbbf24, 0 0 20px rgba(251,191,36,0.4)" : "none",
                       }}
                     >
-                      {p.name[0]}
+                      {p.username[0]?.toUpperCase()}
                     </div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textAlign: "center", marginTop: 6, width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {p.name}
+                      @{p.username}
                     </div>
                     <div
                       className="podium-block"
@@ -85,7 +84,7 @@ export default async function LeaderboardPage() {
           </div>
 
           {/* Full list */}
-          {leaders.map((player: { rank: number, name: string, username: string, score: number, games: number }) => (
+          {leaders.map((player: { rank: number, username: string, score: number, games: number }) => (
             <div key={player.rank} className="lb-row">
               <span
                 className="lb-rank"
@@ -94,11 +93,10 @@ export default async function LeaderboardPage() {
                 {MEDAL[player.rank - 1] ?? `#${player.rank}`}
               </span>
               <div className="lb-avatar" style={{ width: 36, height: 36, fontSize: 14 }}>
-                {player.name[0]}
+                {player.username[0]?.toUpperCase()}
               </div>
               <div className="lb-info">
-                <div className="lb-name">{player.name}</div>
-                <div className="lb-score">@{player.username}</div>
+                <div className="lb-name" style={{ textTransform: "none" }}>@{player.username}</div>
               </div>
               <div className="lb-balance">{player.score.toLocaleString()}</div>
             </div>
