@@ -34,6 +34,7 @@ export const viewport: Viewport = {
 };
 
 import GlobalToaster from "@/components/GlobalToaster";
+import PWAUpdater from "@/components/PWAUpdater";
 
 export default function RootLayout({
   children,
@@ -43,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
+        <PWAUpdater />
         <GlobalToaster />
         {/* Main scrollable area — padded so content clears the bottom nav */}
         <main className="app-shell">{children}</main>
