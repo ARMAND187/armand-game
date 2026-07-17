@@ -8,6 +8,14 @@ export default function UpdateNotification() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      // Register the service worker manually
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => {
+          console.log("Service Worker registered:", reg);
+        })
+        .catch((err) => console.error("Service Worker registration failed:", err));
+
       navigator.serviceWorker.addEventListener("controllerchange", () => {
         // This fires when the service worker controlling this page
         // changes, eg a new worker has skipped waiting and become active.
