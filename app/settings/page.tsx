@@ -1,8 +1,9 @@
 import Link from "next/link";
 import {
   HelpCircle, FileText, Shield, ChevronRight,
-  Bell, Palette, Trash2, LogOut, Info,
+  Bell, Palette, Trash2, Info,
 } from "lucide-react";
+import SignOutButton from "@/components/SignOutButton";
 
 export const metadata = {
   title: "Settings — Armand Games",
@@ -31,7 +32,6 @@ const sections: Array<{
     heading: "Account",
     items: [
       { icon: Trash2,  label: "Delete Account",   sub: "Permanently remove data",  href: "#", danger: true },
-      { icon: LogOut,  label: "Sign Out",          sub: "",                         href: "#", danger: true },
     ],
   },
 ];
@@ -52,7 +52,7 @@ export default function SettingsPage() {
                 href={href}
                 className="settings-menu-item"
                 style={{
-                  borderBottom: i < section.items.length - 1 ? "1px solid var(--border)" : "none",
+                  borderBottom: (i < section.items.length - 1 || section.heading === "Account") ? "1px solid var(--border)" : "none",
                   color: danger ? "#f87171" : undefined,
                 }}
               >
@@ -75,6 +75,10 @@ export default function SettingsPage() {
                 <ChevronRight size={16} color={danger ? "#f87171" : "var(--text-muted)"} />
               </Link>
             ))}
+            
+            {section.heading === "Account" && (
+              <SignOutButton />
+            )}
           </div>
         </div>
       ))}

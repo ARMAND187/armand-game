@@ -7,18 +7,21 @@ import {
   ChevronRight, Clock, Shield,
 } from "lucide-react";
 
-// Mock friend data — replace with Supabase queries
-const MOCK_FRIENDS = [
-  { id: "1", username: "soran_k",   displayName: "Soran K.",  online: true,  score: 12450 },
-  { id: "2", username: "dilan_h",   displayName: "Dilan H.",  online: false, score: 11200 },
-  { id: "3", username: "hana_b",    displayName: "Hana B.",   online: true,  score: 9870  },
-  { id: "4", username: "rayan_m",   displayName: "Rayan M.",  online: false, score: 8640  },
-];
-
-const MOCK_REQUESTS = [
-  { id: "5", username: "lavin_a", displayName: "Lavin A." },
-  { id: "6", username: "kawa_z",  displayName: "Kawa Z."  },
-];
+// TODO: Replace with real Supabase queries for the friends system
+interface Friend {
+  id: string;
+  username: string;
+  displayName: string;
+  online: boolean;
+  score: number;
+}
+interface Request {
+  id: string;
+  username: string;
+  displayName: string;
+}
+const MOCK_FRIENDS: Friend[] = [];
+const MOCK_REQUESTS: Request[] = [];
 
 type Tab = "friends" | "requests";
 
