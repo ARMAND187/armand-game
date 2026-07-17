@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Users, Globe, Loader2, Play, UserPlus, X, Check } from "lucide-react";
@@ -15,6 +15,8 @@ interface Props {
 
 export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const joinParam = searchParams.get("join");
   const supabase = createClient();
   const [matchState, setMatchState] = useState<MatchState>("idle");
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -25,6 +27,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [isHost, setIsHost] = useState(false);
   const [totalRounds, setTotalRounds] = useState<number>(5);
   const [region, setRegion] = useState<string>("All Kurdistan");
+  const [hasAutoJoined, setHasAutoJoined] = useState(false);
   
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friends, setFriends] = useState<{id: string, username: string}[]>([]);
@@ -247,18 +250,22 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     }
   };
 
-  const joinPrivateGame = async () => {
-    if (!roomCodeInput.trim()) return;
+  const joinPrivateGame = async (codeOrId?: string) => {
+    const target = typeof codeOrId === "string" ? codeOrId : roomCodeInput.trim();
+    if (!target) return;
     setMatchState("searching");
     
     try {
-      const { data: rooms, error } = await supabase
-        .from("rooms")
-        .select("*")
-        .eq("room_code", roomCodeInput.trim().toUpperCase())
-        .eq("status", "waiting")
-        .lt("player_count", 4)
-        .limit(1);
+      const isUuid = target.length > 20;
+      let query = supabase.from("rooms").select("*").eq("status", "waiting").lt("player_count", 4).limit(1);
+      
+      if (isUuid) {
+        query = query.eq("id", target);
+      } else {
+        query = query.eq("room_code", target.toUpperCase());
+      }
+
+      const { data: rooms, error } = await query;
 
       if (error || !rooms || rooms.length === 0) {
         setMatchState("friends");
@@ -282,6 +289,14 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       alert("Failed to join private room.");
     }
   };
+
+  useEffect(() => {
+    if (joinParam && myUsername !== "Player" && !hasAutoJoined) {
+      setHasAutoJoined(true);
+      joinPrivateGame(joinParam);
+      router.replace(`/lobby/${gameId}`);
+    }
+  }, [joinParam, myUsername, hasAutoJoined, router, gameId]);
 
   if (matchState === "idle") {
     return (
@@ -335,7 +350,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             value={roomCodeInput}
             onChange={(e) => setRoomCodeInput(e.target.value)}
           />
-          <button className="btn-lobby-play" style={{ borderRadius: 10, padding: "10px 20px" }} onClick={joinPrivateGame}>
+          <button className="btn-lobby-play" style={{ borderRadius: 10, padding: "10px 20px" }} onClick={() => joinPrivateGame()}>
             Join
           </button>
         </div>
