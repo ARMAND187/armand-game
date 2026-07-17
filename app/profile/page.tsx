@@ -26,19 +26,33 @@ export default function ProfilePage() {
 
   const supabase = createClient();
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user?.user_metadata?.username) {
-        setUsername(user.user_metadata.username);
-        setEditUsername(user.user_metadata.username);
-      } else {
-        setUsername("Anonymous");
-        setEditUsername("Anonymous");
+      if (user) {
+        if (user.user_metadata?.username) {
+          setUsername(user.user_metadata.username);
+          setEditUsername(user.user_metadata.username);
+        } else {
+          setUsername("Anonymous");
+          setEditUsername("Anonymous");
+        }
+        
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", user.id)
+          .single();
+          
+        if (profile?.is_admin) {
+          setIsAdmin(true);
+        }
       }
     };
     fetchUser();
-  }, [supabase.auth]);
+  }, [supabase.auth, supabase]);
 
 
 
@@ -173,6 +187,25 @@ export default function ProfilePage() {
 
       {/* ── Menu ── */}
       <div className="settings-card">
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="settings-menu-item"
+            style={{ borderBottom: "1px solid var(--border)" }}
+          >
+            <div className="settings-menu-left">
+              <div className="profile-menu-icon" style={{ background: "rgba(167, 139, 250, 0.2)" }}>
+                <Shield size={17} color="var(--neon)" />
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--neon)" }}>Admin Dashboard</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>Manage users and send broadcasts</div>
+              </div>
+            </div>
+            <ChevronRight size={16} color="var(--text-muted)" />
+          </Link>
+        )}
+        
         {menuItems.map(({ icon: Icon, label, sub, href }, i) => (
           <Link
             key={label}
