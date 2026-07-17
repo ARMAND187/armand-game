@@ -299,15 +299,15 @@ function GeoKurdistanInner() {
 
   // End round if everyone guessed
   useEffect(() => {
-    if (gameState === "PLAYING" && roundGuesses.length > 0 && players.length > 0) {
-      if (roundGuesses.length >= players.length) {
+    if (gameState === "PLAYING" && roundGuesses.length > 0) {
+      if (!roomId || (players.length > 0 && roundGuesses.length >= players.length)) {
         setTimeout(() => {
           setGameState("ROUND_END");
           updateTotalScores();
         }, 0);
       }
     }
-  }, [roundGuesses, players, gameState, updateTotalScores]);
+  }, [roundGuesses, players, gameState, updateTotalScores, roomId]);
 
   const handleGuessBtn = () => {
     if (!guessMarker || hasGuessed) return;
@@ -322,7 +322,7 @@ function GeoKurdistanInner() {
       }
       
       // Update wins if I am the host, I will calculate the winner
-      if (isHost) {
+      if (isHost && roomId) {
         let maxScore = -1;
         let winner = "";
         Object.entries(totalScores).forEach(([user, score]) => {
@@ -387,13 +387,15 @@ function GeoKurdistanInner() {
   };
 
   useEffect(() => {
-    if (gameState === "ROUND_END" && isHost) {
+    if (gameState === "ROUND_END" && (!roomId || isHost)) {
+      // In multiplayer, the host triggers the next round after 5 seconds
+      // In single player, we also auto-advance after 5 seconds
       const t = setTimeout(() => {
         handleNextRound();
       }, 5000);
       return () => clearTimeout(t);
     }
-  }, [gameState, isHost, handleNextRound]);
+  }, [gameState, isHost, handleNextRound, roomId]);
 
   if (gameState === "WAITING") {
     return (
