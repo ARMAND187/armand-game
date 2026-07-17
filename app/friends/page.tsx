@@ -344,10 +344,11 @@ export default function FriendsPage() {
       </div>
 
       {/* ── Section 2: Party Lounge ── */}
-      <div className="border border-purple-500/50 rounded-2xl p-6 w-full bg-zinc-900/50">
-        <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
-          🎉 Party Lounge
-        </h2>
+      <div className="border border-purple-500/50 rounded-2xl w-full bg-zinc-900/50 overflow-hidden">
+        <div className="p-6 md:p-8">
+          <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
+            🎉 Party Lounge
+          </h2>
         
         {activeParty && myUsername ? (
           <div>
@@ -403,6 +404,7 @@ export default function FriendsPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* ── Section 3: Active Parties ── */}

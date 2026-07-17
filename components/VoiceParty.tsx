@@ -112,7 +112,7 @@ function PartyLoungeInner() {
       </div>
 
       {/* Control Panel */}
-      <div className="bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-xl mt-auto">
+      <div className="bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-xl mt-auto mx-4 mb-4">
         <div className="lk-button-group">
           <TrackToggle source={Track.Source.Microphone} />
           <DisconnectButton>Leave Party</DisconnectButton>
