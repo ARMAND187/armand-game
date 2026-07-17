@@ -177,7 +177,7 @@ export default function FriendsPage() {
     };
   }, [myUserId, supabase]);
 
-  const activeFriends = friends.filter(f => f.currentParty !== null);
+  const activeFriends = friends.filter(f => f.currentParty !== null && f.currentParty !== activeParty);
 
   const handleCreateParty = async () => {
     if (!myUserId) return;
@@ -357,41 +357,14 @@ export default function FriendsPage() {
             onLeave={handleLeaveParty} 
           />
         ) : (
-          <div>
-            <p className="text-sm text-zinc-400 mb-4">Create a new voice party or jump into an existing one with your friends.</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              {/* Create Section */}
-              <div className="flex items-center justify-center">
-                <button 
-                  onClick={handleCreateParty}
-                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 w-full shadow-lg"
-                >
-                  <Plus size={18} /> Create Party
-                </button>
-              </div>
-
-              {/* Join Section */}
-              <div className="flex items-center justify-center w-full">
-                <div className="relative w-full">
-                  <input 
-                    type="text" 
-                    placeholder="Enter Code..." 
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-full pl-6 pr-24 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all uppercase font-mono shadow-lg"
-                    value={partyCodeInput}
-                    onChange={(e) => setPartyCodeInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleJoinParty()}
-                  />
-                  <button 
-                    onClick={() => handleJoinParty()}
-                    disabled={!partyCodeInput.trim()}
-                    className="absolute right-1.5 top-1.5 bottom-1.5 bg-purple-600 hover:bg-purple-500 text-white px-6 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                  >
-                    Join
-                  </button>
-                </div>
-              </div>
-            </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center p-4">
+            <button 
+              onClick={handleCreateParty}
+              className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg"
+            >
+              <Plus size={18} /> Create Party
+            </button>
           </div>
         )}
         </div>
@@ -403,18 +376,18 @@ export default function FriendsPage() {
           <h3 className="text-zinc-400 font-semibold text-sm uppercase tracking-wider mb-2">Friends in Parties</h3>
           <div className="flex flex-wrap gap-3">
             {activeFriends.map(f => (
-              <div key={f.id} className="bg-zinc-900 border border-purple-500/30 rounded-xl p-3 flex items-center gap-3 pr-4 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
-                <img 
-                  src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`} 
-                  alt="Avatar" 
-                  className="w-8 h-8 rounded-full border border-zinc-700 bg-zinc-800"
-                />
-                <div>
+              <div key={f.id} className="w-full flex items-center justify-between bg-zinc-950 border border-purple-500/40 rounded-xl p-3 md:p-4 mb-2">
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`} 
+                    alt="Avatar" 
+                    className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800"
+                  />
                   <div className="text-sm font-bold text-white">@{f.username}</div>
                 </div>
                 <button 
                   onClick={() => handleJoinParty(f.currentParty!)}
-                  className="ml-2 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 text-xs px-3 py-1.5 rounded-lg font-bold transition-colors"
+                  className="bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 text-sm px-4 py-2 rounded-lg font-bold transition-colors whitespace-nowrap"
                 >
                   Join
                 </button>
