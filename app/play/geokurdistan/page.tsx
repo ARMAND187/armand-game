@@ -159,7 +159,8 @@ function GeoKurdistanInner() {
     if (!roomId) {
       // Single player fallback if no room ID provided
       setTimeout(() => {
-        const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * availableLocations.length));
+        const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+        const indices = shuffled.slice(0, totalRounds);
         setLocationIndices(indices);
         setGameState("PLAYING");
       }, 0);
@@ -246,9 +247,8 @@ function GeoKurdistanInner() {
             // Wait a sec for others to subscribe before sending game start
             setTimeout(async () => {
               // Generate random locations
-              const indices = Array.from({ length: room.total_rounds || 5 }, () => 
-                Math.floor(Math.random() * availableLocations.length)
-              );
+              const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+              const indices = shuffled.slice(0, room.total_rounds || 5);
               // Fetch players from room
               const { data: updatedRoom } = await supabase.from("rooms").select("player_count").eq("id", roomId).single();
               const pCount = updatedRoom?.player_count || 1;
@@ -357,7 +357,8 @@ function GeoKurdistanInner() {
 
   const handlePlayAgain = () => {
     if (!roomId) {
-      const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * availableLocations.length));
+      const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+      const indices = shuffled.slice(0, totalRounds);
       setLocationIndices(indices);
       setGameState("PLAYING");
       setTimer(30);
@@ -368,7 +369,8 @@ function GeoKurdistanInner() {
       setGuessMarker(null);
     } else {
       if (isHost && channelRef.current) {
-        const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * availableLocations.length));
+        const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+        const indices = shuffled.slice(0, totalRounds);
         channelRef.current.send({
            type: "broadcast",
            event: "GAME_START",

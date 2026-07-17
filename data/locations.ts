@@ -182,4 +182,65 @@ export const kurdistanLocations: KurdistanLocation[] = [
     "lng": 44.037,
     "imageId": undefined
   }
+  ,
+  {
+    "name": "Kirkuk Citadel",
+    "city": "Kirkuk",
+    "lat": 35.474,
+    "lng": 44.394
+},
+  {
+    "name": "Koya Center",
+    "city": "Koya",
+    "lat": 36.084,
+    "lng": 44.627
+},
+  {
+    "name": "Ranya Center",
+    "city": "Ranya",
+    "lat": 36.255,
+    "lng": 44.882
+},
+  {
+    "name": "Halabja Center",
+    "city": "Halabja",
+    "lat": 35.177,
+    "lng": 45.981
+},
+  {
+    "name": "Soran Center",
+    "city": "Soran",
+    "lat": 36.653,
+    "lng": 44.542
+},
+  {
+    "name": "Choman Center",
+    "city": "Choman",
+    "lat": 36.634,
+    "lng": 44.888
+},
+  {
+    "name": "Darbandikhan Center",
+    "city": "Darbandikhan",
+    "lat": 35.114,
+    "lng": 45.694
+},
+  {
+    "name": "Shaqlawa View",
+    "city": "Erbil",
+    "lat": 36.402,
+    "lng": 44.321
+},
+  {
+    "name": "Penjwen Center",
+    "city": "Penjwen",
+    "lat": 35.618,
+    "lng": 45.955
+},
+  {
+    "name": "Rwanduz Gorge",
+    "city": "Rawanduz",
+    "lat": 36.613,
+    "lng": 44.517
+}
 ];
