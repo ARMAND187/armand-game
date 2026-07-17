@@ -77,6 +77,12 @@ function GeoKurdistanInner() {
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  // Keep a ref of the latest state for the host to sync to late joiners
+  const stateRef = useRef({ locationIndices, players, round, timer, gameState, roundGuesses, totalScores });
+  useEffect(() => {
+    stateRef.current = { locationIndices, players, round, timer, gameState, roundGuesses, totalScores };
+  }, [locationIndices, players, round, timer, gameState, roundGuesses, totalScores]);
+
   const updateTotalScores = useCallback(() => {
     setTotalScores(prev => {
       const newScores = { ...prev };
@@ -151,11 +157,15 @@ function GeoKurdistanInner() {
     }
 
     const initRoom = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const realUsername = userData.user?.user_metadata?.username || "Player";
+      setMyUsername(realUsername);
+
       const { data: room } = await supabase.from("rooms").select("*").eq("id", roomId).single();
       if (!room) return;
       
       setTotalRounds(room.total_rounds || 5);
-      const isRoomHost = room.host_username === myUsername;
+      const isRoomHost = room.host_username === realUsername;
       setIsHost(isRoomHost);
 
       const channel = supabase.channel(`game:${roomId}`);
@@ -187,8 +197,30 @@ function GeoKurdistanInner() {
           setHasGuessed(false);
           setGuessMarker(null);
         })
+        .on("broadcast", { event: "REQUEST_SYNC" }, () => {
+          if (isRoomHost) {
+            channel.send({
+              type: "broadcast",
+              event: "SYNC_STATE",
+              payload: stateRef.current
+            });
+          }
+        })
+        .on("broadcast", { event: "SYNC_STATE" }, (payload) => {
+          if (!isRoomHost) {
+            const state = payload.payload;
+            setLocationIndices(state.locationIndices);
+            setPlayers(state.players);
+            setRound(state.round);
+            setTimer(state.timer);
+            setGameState(state.gameState);
+            setRoundGuesses(state.roundGuesses);
+            setTotalScores(state.totalScores);
+          }
+        })
         .subscribe(async (status) => {
-          if (status === "SUBSCRIBED" && isRoomHost) {
+          if (status === "SUBSCRIBED") {
+            if (isRoomHost) {
             // Wait a sec for others to subscribe before sending game start
             setTimeout(async () => {
               // Generate random locations
@@ -209,6 +241,12 @@ function GeoKurdistanInner() {
               setGameState("PLAYING");
               setTimer(30);
             }, 2000);
+            } else {
+              // I am a guest, request current state from host
+              setTimeout(() => {
+                channel.send({ type: "broadcast", event: "REQUEST_SYNC" });
+              }, 500);
+            }
           }
         });
     };
