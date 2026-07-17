@@ -30,7 +30,7 @@ export default function RedeemPage() {
   return (
     <div className="page-shell">
       <h1 className="page-header">Redeem</h1>
-      <p className="page-subtitle">Enter a code or buy Armand Balance</p>
+      <p className="page-subtitle">Enter a code or buy Balance</p>
 
       {/* ── Code Redemption ── */}
       <div className="redeem-card">
@@ -89,7 +89,7 @@ export default function RedeemPage() {
       {/* ── Buy Options (Coming Soon) ── */}
       <div className="redeem-section-header">
         <Sparkles size={14} color="var(--neon)" />
-        <span>Buy Armand Balance</span>
+        <span>Buy Balance</span>
       </div>
 
       {[

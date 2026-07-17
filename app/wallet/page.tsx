@@ -11,7 +11,7 @@ export default function WalletPage() {
   return (
     <div className="wallet-page">
       <h1 className="page-header">Wallet</h1>
-      <p className="page-subtitle">Your Armand Balance</p>
+      <p className="page-subtitle">Your Balance</p>
 
       {/* Hero balance card */}
       <div className="wallet-hero">
@@ -20,11 +20,11 @@ export default function WalletPage() {
           color="#a78bfa"
           style={{ margin: "0 auto 16px", filter: "drop-shadow(0 0 12px rgba(167,139,250,0.6))" }}
         />
-        <div className="wallet-balance-label">Armand Balance</div>
+        <div className="wallet-balance-label">Balance</div>
         <div className="wallet-balance-value">
           {armandBalance.toLocaleString()}
         </div>
-        <div className="wallet-balance-unit">Armand Balance = {armandBalance}</div>
+        <div className="wallet-balance-unit">Balance = {armandBalance}</div>
       </div>
 
       {/* Quick stats */}

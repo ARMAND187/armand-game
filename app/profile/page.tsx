@@ -201,7 +201,7 @@ export default function ProfilePage() {
       {/* ── Balance tile ── */}
       <div className="profile-balance-tile">
         <div>
-          <div className="profile-balance-label">Armand Balance</div>
+          <div className="profile-balance-label">Balance</div>
           <div className="profile-balance-value">{armandBalance.toLocaleString()}</div>
         </div>
         <Link href="/redeem" className="btn-redeem-small" id="profile-redeem-btn">
