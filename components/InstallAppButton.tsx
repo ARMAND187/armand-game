@@ -21,18 +21,16 @@ export default function InstallAppButton() {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    
-    deferredPrompt.prompt();
-    
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === "accepted") {
-      setDeferredPrompt(null);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      alert("Install prompt not ready! You may have already installed the app, or you need to completely clear your Chrome cache so it sees the new manifest icons.");
     }
   };
-
-  if (!deferredPrompt) return null;
 
   return (
     <button 
