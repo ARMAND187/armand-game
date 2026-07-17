@@ -6,13 +6,11 @@ import {
   RoomAudioRenderer,
   TrackToggle,
   DisconnectButton,
-  ParticipantLoop,
-  ParticipantName,
   useParticipants,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, MicOff } from "lucide-react";
 
 interface VoicePartyProps {
   room: string;
@@ -84,55 +82,42 @@ export default function VoiceParty({ room, username, onLeave }: VoicePartyProps)
 
 function PartyLoungeInner() {
   const participants = useParticipants();
+  
   return (
     <>
       <RoomAudioRenderer />
       
       {/* Participants List */}
-      <div className="bg-zinc-900/50 rounded-xl p-4 flex-1">
-        <h4 className="text-sm font-bold text-zinc-400 mb-3 uppercase tracking-wider">In the Lounge</h4>
-        <div className="flex flex-wrap gap-4">
-          <ParticipantLoop participants={participants}>
-            <ParticipantTile />
-          </ParticipantLoop>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 p-6 w-full min-h-[180px]">
+        <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">In The Lounge</p>
+        <div className="flex flex-wrap gap-6 items-center justify-center md:justify-end flex-1">
+          {participants.map(p => (
+            <div key={p.identity} className={`relative flex flex-col items-center gap-2 group ${p.isSpeaking ? 'is-speaking' : ''}`}>
+              <div className="relative">
+                <img 
+                  src={`https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${p.identity}`} 
+                  alt={p.identity} 
+                  className="w-14 h-14 rounded-full border-2 border-zinc-700 bg-zinc-950 p-1 group-[.is-speaking]:border-purple-500 transition-all" 
+                />
+                {p.isMicrophoneEnabled === false && (
+                  <div className="absolute top-0 right-0 bg-red-600 border-2 border-zinc-900 rounded-full p-1 text-white shadow-md">
+                    <MicOff className="w-3 h-3"/>
+                  </div>
+                )}
+              </div>
+              <span className="text-sm font-medium text-zinc-300">{p.identity}</span>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Control Panel */}
-      <div className="bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-xl">
+      <div className="bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-xl mt-auto">
         <div className="lk-button-group">
           <TrackToggle source={Track.Source.Microphone} />
           <DisconnectButton>Leave Party</DisconnectButton>
         </div>
       </div>
     </>
-  );
-}
-
-function ParticipantTile() {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-500/50 bg-zinc-800 flex items-center justify-center">
-        <ParticipantName className="text-[0px] w-full h-full" /> {/* Hide default text if possible, but keep component logic */}
-        <div className="w-full h-full" style={{ position: "relative" }}>
-           <AvatarRenderer />
-        </div>
-      </div>
-      <ParticipantName className="text-xs font-bold text-zinc-300" />
-    </div>
-  );
-}
-
-import { useParticipantContext } from "@livekit/components-react";
-
-function AvatarRenderer() {
-  const p = useParticipantContext();
-  const seed = p.identity || "guest";
-  return (
-    <img 
-      src={`https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${seed}`} 
-      alt="Avatar"
-      className="w-full h-full object-cover"
-    />
   );
 }
