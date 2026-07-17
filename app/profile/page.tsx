@@ -4,7 +4,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { useEffect, useState } from "react";
 import {
   Settings, Bell, Gift, ChevronRight,
-  Shield, Edit3, MapPin, Trophy,
+  Shield, Edit3,
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -12,7 +12,6 @@ import { createClient } from "@/utils/supabase/client";
 const menuItems = [
   { icon: Bell,    label: "Notifications",  sub: "Manage alerts",          href: "/notifications" },
   { icon: Gift,    label: "Redeem Code",    sub: "Enter a gift code",      href: "/redeem" },
-  { icon: Trophy,  label: "Leaderboard",    sub: "See your rank",          href: "/leaderboard" },
   { icon: Shield,  label: "Privacy & Security", sub: "Manage your account", href: "/settings" },
   { icon: Settings, label: "Settings",     sub: "App preferences",         href: "/settings" },
 ];
