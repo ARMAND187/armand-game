@@ -20,8 +20,6 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const displayName = profile.username.charAt(0).toUpperCase() + profile.username.slice(1);
-
   return (
     <div className="page-shell">
       <Link href="/friends" style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "var(--text-muted)", textDecoration: "none", marginBottom: "24px", fontSize: "14px" }}>
@@ -31,8 +29,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
       <div className="profile-card" style={{ marginBottom: "24px" }}>
         <div className="profile-avatar-ring">{profile.username.charAt(0).toUpperCase()}</div>
-        <div className="profile-username">{displayName}</div>
-        <div className="profile-handle">@{profile.username}</div>
+        <div className="profile-username" style={{ textTransform: "none" }}>@{profile.username}</div>
         
         <div className="profile-fields" style={{ marginTop: 24 }}>
           <div className="profile-field" style={{ borderBottom: "none", justifyContent: "center" }}>

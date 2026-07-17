@@ -244,13 +244,10 @@ export default function FriendsPage() {
             filtered.map((friend) => (
               <Link href={`/profile/${friend.username}`} key={friend.id} className="friend-row" style={{ textDecoration: "none", color: "inherit", cursor: "pointer", display: "flex" }}>
                 <div className="friend-avatar">
-                  {friend.displayName[0]?.toUpperCase()}
+                  {friend.username[0]?.toUpperCase()}
                 </div>
                 <div className="friend-info">
-                  <div className="friend-name" style={{textTransform: "capitalize"}}>{friend.displayName}</div>
-                  <div className="friend-handle">
-                    @{friend.username}
-                  </div>
+                  <div className="friend-name" style={{textTransform: "none"}}>@{friend.username}</div>
                 </div>
                 <div className="friend-score">{friend.score.toLocaleString()}</div>
               </Link>
@@ -270,10 +267,9 @@ export default function FriendsPage() {
           ) : (
             requests.map((req) => (
               <div key={req.id} className="request-row">
-                <div className="friend-avatar">{req.displayName[0]?.toUpperCase()}</div>
+                <div className="friend-avatar">{req.username[0]?.toUpperCase()}</div>
                 <div className="friend-info">
-                  <div className="friend-name" style={{textTransform: "capitalize"}}>{req.displayName}</div>
-                  <div className="friend-handle">@{req.username}</div>
+                  <div className="friend-name" style={{textTransform: "none"}}>@{req.username}</div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
