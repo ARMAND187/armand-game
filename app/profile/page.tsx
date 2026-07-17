@@ -10,7 +10,6 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 
 const menuItems = [
-  { icon: Bell,    label: "Notifications",  sub: "Manage alerts",          href: "/notifications" },
   { icon: Gift,    label: "Redeem Code",    sub: "Enter a gift code",      href: "/redeem" },
   { icon: Shield,  label: "Privacy & Security", sub: "Manage your account", href: "/settings" },
   { icon: Settings, label: "Settings",     sub: "App preferences",         href: "/settings" },
