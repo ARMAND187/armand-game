@@ -13,6 +13,27 @@ export default function UpdateNotification() {
         // changes, eg a new worker has skipped waiting and become active.
         setShow(true);
       });
+
+      // Aggressively check for updates when the app comes into focus
+      const checkForUpdates = () => {
+        navigator.serviceWorker.ready.then((reg) => {
+          console.log("Service Worker: Checking for updates...");
+          reg.update();
+        });
+      };
+
+      // Check on visibility change (user switching tabs/apps back)
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          checkForUpdates();
+        }
+      });
+
+      // Check on window focus
+      window.addEventListener("focus", checkForUpdates);
+
+      // Initial check on mount
+      checkForUpdates();
     }
   }, []);
 
