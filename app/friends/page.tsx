@@ -344,11 +344,10 @@ export default function FriendsPage() {
       </div>
 
       {/* ── Section 2: Party Lounge ── */}
-      <div className="border border-purple-500/50 rounded-2xl w-full bg-zinc-900/50 overflow-hidden">
-        <div className="p-6 md:p-8">
-          <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
-            🎉 Party Lounge
-          </h2>
+      <div className="border border-purple-500/50 rounded-2xl p-6 w-full bg-zinc-900/50 flex flex-col min-h-[140px]">
+        <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
+          🎉 Party Lounge
+        </h2>
         
         {activeParty && myUsername ? (
           <VoiceParty 
@@ -357,16 +356,15 @@ export default function FriendsPage() {
             onLeave={handleLeaveParty} 
           />
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 md:py-12 w-full">
+          <div className="flex-1 flex items-center justify-center mt-4">
             <button 
               onClick={handleCreateParty}
-              className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg"
+              className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-3 rounded-full border border-zinc-700 flex items-center gap-2 font-medium transition-colors shadow-md"
             >
               <Plus size={18} /> Create Party
             </button>
           </div>
         )}
-        </div>
       </div>
 
       {/* ── Section 3: Active Parties ── */}
