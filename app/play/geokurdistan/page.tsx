@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Trophy, Loader2 } from "lucide-react";
@@ -62,7 +62,15 @@ function GeoKurdistanInner() {
 
   const [gameState, setGameState] = useState<GameState>("WAITING");
   const [round, setRound] = useState(1);
-  const [totalRounds, setTotalRounds] = useState(5);
+  const [totalRounds, setTotalRounds] = useState(() => parseInt(searchParams.get("rounds") || "5", 10));
+  const regionQuery = searchParams.get("region") || "All Kurdistan";
+  
+  // Filter locations by region
+  const availableLocations = React.useMemo(() => {
+    if (regionQuery === "Erbil Only") return kurdistanLocations.filter(loc => loc.city === "Erbil");
+    if (regionQuery === "Sulaymaniyah Only") return kurdistanLocations.filter(loc => loc.city === "Sulaymaniyah" || loc.city === "Slemani");
+    return kurdistanLocations;
+  }, [regionQuery]);
   const [locationIndices, setLocationIndices] = useState<number[]>([0, 1, 2, 3, 4]);
   const [timer, setTimer] = useState(30);
   
@@ -151,6 +159,8 @@ function GeoKurdistanInner() {
     if (!roomId) {
       // Single player fallback if no room ID provided
       setTimeout(() => {
+        const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * availableLocations.length));
+        setLocationIndices(indices);
         setGameState("PLAYING");
       }, 0);
       return;
@@ -237,7 +247,7 @@ function GeoKurdistanInner() {
             setTimeout(async () => {
               // Generate random locations
               const indices = Array.from({ length: room.total_rounds || 5 }, () => 
-                Math.floor(Math.random() * kurdistanLocations.length)
+                Math.floor(Math.random() * availableLocations.length)
               );
               // Fetch players from room
               const { data: updatedRoom } = await supabase.from("rooms").select("player_count").eq("id", roomId).single();
@@ -347,7 +357,7 @@ function GeoKurdistanInner() {
 
   const handlePlayAgain = () => {
     if (!roomId) {
-      const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * kurdistanLocations.length));
+      const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * availableLocations.length));
       setLocationIndices(indices);
       setGameState("PLAYING");
       setTimer(30);
@@ -358,7 +368,7 @@ function GeoKurdistanInner() {
       setGuessMarker(null);
     } else {
       if (isHost && channelRef.current) {
-        const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * kurdistanLocations.length));
+        const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * availableLocations.length));
         channelRef.current.send({
            type: "broadcast",
            event: "GAME_START",
@@ -394,7 +404,7 @@ function GeoKurdistanInner() {
     );
   }
 
-  const location = kurdistanLocations[locationIndices[round - 1]] || kurdistanLocations[0];
+  const location = availableLocations[locationIndices[round - 1]] || availableLocations[0] || kurdistanLocations[0];
   const myCurrentGuess = roundGuesses.find(g => g.username === myUsername);
   
   return (

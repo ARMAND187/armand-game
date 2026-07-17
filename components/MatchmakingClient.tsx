@@ -23,6 +23,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [displayCode, setDisplayCode] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
+  const [totalRounds, setTotalRounds] = useState<number>(5);
+  const [region, setRegion] = useState<string>("All Kurdistan");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -126,7 +128,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             is_public: true,
             player_count: 1,
             host_username: myUsername,
-            total_rounds: 5
+            total_rounds: 10
           })
           .select()
           .single();
@@ -144,8 +146,6 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       alert("Failed to connect to matchmaking. Make sure the 'rooms' table exists in Supabase, and total_rounds is added.");
     }
   };
-
-  const [totalRounds, setTotalRounds] = useState<number>(5);
 
   const createPrivateGame = async () => {
     setMatchState("searching");
@@ -217,10 +217,11 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
   if (matchState === "idle") {
     return (
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", width: "100%", marginTop: 8 }}>
-        <Link href={playRoute} className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0" }}>
-          <Play size={16} fill="currentColor" /> Offline
-        </Link>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 16 }}>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", width: "100%" }}>
+          <Link href={`${playRoute}?rounds=${totalRounds}&region=${encodeURIComponent(region)}`} className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0" }}>
+            <Play size={16} fill="currentColor" /> Offline
+          </Link>
         <button className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0", background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }} onClick={joinPublicGame}>
           <Globe size={16} /> Public
         </button>
@@ -231,6 +232,38 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         >
           <Users size={16} /> Private
         </button>
+        </div>
+
+        <div className="settings-card" style={{ marginBottom: 24 }}>
+          <div className="settings-row" style={{ borderBottom: "1px solid var(--border)" }}>
+            <span className="settings-row-label">Rounds</span>
+            <div className="settings-row-options">
+              {[5, 10, 25].map(r => (
+                <button
+                  key={r}
+                  onClick={() => setTotalRounds(r)}
+                  className={`settings-option-btn${totalRounds === r ? " active" : ""}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-row">
+            <span className="settings-row-label">Region</span>
+            <div className="settings-row-options">
+              {["All Kurdistan", "Erbil Only", "Sulaymaniyah Only"].map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setRegion(opt)}
+                  className={`settings-option-btn${region === opt ? " active" : ""}`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -254,27 +287,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         </div>
         <div className="divider" style={{ margin: "16px 0" }} />
         <div style={{ marginBottom: 12, fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Create Private Room</div>
-        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          {[5, 10, 25].map(r => (
-            <button
-              key={r}
-              onClick={() => setTotalRounds(r)}
-              style={{
-                flex: 1,
-                padding: "8px 0",
-                background: totalRounds === r ? "var(--neon)" : "var(--bg-elevated)",
-                color: totalRounds === r ? "#000" : "var(--text-muted)",
-                border: `1px solid ${totalRounds === r ? "var(--neon)" : "var(--border)"}`,
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer"
-              }}
-            >
-              {r} Rounds
-            </button>
-          ))}
-        </div>
+        <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>Uses current Rounds and Region settings</p>
         <button className="btn-redeem-ghost" style={{ width: "100%", justifyContent: "center", margin: 0 }} onClick={createPrivateGame}>
             Create Private Room
         </button>
