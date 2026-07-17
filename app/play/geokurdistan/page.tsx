@@ -455,11 +455,13 @@ function GeoKurdistanInner() {
           </div>
 
           <div className="geo-map-panel flex-1 min-h-0 relative flex flex-col h-full w-full overflow-hidden">
-            <LeafletMap
+              <LeafletMap
               onMapClick={(lat, lng) => { if (!hasGuessed && gameState === "PLAYING") setGuessMarker({lat, lng})}}
               guessMarker={guessMarker}
               realLocation={gameState === "ROUND_END" ? { lat: location.lat, lng: location.lng } : null}
               guessResult={myCurrentGuess ? { location, guessLat: myCurrentGuess.guessLat, guessLng: myCurrentGuess.guessLng, distanceKm: myCurrentGuess.distanceKm } : null}
+              roundGuesses={roundGuesses}
+              myUsername={myUsername}
               locked={hasGuessed || gameState !== "PLAYING"}
             />
 

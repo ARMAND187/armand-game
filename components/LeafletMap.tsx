@@ -28,6 +28,8 @@ interface LeafletMapProps {
   guessMarker: { lat: number; lng: number } | null;
   realLocation: { lat: number; lng: number } | null;
   guessResult: GuessResult | null;
+  roundGuesses?: any[]; // multiplayer guesses
+  myUsername?: string;
   locked: boolean;
 }
 
@@ -52,47 +54,30 @@ function MapClickHandler({
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
+export function generatePlayerColor(username: string): string {
+  const safeColors = ["#FF5733", "#3357FF", "#FF33A8", "#F1C40F", "#8E44AD", "#E67E22", "#3498DB", "#9B59B6", "#E74C3C"];
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return safeColors[Math.abs(hash) % safeColors.length];
+}
+
 export default function LeafletMap({
   onMapClick,
   guessMarker,
   realLocation,
   guessResult,
+  roundGuesses = [],
+  myUsername = "",
   locked,
 }: LeafletMapProps) {
-  const [guessIcon, setGuessIcon] = useState<DivIcon | null>(null);
-  const [realIcon, setRealIcon]   = useState<DivIcon | null>(null);
+  const [L, setL] = useState<any>(null);
 
-  // Build custom div icons — must happen client-side
+  // Load leaflet client-side
   useEffect(() => {
-    import("leaflet").then((L) => {
-      setGuessIcon(
-        L.divIcon({
-          className: "",
-          html: `<div style="
-            width:30px;height:30px;border-radius:50% 50% 50% 0;
-            background:linear-gradient(135deg,#7c3aed,#a78bfa);
-            border:3px solid #fff;
-            box-shadow:0 2px 12px rgba(124,58,237,0.7);
-            transform:rotate(-45deg);
-          "></div>`,
-          iconSize:   [30, 30],
-          iconAnchor: [15, 30],
-        })
-      );
-      setRealIcon(
-        L.divIcon({
-          className: "",
-          html: `<div style="
-            width:30px;height:30px;border-radius:50% 50% 50% 0;
-            background:linear-gradient(135deg,#059669,#4ade80);
-            border:3px solid #fff;
-            box-shadow:0 2px 12px rgba(74,222,128,0.7);
-            transform:rotate(-45deg);
-          "></div>`,
-          iconSize:   [30, 30],
-          iconAnchor: [15, 30],
-        })
-      );
+    import("leaflet").then((leaflet) => {
+      setL(leaflet);
     });
   }, []);
 
@@ -104,12 +89,67 @@ export default function LeafletMap({
     [43.0, 63.0], // north-east corner (Turkmenistan/Caspian area)
   ];
 
-  const linePositions: LatLngExpression[] = guessResult
-    ? [
-        [guessResult.guessLat, guessResult.guessLng],
-        [guessResult.location.lat, guessResult.location.lng],
-      ]
-    : [];
+  if (!L) return null;
+
+  const targetIcon = L.divIcon({
+    className: "",
+    html: `<div style="
+      width:36px;height:36px;border-radius:50% 50% 50% 0;
+      background:#2ECC71;
+      border:3px solid #fff;
+      box-shadow:0 0 16px #2ECC71;
+      transform:rotate(-45deg);
+      animation: pulse-marker 1.5s infinite;
+    "></div>
+    <style>
+      @keyframes pulse-marker {
+        0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+      }
+    </style>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+  });
+
+  const createPlayerIcon = (color: string, label: string) => {
+    return L.divIcon({
+      className: "",
+      html: `<div style="display:flex; flex-direction:column; align-items:center; transform:translateY(-100%);">
+        <div style="background:rgba(0,0,0,0.6); padding:2px 6px; border-radius:4px; color:#fff; font-size:11px; font-weight:bold; margin-bottom:4px; white-space:nowrap;">
+          ${label}
+        </div>
+        <div style="
+          width:24px;height:24px;border-radius:50% 50% 50% 0;
+          background:${color};
+          border:2px solid #fff;
+          box-shadow:0 2px 8px rgba(0,0,0,0.5);
+          transform:rotate(-45deg);
+        "></div>
+      </div>`,
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
+    });
+  };
+
+  const myColor = myUsername ? generatePlayerColor(myUsername) : "#a78bfa";
+  const localGuessIcon = createPlayerIcon(myColor, "You");
+
+  // Determine lines to draw
+  // If round ended and we have multiplayer guesses, draw lines for everyone
+  // Otherwise just draw the local guessResult line
+  let linesToDraw = [];
+  if (realLocation && roundGuesses.length > 0) {
+    linesToDraw = roundGuesses.map((g) => ({
+      positions: [[g.guessLat, g.guessLng], [realLocation.lat, realLocation.lng]] as LatLngExpression[],
+      color: generatePlayerColor(g.username),
+    }));
+  } else if (guessResult) {
+    linesToDraw.push({
+      positions: [[guessResult.guessLat, guessResult.guessLng], [guessResult.location.lat, guessResult.location.lng]] as LatLngExpression[],
+      color: myColor,
+    });
+  }
 
   return (
     <MapContainer
@@ -130,23 +170,33 @@ export default function LeafletMap({
 
       <MapClickHandler onMapClick={onMapClick} locked={locked} />
 
-      {/* Player's guess marker */}
-      {guessMarker && guessIcon && (
-        <Marker position={[guessMarker.lat, guessMarker.lng]} icon={guessIcon} />
+      {/* Local player's live unsubmitted guess */}
+      {guessMarker && !realLocation && (
+        <Marker position={[guessMarker.lat, guessMarker.lng]} icon={localGuessIcon} />
       )}
 
-      {/* Real location marker (revealed after guess) */}
-      {realLocation && realIcon && (
-        <Marker position={[realLocation.lat, realLocation.lng]} icon={realIcon} />
-      )}
-
-      {/* Dashed line between guess and real */}
-      {linePositions.length === 2 && (
-        <Polyline
-          positions={linePositions}
-          pathOptions={{ color: "#a78bfa", weight: 2, dashArray: "6 4", opacity: 0.85 }}
+      {/* Round End: All multiplayer guesses */}
+      {realLocation && roundGuesses.map((g, i) => (
+        <Marker 
+          key={i} 
+          position={[g.guessLat, g.guessLng]} 
+          icon={createPlayerIcon(generatePlayerColor(g.username), g.username)} 
         />
+      ))}
+
+      {/* Real location marker (Target Marker) */}
+      {realLocation && (
+        <Marker position={[realLocation.lat, realLocation.lng]} icon={targetIcon} />
       )}
+
+      {/* Dashed lines between guesses and real location */}
+      {linesToDraw.map((line, i) => (
+        <Polyline
+          key={i}
+          positions={line.positions}
+          pathOptions={{ color: line.color, weight: 2, dashArray: "6 4", opacity: 0.85 }}
+        />
+      ))}
     </MapContainer>
   );
 }
