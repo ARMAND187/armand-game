@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import { Users, Globe, Loader2 } from "lucide-react";
+import { Users, Globe, Loader2, Play } from "lucide-react";
 
 type MatchState = "idle" | "searching" | "waiting" | "friends";
 
@@ -216,18 +217,19 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
   if (matchState === "idle") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <button className="btn-lobby-play btn-lobby-play--full" onClick={joinPublicGame}>
-          <Globe size={18} />
-          Join Public Game
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", width: "100%", marginTop: 8 }}>
+        <Link href={playRoute} className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0" }}>
+          <Play size={16} fill="currentColor" /> Offline
+        </Link>
+        <button className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0", background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }} onClick={joinPublicGame}>
+          <Globe size={16} /> Public
         </button>
         <button
-          className="btn-redeem-ghost"
-          style={{ width: "100%", justifyContent: "center", fontSize: "14px", padding: "14px", borderRadius: "14px", margin: 0 }}
+          className="btn-lobby-play"
+          style={{ flex: 1, justifyContent: "center", padding: "12px 0", background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
           onClick={() => setMatchState("friends")}
         >
-          <Users size={18} />
-          Play With Friends
+          <Users size={16} /> Private
         </button>
       </div>
     );

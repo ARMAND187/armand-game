@@ -48,10 +48,9 @@ export default async function LobbyPage({ params }: Props) {
         <p className="lobby-hero-desc">{game.description}</p>
 
         {isLive ? (
-          <Link href={game.playRoute!} className="btn-lobby-play" id="play-btn">
-            <Play size={18} fill="currentColor" />
-            Play Now
-          </Link>
+          <div style={{ marginTop: 16 }}>
+            <MatchmakingClient gameId={game.id} playRoute={game.playRoute!} />
+          </div>
         ) : (
           <div className="btn-lobby-soon">
             <Zap size={16} />
@@ -120,10 +119,7 @@ export default async function LobbyPage({ params }: Props) {
         </>
       )}
 
-      {/* ── Play CTA (bottom) ── */}
-      {isLive && (
-        <MatchmakingClient gameId={game.id} playRoute={game.playRoute!} />
-      )}
+      {/* Bottom CTA Removed */}
     </div>
   );
 }
