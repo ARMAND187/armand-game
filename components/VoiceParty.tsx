@@ -10,7 +10,7 @@ import {
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { useEffect, useState } from "react";
-import { Loader2, MicOff, Copy } from "lucide-react";
+import { Loader2, MicOff } from "lucide-react";
 
 interface VoicePartyProps {
   room: string;
@@ -75,12 +75,12 @@ export default function VoiceParty({ room, username, onLeave }: VoicePartyProps)
       style={{ height: "auto", minHeight: "200px", display: "flex", flexDirection: "column" }}
       onDisconnected={onLeave}
     >
-      <PartyLoungeInner roomCode={room} />
+      <PartyLoungeInner />
     </LiveKitRoom>
   );
 }
 
-function PartyLoungeInner({ roomCode }: { roomCode: string }) {
+function PartyLoungeInner() {
   const participants = useParticipants();
   
   return (
@@ -90,12 +90,6 @@ function PartyLoungeInner({ roomCode }: { roomCode: string }) {
       <div className="flex flex-col p-6 md:p-8 gap-4 w-full min-h-[250px]">
         {/* Header Text */}
         <div className="flex flex-col gap-2">
-          <div className="text-sm text-purple-300 font-semibold bg-purple-500/10 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-purple-500/20 w-fit">
-            <span>Room Code: {roomCode}</span>
-            <button onClick={() => navigator.clipboard.writeText(roomCode)} className="text-purple-400 hover:text-white p-1 transition-colors">
-              <Copy size={14} />
-            </button>
-          </div>
           <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">In The Lounge</p>
         </div>
 
