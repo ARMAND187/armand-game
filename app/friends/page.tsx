@@ -357,7 +357,7 @@ export default function FriendsPage() {
             onLeave={handleLeaveParty} 
           />
         ) : (
-          <div className="flex flex-col items-center justify-center p-4">
+          <div className="flex flex-col items-center justify-center py-8 md:py-12 w-full">
             <button 
               onClick={handleCreateParty}
               className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg"
