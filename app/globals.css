@@ -1280,6 +1280,7 @@ body {
 
 .add-friend-input {
   flex: 1;
+  min-width: 0;
   background: none;
   border: none;
   outline: none;
