@@ -251,6 +251,31 @@ export default function FriendsPage() {
       return;
     }
 
+    // --- NEW PRE-INSERT CHECK ---
+    // Check for existing friendship
+    const { data: existingFriends } = await supabase
+      .from("friends")
+      .select("id")
+      .or(`and(user1_id.eq.${myUserId},user2_id.eq.${profile.id}),and(user1_id.eq.${profile.id},user2_id.eq.${myUserId})`);
+      
+    if (existingFriends && existingFriends.length > 0) {
+      setAddFeedback({ msg: "This user is already your friend!", type: "error" });
+      setTimeout(() => setAddFeedback(null), 3000);
+      return;
+    }
+
+    // Check for existing friend requests
+    const { data: existingRequests } = await supabase
+      .from("friend_requests")
+      .select("id")
+      .or(`and(sender_id.eq.${myUserId},receiver_id.eq.${profile.id}),and(sender_id.eq.${profile.id},receiver_id.eq.${myUserId})`);
+
+    if (existingRequests && existingRequests.length > 0) {
+      setAddFeedback({ msg: "A request is already pending.", type: "error" });
+      setTimeout(() => setAddFeedback(null), 3000);
+      return;
+    }
+
     // 2. Insert request
     const { error } = await supabase.from("friend_requests").insert({
       sender_id: myUserId,
@@ -269,6 +294,19 @@ export default function FriendsPage() {
   const handleAccept = async (req: Request) => {
     if (!myUserId) return;
     
+    // --- PRE-INSERT CHECK ---
+    const { data: existingFriends } = await supabase
+      .from("friends")
+      .select("id")
+      .or(`and(user1_id.eq.${req.sender_id},user2_id.eq.${myUserId}),and(user1_id.eq.${myUserId},user2_id.eq.${req.sender_id})`);
+
+    if (existingFriends && existingFriends.length > 0) {
+      // Already friends, just clean up the duplicate request
+      await supabase.from("friend_requests").delete().eq("id", req.id);
+      loadData();
+      return;
+    }
+
     // Insert into friends table
     await supabase.from("friends").insert({
       user1_id: req.sender_id,
@@ -332,9 +370,28 @@ export default function FriendsPage() {
             onChange={(e) => setAddValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           />
-          <button className="add-friend-btn" onClick={handleAdd} id="add-friend-btn">
-            Add
-          </button>
+          {(() => {
+            const trimmed = addValue.trim().toLowerCase();
+            const isAlreadyFriend = friends.some(f => f.username.toLowerCase() === trimmed);
+            const isPending = requests.some(r => r.username.toLowerCase() === trimmed);
+            const disabled = !trimmed || isAlreadyFriend || isPending;
+            
+            let btnText = "Add";
+            if (isAlreadyFriend) btnText = "Already Friends";
+            else if (isPending) btnText = "Pending";
+
+            return (
+              <button 
+                className="add-friend-btn" 
+                onClick={handleAdd} 
+                id="add-friend-btn"
+                disabled={disabled}
+                style={{ opacity: disabled ? 0.5 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
+              >
+                {btnText}
+              </button>
+            );
+          })()}
         </div>
         {addFeedback && (
           <p style={{ fontSize: 12, color: addFeedback.type === "success" ? "#4ade80" : "#f87171", marginBottom: 12, paddingLeft: 4 }}>
