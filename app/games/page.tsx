@@ -16,13 +16,13 @@ export default function GamesPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {games.map((game) => {
           const isLive = game.status === "live";
-          const Wrapper = isLive ? Link : "div";
+          const Wrapper = (isLive ? Link : "div") as React.ElementType;
           const wrapperProps = isLive ? { href: `/lobby/${game.id}` } : {};
 
           return (
             <Wrapper
               key={game.id}
-              {...(wrapperProps as Record<string, unknown>)}
+              {...wrapperProps}
               className={`game-list-row${!isLive ? " game-list-row--soon" : ""}`}
             >
               {/* Icon */}
