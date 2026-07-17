@@ -25,22 +25,13 @@ export default function HomePage() {
       </header>
 
       {/* ── Arcade Container ── */}
-      <div style={{
-        background: "#18181b", // zinc-900
-        border: "1px solid #27272a", // zinc-800
-        borderRadius: "24px",
-        padding: "24px",
-      }}>
+      <div className="mt-8 md:mt-12 overflow-hidden bg-zinc-900 border border-zinc-800 rounded-3xl p-4 md:p-6 lg:p-8 w-full">
         <h2 style={{ fontSize: "18px", fontWeight: 700, color: "white", marginBottom: "20px", marginTop: 0 }}>The Arcade</h2>
         
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
-          gap: "16px" 
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full">
           {/* Live Games */}
           {liveGames.map((game) => (
-            <Link key={game.id} href={`/lobby/${game.id}`} className="game-box" style={{ margin: 0, height: "100%" }}>
+            <Link key={game.id} href={`/lobby/${game.id}`} className="game-box w-full" style={{ margin: 0, height: "100%" }}>
               <div
                 className="game-box-banner"
                 style={{ background: `linear-gradient(135deg, ${game.accentFrom}, ${game.accentTo})` }}
@@ -63,7 +54,7 @@ export default function HomePage() {
           {soonGames.map((game) => (
             <div 
               key={game.id} 
-              className="game-box game-box--soon" 
+              className="game-box game-box--soon w-full" 
               style={{ margin: 0, height: "100%", filter: "grayscale(100%)", opacity: 0.6 }}
             >
               <div
