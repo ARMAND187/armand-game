@@ -41,9 +41,7 @@ export default function ProfilePage() {
     fetchUser();
   }, [supabase.auth]);
 
-  const displayName = username !== "Loading..." && username !== "Anonymous" 
-    ? username.charAt(0).toUpperCase() + username.slice(1) 
-    : username;
+
 
   const handleSave = async () => {
     const newUsername = editUsername.trim().toLowerCase();
@@ -100,8 +98,7 @@ export default function ProfilePage() {
       {/* ── Profile card ── */}
       <div className="profile-card">
         <div className="profile-avatar-ring">{username !== "Loading..." && username !== "Anonymous" ? username.charAt(0).toUpperCase() : "AG"}</div>
-        <div className="profile-username">{displayName}</div>
-        <div className="profile-handle">@{username}</div>
+        <div className="profile-username" style={{ textTransform: "none" }}>@{username}</div>
 
         {errorMsg && (
           <div style={{ color: "#f87171", fontSize: 12, marginTop: 8, textAlign: "center" }}>
