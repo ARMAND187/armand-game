@@ -1,27 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useWalletStore } from "@/store/useWalletStore";
+import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/utils/supabase/client";
 import {
-  UserPlus, Check, X, Search, Users, Bell, Settings,
-  ChevronRight, Clock, Shield,
+  UserPlus, Check, X, Search, Users, Bell,
 } from "lucide-react";
 
-// TODO: Replace with real Supabase queries for the friends system
 interface Friend {
-  id: string;
+  id: string; // ID of the friendship row or the user profile
+  profile_id: string; // The other user's ID
   username: string;
   displayName: string;
   online: boolean;
   score: number;
 }
 interface Request {
-  id: string;
+  id: string; // ID of the friend_request row
+  sender_id: string;
   username: string;
   displayName: string;
 }
-const MOCK_FRIENDS: Friend[] = [];
-const MOCK_REQUESTS: Request[] = [];
 
 type Tab = "friends" | "requests";
 
@@ -29,27 +27,147 @@ export default function FriendsPage() {
   const [tab, setTab]             = useState<Tab>("friends");
   const [query, setQuery]         = useState("");
   const [addValue, setAddValue]   = useState("");
-  const [requests, setRequests]   = useState(MOCK_REQUESTS);
-  const [addFeedback, setAddFeedback] = useState<string | null>(null);
+  const [addFeedback, setAddFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  const filtered = MOCK_FRIENDS.filter(
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  
+  const supabase = createClient();
+
+  const loadData = useCallback(async () => {
+    if (!myUserId) return;
+
+    // Load Requests (where receiver is me)
+    const { data: reqData } = await supabase
+      .from("friend_requests")
+      .select(`
+        id,
+        sender_id,
+        profiles!friend_requests_sender_id_fkey (
+          username, wins
+        )
+      `)
+      .eq("receiver_id", myUserId);
+
+    if (reqData) {
+      setRequests(
+        reqData.map((r: { id: string, sender_id: string, profiles: { username: string, wins: number } | null }) => ({
+          id: r.id,
+          sender_id: r.sender_id,
+          username: r.profiles?.username || "unknown",
+          displayName: r.profiles?.username || "Unknown",
+        }))
+      );
+    }
+
+    // Load Friends
+    const { data: friendsData } = await supabase
+      .from("friends")
+      .select(`
+        id,
+        user1_id,
+        user2_id,
+        u1:profiles!friends_user1_id_fkey(id, username, wins),
+        u2:profiles!friends_user2_id_fkey(id, username, wins)
+      `)
+      .or(`user1_id.eq.${myUserId},user2_id.eq.${myUserId}`);
+
+    if (friendsData) {
+      setFriends(
+        friendsData.map((f: { id: string, user1_id: string, user2_id: string, u1: { id: string, username: string, wins: number } | null, u2: { id: string, username: string, wins: number } | null }) => {
+          const other = f.user1_id === myUserId ? f.u2 : f.u1;
+          return {
+            id: f.id,
+            profile_id: other?.id || "",
+            username: other?.username || "unknown",
+            displayName: other?.username || "Unknown",
+            online: false, // Could implement presence later
+            score: other?.wins || 0,
+          };
+        })
+      );
+    }
+  }, [myUserId, supabase]);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setMyUserId(data.user.id);
+      }
+    });
+  }, [supabase]);
+
+  useEffect(() => {
+    if (myUserId) {
+      // Ignore lint rule about cascading renders since it's an async data fetch
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadData();
+    }
+  }, [myUserId, loadData]);
+
+  const filtered = friends.filter(
     (f) =>
       f.displayName.toLowerCase().includes(query.toLowerCase()) ||
       f.username.toLowerCase().includes(query.toLowerCase())
   );
 
-  const handleAdd = () => {
-    const trimmed = addValue.trim();
-    if (!trimmed) return;
-    setAddFeedback(`Request sent to @${trimmed}!`);
-    setAddValue("");
+  const handleAdd = async () => {
+    const trimmed = addValue.trim().toLowerCase();
+    if (!trimmed || !myUserId) return;
+    
+    // 1. Find user by username
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", trimmed)
+      .single();
+
+    if (!profile) {
+      setAddFeedback({ msg: "User not found!", type: "error" });
+      setTimeout(() => setAddFeedback(null), 3000);
+      return;
+    }
+
+    if (profile.id === myUserId) {
+      setAddFeedback({ msg: "You can't add yourself!", type: "error" });
+      setTimeout(() => setAddFeedback(null), 3000);
+      return;
+    }
+
+    // 2. Insert request
+    const { error } = await supabase.from("friend_requests").insert({
+      sender_id: myUserId,
+      receiver_id: profile.id,
+    });
+
+    if (error) {
+      setAddFeedback({ msg: "Request already sent or they are your friend.", type: "error" });
+    } else {
+      setAddFeedback({ msg: `Request sent to @${trimmed}!`, type: "success" });
+      setAddValue("");
+    }
     setTimeout(() => setAddFeedback(null), 3000);
   };
 
-  const handleAccept = (id: string) =>
-    setRequests((r) => r.filter((req) => req.id !== id));
-  const handleReject = (id: string) =>
-    setRequests((r) => r.filter((req) => req.id !== id));
+  const handleAccept = async (req: Request) => {
+    if (!myUserId) return;
+    
+    // Insert into friends table
+    await supabase.from("friends").insert({
+      user1_id: req.sender_id,
+      user2_id: myUserId,
+    });
+
+    // Delete request
+    await supabase.from("friend_requests").delete().eq("id", req.id);
+    loadData(); // Refresh both lists
+  };
+
+  const handleReject = async (id: string) => {
+    await supabase.from("friend_requests").delete().eq("id", id);
+    loadData();
+  };
 
   return (
     <div className="page-shell">
@@ -71,8 +189,8 @@ export default function FriendsPage() {
         </button>
       </div>
       {addFeedback && (
-        <p style={{ fontSize: 12, color: "#4ade80", marginBottom: 12, paddingLeft: 4 }}>
-          ✓ {addFeedback}
+        <p style={{ fontSize: 12, color: addFeedback.type === "success" ? "#4ade80" : "#f87171", marginBottom: 12, paddingLeft: 4 }}>
+          {addFeedback.type === "success" ? "✓" : "✗"} {addFeedback.msg}
         </p>
       )}
 
@@ -82,7 +200,7 @@ export default function FriendsPage() {
           className={`tab-btn${tab === "friends" ? " active" : ""}`}
           onClick={() => setTab("friends")}
         >
-          <Users size={14} /> Friends ({MOCK_FRIENDS.length})
+          <Users size={14} /> Friends ({friends.length})
         </button>
         <button
           className={`tab-btn${tab === "requests" ? " active" : ""}`}
@@ -118,16 +236,12 @@ export default function FriendsPage() {
             filtered.map((friend) => (
               <div key={friend.id} className="friend-row">
                 <div className="friend-avatar">
-                  {friend.displayName[0]}
-                  <span className={`online-dot${friend.online ? " online-dot--on" : ""}`} />
+                  {friend.displayName[0]?.toUpperCase()}
                 </div>
                 <div className="friend-info">
-                  <div className="friend-name">{friend.displayName}</div>
+                  <div className="friend-name" style={{textTransform: "capitalize"}}>{friend.displayName}</div>
                   <div className="friend-handle">
                     @{friend.username}
-                    <span style={{ color: friend.online ? "#4ade80" : "var(--text-muted)", marginLeft: 6 }}>
-                      {friend.online ? "● Online" : "○ Offline"}
-                    </span>
                   </div>
                 </div>
                 <div className="friend-score">{friend.score.toLocaleString()}</div>
@@ -148,15 +262,15 @@ export default function FriendsPage() {
           ) : (
             requests.map((req) => (
               <div key={req.id} className="request-row">
-                <div className="friend-avatar">{req.displayName[0]}</div>
+                <div className="friend-avatar">{req.displayName[0]?.toUpperCase()}</div>
                 <div className="friend-info">
-                  <div className="friend-name">{req.displayName}</div>
+                  <div className="friend-name" style={{textTransform: "capitalize"}}>{req.displayName}</div>
                   <div className="friend-handle">@{req.username}</div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     className="req-btn req-btn--accept"
-                    onClick={() => handleAccept(req.id)}
+                    onClick={() => handleAccept(req)}
                     id={`accept-${req.id}`}
                     title="Accept"
                   >
