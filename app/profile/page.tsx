@@ -1,11 +1,13 @@
 "use client";
 
 import { useWalletStore } from "@/store/useWalletStore";
+import { useEffect, useState } from "react";
 import {
   Settings, Bell, Gift, ChevronRight,
   Shield, Edit3, MapPin, Trophy,
 } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
 
 const menuItems = [
   { icon: Bell,    label: "Notifications",  sub: "Manage alerts",          href: "/notifications" },
@@ -17,25 +19,43 @@ const menuItems = [
 
 export default function ProfilePage() {
   const armandBalance = useWalletStore((s) => s.armandBalance);
+  const [username, setUsername] = useState("Loading...");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.user_metadata?.username) {
+        setUsername(user.user_metadata.username);
+      } else {
+        setUsername("Anonymous");
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const displayName = username !== "Loading..." && username !== "Anonymous" 
+    ? username.charAt(0).toUpperCase() + username.slice(1) 
+    : username;
 
   return (
     <div className="page-shell">
       {/* ── Profile card ── */}
       <div className="profile-card">
-        <div className="profile-avatar-ring">AG</div>
-        <div className="profile-username">Guest Player</div>
-        <div className="profile-handle">@guest</div>
+        <div className="profile-avatar-ring">{username !== "Loading..." && username !== "Anonymous" ? username.charAt(0).toUpperCase() : "AG"}</div>
+        <div className="profile-username">{displayName}</div>
+        <div className="profile-handle">@{username}</div>
 
         {/* Editable fields (static display for now) */}
         <div className="profile-fields">
           <div className="profile-field">
             <span className="profile-field-label">Username</span>
-            <span className="profile-field-value">guest</span>
+            <span className="profile-field-value">{username}</span>
             <Edit3 size={13} color="var(--neon)" />
           </div>
           <div className="profile-field" style={{ borderBottom: "none" }}>
             <span className="profile-field-label">Display Name</span>
-            <span className="profile-field-value">Guest Player</span>
+            <span className="profile-field-value">{displayName}</span>
             <Edit3 size={13} color="var(--neon)" />
           </div>
         </div>
@@ -58,10 +78,6 @@ export default function ProfilePage() {
         <div className="stat-chip">
           <span className="stat-chip-label">Rounds</span>
           <span className="stat-chip-value" style={{ fontSize: 18 }}>0</span>
-        </div>
-        <div className="stat-chip">
-          <span className="stat-chip-label">Best km</span>
-          <span className="stat-chip-value" style={{ fontSize: 18 }}>—</span>
         </div>
         <div className="stat-chip">
           <span className="stat-chip-label">Rank</span>

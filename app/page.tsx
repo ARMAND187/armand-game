@@ -28,21 +28,7 @@ export default function HomePage() {
         <p className="balance-hero-sub">Earn by playing — spend in the store</p>
       </div>
 
-      {/* ── Quick stats ── */}
-      <div className="stat-row">
-        <div className="stat-chip">
-          <span className="stat-chip-label">Games</span>
-          <span className="stat-chip-value">{liveGames.length}</span>
-        </div>
-        <div className="stat-chip">
-          <span className="stat-chip-label">Rounds</span>
-          <span className="stat-chip-value">0</span>
-        </div>
-        <div className="stat-chip">
-          <span className="stat-chip-label">Best</span>
-          <span className="stat-chip-value">—</span>
-        </div>
-      </div>
+      {/* ── Quick stats removed for general game hub ── */}
 
       {/* ── Live Games ── */}
       <p className="section-title">Play Now</p>
