@@ -88,24 +88,24 @@ function PartyLoungeInner() {
       <RoomAudioRenderer />
       
       {/* Participants List */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 p-6 w-full min-h-[180px]">
+      <div className="flex flex-col gap-4 w-full min-h-[140px] px-2 mt-2">
         <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">In The Lounge</p>
-        <div className="flex flex-wrap gap-6 items-center justify-center md:justify-end flex-1">
+        <div className="flex flex-wrap gap-6 items-center justify-start w-full">
           {participants.map(p => (
             <div key={p.identity} className={`relative flex flex-col items-center gap-2 group ${p.isSpeaking ? 'is-speaking' : ''}`}>
               <div className="relative">
                 <img 
                   src={`https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${p.identity}`} 
                   alt={p.identity} 
-                  className="w-14 h-14 rounded-full border-2 border-zinc-700 bg-zinc-950 p-1 group-[.is-speaking]:border-purple-500 transition-all" 
+                  className="w-12 h-12 rounded-full border border-zinc-700 bg-zinc-900 group-[.is-speaking]:border-purple-500 group-[.is-speaking]:shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all object-cover" 
                 />
                 {p.isMicrophoneEnabled === false && (
-                  <div className="absolute top-0 right-0 bg-red-600 border-2 border-zinc-900 rounded-full p-1 text-white shadow-md">
+                  <div className="absolute -top-1 -right-1 bg-red-600 border border-zinc-900 rounded-full p-1 text-white shadow-md">
                     <MicOff className="w-3 h-3"/>
                   </div>
                 )}
               </div>
-              <span className="text-sm font-medium text-zinc-300">{p.identity}</span>
+              <span className="text-xs font-bold text-zinc-300">{p.identity}</span>
             </div>
           ))}
         </div>

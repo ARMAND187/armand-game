@@ -351,7 +351,7 @@ export default function FriendsPage() {
         
         {activeParty && myUsername ? (
           <div>
-            <div className="mb-4 text-sm text-purple-300 font-semibold bg-purple-500/10 inline-block px-3 py-1 rounded-full border border-purple-500/20 flex items-center justify-between w-full max-w-sm">
+            <div className="mb-6 mt-2 text-sm text-purple-300 font-semibold bg-purple-500/10 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-purple-500/20 w-fit">
               <span>Room Code: {activeParty}</span>
               <button onClick={() => {
                 navigator.clipboard.writeText(activeParty);
