@@ -44,6 +44,7 @@ export default function NotificationBell() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifs();
     
     // Close on click outside

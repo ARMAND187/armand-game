@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import {
-  UserPlus, Check, X, Search, Users, Bell,
+  UserPlus, Check, X, Search, Users, Bell, PhoneCall, Copy, Plus
 } from "lucide-react";
 import Link from "next/link";
 
@@ -17,6 +17,7 @@ interface Friend {
   avatarUrl: string | null;
   online: boolean;
   score: number;
+  currentParty: string | null;
 }
 interface Request {
   id: string; // ID of the friend_request row
@@ -27,6 +28,15 @@ interface Request {
 }
 
 type Tab = "friends" | "requests";
+
+interface IncomingInvite {
+  id: string;
+  sender_id: string;
+  party_code: string;
+  sender_username?: string;
+  sender_avatarUrl?: string | null;
+}
+
 
 export default function FriendsPage() {
   const [tab, setTab]             = useState<Tab>("friends");
@@ -39,6 +49,8 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   
+  const [incomingInvites, setIncomingInvites] = useState<IncomingInvite[]>([]);
+
   // Voice Party state
   const [partyCodeInput, setPartyCodeInput] = useState("");
   const [activeParty, setActiveParty] = useState<string | null>(null);
@@ -83,15 +95,15 @@ export default function FriendsPage() {
         id,
         user1_id,
         user2_id,
-        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url),
-        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url)
+        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url, current_party),
+        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url, current_party)
       `)
       .or(`user1_id.eq.${myUserId},user2_id.eq.${myUserId}`);
 
     if (friendsData) {
       setFriends(
         friendsData.map((f: unknown) => {
-          const fr = f as { id: string; user1_id: string; user2_id: string; u1: { id: string; username: string; wins: number; avatar_url: string | null } | { id: string; username: string; wins: number; avatar_url: string | null }[] | null; u2: { id: string; username: string; wins: number; avatar_url: string | null } | { id: string; username: string; wins: number; avatar_url: string | null }[] | null };
+          const fr = f as { id: string; user1_id: string; user2_id: string; u1: any; u2: any };
           const p1 = Array.isArray(fr.u1) ? fr.u1[0] : fr.u1;
           const p2 = Array.isArray(fr.u2) ? fr.u2[0] : fr.u2;
           const other = fr.user1_id === myUserId ? p2 : p1;
@@ -103,6 +115,7 @@ export default function FriendsPage() {
             avatarUrl: other?.avatar_url || null,
             online: false,
             score: other?.wins || 0,
+            currentParty: other?.current_party || null,
           };
         })
       );
@@ -120,11 +133,94 @@ export default function FriendsPage() {
 
   useEffect(() => {
     if (myUserId) {
-      // Ignore lint rule about cascading renders since it's an async data fetch
       // eslint-disable-next-line react-hooks/set-state-in-effect
       loadData();
     }
   }, [myUserId, loadData]);
+
+
+  // Real-time listener for invites
+  useEffect(() => {
+    if (!myUserId) return;
+
+    const channel = supabase
+      .channel('party_invites_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'party_invites',
+          filter: `receiver_id=eq.${myUserId}`,
+        },
+        (payload) => {
+          const newInvite = payload.new as IncomingInvite;
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setFriends(currentFriends => {
+            const sender = currentFriends.find(f => f.profile_id === newInvite.sender_id);
+            setIncomingInvites(prev => [
+              ...prev,
+              {
+                ...newInvite,
+                sender_username: sender?.username || "Someone",
+                sender_avatarUrl: sender?.avatarUrl || null,
+              }
+            ]);
+            return currentFriends;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [myUserId, supabase]);
+
+  const activeFriends = friends.filter(f => f.currentParty !== null);
+
+  const handleCreateParty = async () => {
+    if (!myUserId) return;
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    setActiveParty(code);
+    await supabase.from("profiles").update({ current_party: code }).eq("id", myUserId);
+    loadData();
+  };
+
+  const handleJoinParty = async (codeOverride?: string) => {
+    if (!myUserId) return;
+    const code = (codeOverride || partyCodeInput).trim().toUpperCase();
+    if (code) {
+      setActiveParty(code);
+      await supabase.from("profiles").update({ current_party: code }).eq("id", myUserId);
+      loadData();
+    }
+  };
+
+  const handleLeaveParty = async () => {
+    if (!myUserId) return;
+    setActiveParty(null);
+    await supabase.from("profiles").update({ current_party: null }).eq("id", myUserId);
+    loadData();
+  };
+
+  const handleSendInvite = async (friendId: string) => {
+    if (!myUserId || !activeParty) return;
+    await supabase.from("party_invites").insert({
+      sender_id: myUserId,
+      receiver_id: friendId,
+      party_code: activeParty,
+    });
+  };
+
+  const acceptInvite = (invite: IncomingInvite) => {
+    handleJoinParty(invite.party_code);
+    dismissInvite(invite.id);
+  };
+
+  const dismissInvite = (id: string) => {
+    setIncomingInvites(prev => prev.filter(inv => inv.id !== id));
+  };
 
   const filtered = friends.filter(
     (f) =>
@@ -189,17 +285,67 @@ export default function FriendsPage() {
     loadData();
   };
 
-  const handleJoinParty = () => {
-    const code = partyCodeInput.trim().toUpperCase();
-    if (code) {
-      setActiveParty(code);
-    }
-  };
+
 
   return (
     <div className="page-shell">
+
+      {/* ── Incoming Invites Toasts ── */}
+      <div className="fixed top-24 right-4 z-50 flex flex-col gap-2">
+        {incomingInvites.map(inv => (
+          <div key={inv.id} className="bg-zinc-900 border border-purple-500/50 p-4 rounded-xl shadow-2xl flex items-center gap-4 w-80 animate-in slide-in-from-right-8">
+            <img 
+              src={inv.sender_avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${inv.sender_username}`} 
+              alt="Avatar" 
+              className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800"
+            />
+            <div className="flex-1">
+              <p className="text-sm text-white font-bold">@{inv.sender_username}</p>
+              <p className="text-xs text-zinc-400">Invited you to party!</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => acceptInvite(inv)} className="bg-purple-600 hover:bg-purple-500 text-white p-2 rounded-lg">
+                <Check size={16} />
+              </button>
+              <button onClick={() => dismissInvite(inv.id)} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 p-2 rounded-lg">
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <h1 className="page-header">Friends</h1>
+
       <p className="page-subtitle">Connect and compete</p>
+
+      {/* ── Active Friends ── */}
+      {activeFriends.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">In a Party</h3>
+          <div className="flex flex-wrap gap-3">
+            {activeFriends.map(f => (
+              <div key={f.id} className="bg-zinc-900 border border-purple-500/30 rounded-xl p-3 flex items-center gap-3 pr-4 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                <img 
+                  src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`} 
+                  alt="Avatar" 
+                  className="w-8 h-8 rounded-full border border-zinc-700 bg-zinc-800"
+                />
+                <div>
+                  <div className="text-sm font-bold text-white">@{f.username}</div>
+                </div>
+                <button 
+                  onClick={() => handleJoinParty(f.currentParty!)}
+                  className="ml-2 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 text-xs px-3 py-1.5 rounded-lg font-bold transition-colors"
+                >
+                  Join
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
 
       {/* ── Party Lounge ── */}
       <div className="bg-zinc-900 border-2 border-purple-600/30 rounded-2xl p-6 mb-8 shadow-[0_0_15px_rgba(147,51,234,0.1)]">
@@ -209,34 +355,60 @@ export default function FriendsPage() {
         
         {activeParty && myUsername ? (
           <div>
-            <div className="mb-4 text-sm text-purple-300 font-semibold bg-purple-500/10 inline-block px-3 py-1 rounded-full border border-purple-500/20">
-              Room Code: {activeParty}
+            <div className="mb-4 text-sm text-purple-300 font-semibold bg-purple-500/10 inline-block px-3 py-1 rounded-full border border-purple-500/20 flex items-center justify-between w-full max-w-sm">
+              <span>Room Code: {activeParty}</span>
+              <button onClick={() => {
+                navigator.clipboard.writeText(activeParty);
+                // Optional: show a mini toast
+              }} className="text-purple-400 hover:text-white p-1">
+                <Copy size={14} />
+              </button>
             </div>
             <VoiceParty 
               room={activeParty} 
               username={myUsername} 
-              onLeave={() => setActiveParty(null)} 
+              onLeave={handleLeaveParty} 
             />
           </div>
         ) : (
           <div>
-            <p className="text-sm text-zinc-400 mb-4">Jump into a voice party with your friends.</p>
-            <div className="flex items-center gap-3 mt-4 w-full">
-              <input 
-                type="text" 
-                placeholder="Enter Party Code" 
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all uppercase font-mono"
-                value={partyCodeInput}
-                onChange={(e) => setPartyCodeInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleJoinParty()}
-              />
-              <button 
-                onClick={handleJoinParty}
-                disabled={!partyCodeInput.trim()}
-                className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Join
-              </button>
+            <p className="text-sm text-zinc-400 mb-4">Create a new voice party or jump into an existing one with your friends.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              {/* Create Section */}
+              <div className="flex flex-col gap-3 justify-center border border-zinc-800 rounded-xl p-4 bg-zinc-950/50">
+                <h3 className="text-white font-bold text-sm">Start a Party</h3>
+                <p className="text-zinc-500 text-xs">Create a new private room and invite your friends.</p>
+                <button 
+                  onClick={handleCreateParty}
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap mt-2 flex items-center justify-center gap-2"
+                >
+                  <Plus size={16} /> Create Party
+                </button>
+              </div>
+
+              {/* Join Section */}
+              <div className="flex flex-col gap-3 justify-center border border-zinc-800 rounded-xl p-4 bg-zinc-950/50">
+                <h3 className="text-white font-bold text-sm">Join a Party</h3>
+                <p className="text-zinc-500 text-xs">Enter a room code to instantly connect.</p>
+                <div className="flex items-center gap-2 mt-2 w-full">
+                  <input 
+                    type="text" 
+                    placeholder="Code" 
+                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all uppercase font-mono text-sm"
+                    value={partyCodeInput}
+                    onChange={(e) => setPartyCodeInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleJoinParty()}
+                  />
+                  <button 
+                    onClick={() => handleJoinParty()}
+                    disabled={!partyCodeInput.trim()}
+                    className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-3 rounded-xl font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Join
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -308,8 +480,17 @@ export default function FriendsPage() {
                 </div>
                 <div className="friend-info">
                   <div className="friend-name" style={{textTransform: "none"}}>@{friend.username}</div>
+                  <div className="friend-score">{friend.score.toLocaleString()} wins</div>
                 </div>
-                <div className="friend-score">{friend.score.toLocaleString()}</div>
+                
+                {activeParty && friend.currentParty !== activeParty && (
+                  <button 
+                    onClick={(e) => { e.preventDefault(); handleSendInvite(friend.profile_id); }}
+                    className="ml-auto bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700 flex items-center gap-1 transition-colors"
+                  >
+                    <PhoneCall size={12} /> Invite
+                  </button>
+                )}
               </Link>
             ))
           )}

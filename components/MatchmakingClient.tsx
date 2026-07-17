@@ -292,6 +292,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
   useEffect(() => {
     if (joinParam && myUsername !== "Player" && !hasAutoJoined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasAutoJoined(true);
       joinPrivateGame(joinParam);
       router.replace(`/lobby/${gameId}`);
