@@ -76,10 +76,6 @@ export default function ProfilePage() {
       {/* ── Stats ── */}
       <div className="stat-row" style={{ marginBottom: 20 }}>
         <div className="stat-chip">
-          <span className="stat-chip-label">Rounds</span>
-          <span className="stat-chip-value" style={{ fontSize: 18 }}>0</span>
-        </div>
-        <div className="stat-chip">
           <span className="stat-chip-label">Rank</span>
           <span className="stat-chip-value" style={{ fontSize: 18 }}>—</span>
         </div>
