@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import {
   UserPlus, Check, X, Search, Users, Bell,
 } from "lucide-react";
+import Link from "next/link";
 
 interface Friend {
   id: string; // ID of the friendship row or the user profile
@@ -81,8 +82,8 @@ export default function FriendsPage() {
       setFriends(
         friendsData.map((f: unknown) => {
           const fr = f as { id: string; user1_id: string; user2_id: string; u1: { id: string; username: string; wins: number } | { id: string; username: string; wins: number }[] | null; u2: { id: string; username: string; wins: number } | { id: string; username: string; wins: number }[] | null };
-          let p1 = Array.isArray(fr.u1) ? fr.u1[0] : fr.u1;
-          let p2 = Array.isArray(fr.u2) ? fr.u2[0] : fr.u2;
+          const p1 = Array.isArray(fr.u1) ? fr.u1[0] : fr.u1;
+          const p2 = Array.isArray(fr.u2) ? fr.u2[0] : fr.u2;
           const other = fr.user1_id === myUserId ? p2 : p1;
           return {
             id: fr.id,
@@ -241,7 +242,7 @@ export default function FriendsPage() {
             </div>
           ) : (
             filtered.map((friend) => (
-              <div key={friend.id} className="friend-row">
+              <Link href={`/profile/${friend.username}`} key={friend.id} className="friend-row" style={{ textDecoration: "none", color: "inherit", cursor: "pointer", display: "flex" }}>
                 <div className="friend-avatar">
                   {friend.displayName[0]?.toUpperCase()}
                 </div>
@@ -252,7 +253,7 @@ export default function FriendsPage() {
                   </div>
                 </div>
                 <div className="friend-score">{friend.score.toLocaleString()}</div>
-              </div>
+              </Link>
             ))
           )}
         </>

@@ -20,23 +20,80 @@ const menuItems = [
 export default function ProfilePage() {
   const armandBalance = useWalletStore((s) => s.armandBalance);
   const [username, setUsername] = useState("Loading...");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const supabase = createClient();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.user_metadata?.username) {
         setUsername(user.user_metadata.username);
+        setEditUsername(user.user_metadata.username);
       } else {
         setUsername("Anonymous");
+        setEditUsername("Anonymous");
       }
     };
     fetchUser();
-  }, []);
+  }, [supabase.auth]);
 
   const displayName = username !== "Loading..." && username !== "Anonymous" 
     ? username.charAt(0).toUpperCase() + username.slice(1) 
     : username;
+
+  const handleSave = async () => {
+    const newUsername = editUsername.trim().toLowerCase();
+    if (!newUsername) return;
+    if (newUsername === username) {
+      setIsEditing(false);
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMsg("");
+
+    try {
+      // Check if username is taken in profiles table
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", newUsername)
+        .maybeSingle();
+        
+      if (existingUser) {
+        setErrorMsg("Username is already taken.");
+        setIsSaving(false);
+        return;
+      }
+
+      // 1. Update Auth Metadata
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { username: newUsername }
+      });
+      if (authError) throw authError;
+
+      // 2. Update Profiles table
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ username: newUsername })
+          .eq("id", user.id);
+        if (profileError) throw profileError;
+      }
+
+      setUsername(newUsername);
+      setIsEditing(false);
+    } catch (err: unknown) {
+      setErrorMsg((err as Error).message || "Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="page-shell">
@@ -46,17 +103,54 @@ export default function ProfilePage() {
         <div className="profile-username">{displayName}</div>
         <div className="profile-handle">@{username}</div>
 
-        {/* Editable fields (static display for now) */}
-        <div className="profile-fields">
-          <div className="profile-field">
-            <span className="profile-field-label">Username</span>
-            <span className="profile-field-value">{username}</span>
-            <Edit3 size={13} color="var(--neon)" />
+        {errorMsg && (
+          <div style={{ color: "#f87171", fontSize: 12, marginTop: 8, textAlign: "center" }}>
+            {errorMsg}
           </div>
+        )}
+
+        <div className="profile-fields" style={{ marginTop: 16 }}>
           <div className="profile-field" style={{ borderBottom: "none" }}>
-            <span className="profile-field-label">Display Name</span>
-            <span className="profile-field-value">{displayName}</span>
-            <Edit3 size={13} color="var(--neon)" />
+            <span className="profile-field-label">Username</span>
+            {isEditing ? (
+              <input 
+                className="search-input"
+                style={{ flex: 1, marginLeft: 16, padding: "8px 12px", background: "var(--bg-base)" }}
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                disabled={isSaving}
+                autoFocus
+              />
+            ) : (
+              <span className="profile-field-value">{username}</span>
+            )}
+            
+            {isEditing ? (
+              <div style={{ display: "flex", gap: 8, marginLeft: 16 }}>
+                <button 
+                  onClick={() => { setIsEditing(false); setErrorMsg(""); setEditUsername(username); }} 
+                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13 }}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSave} 
+                  className="btn-lobby-play"
+                  style={{ padding: "6px 12px", fontSize: 13 }}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsEditing(true)}
+                style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
+              >
+                <Edit3 size={15} color="var(--neon)" />
+              </button>
+            )}
           </div>
         </div>
       </div>
