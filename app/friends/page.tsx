@@ -351,21 +351,11 @@ export default function FriendsPage() {
           </h2>
         
         {activeParty && myUsername ? (
-          <div>
-            <div className="mb-6 mt-2 text-sm text-purple-300 font-semibold bg-purple-500/10 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-purple-500/20 w-fit">
-              <span>Room Code: {activeParty}</span>
-              <button onClick={() => {
-                navigator.clipboard.writeText(activeParty);
-              }} className="text-purple-400 hover:text-white p-1">
-                <Copy size={14} />
-              </button>
-            </div>
-            <VoiceParty 
-              room={activeParty} 
-              username={myUsername} 
-              onLeave={handleLeaveParty} 
-            />
-          </div>
+          <VoiceParty 
+            room={activeParty} 
+            username={myUsername} 
+            onLeave={handleLeaveParty} 
+          />
         ) : (
           <div>
             <p className="text-sm text-zinc-400 mb-4">Create a new voice party or jump into an existing one with your friends.</p>
