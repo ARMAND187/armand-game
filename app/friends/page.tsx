@@ -288,7 +288,7 @@ export default function FriendsPage() {
 
 
   return (
-    <div className="page-shell flex flex-col gap-8 w-full max-w-5xl mx-auto mt-6 md:mt-10 p-4 md:p-6">
+    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto px-4 md:px-0 mt-8">
 
       {/* ── Incoming Invites Toasts ── */}
       <div className="fixed top-24 right-4 z-50 flex flex-col gap-2">
@@ -343,7 +343,7 @@ export default function FriendsPage() {
       </div>
 
       {/* ── Section 2: Party Lounge ── */}
-      <div className="bg-zinc-900 border-2 border-purple-600/30 rounded-2xl p-6 shadow-[0_0_15px_rgba(147,51,234,0.1)]">
+      <div className="border border-purple-500/50 rounded-2xl p-6 w-full bg-zinc-900/50">
         <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
           🎉 Party Lounge
         </h2>
@@ -370,26 +370,26 @@ export default function FriendsPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               {/* Create Section */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col h-full justify-between gap-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between min-h-[140px]">
                 <div>
                   <h3 className="text-white font-bold text-sm mb-1">Start a Party</h3>
                   <p className="text-zinc-500 text-xs">Create a new private room and invite your friends.</p>
                 </div>
                 <button 
                   onClick={handleCreateParty}
-                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap w-full flex items-center justify-center gap-2"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap w-full mt-4 flex items-center justify-center gap-2"
                 >
                   <Plus size={16} /> Create Party
                 </button>
               </div>
 
               {/* Join Section */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col h-full justify-between gap-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between min-h-[140px]">
                 <div>
                   <h3 className="text-white font-bold text-sm mb-1">Join a Party</h3>
                   <p className="text-zinc-500 text-xs">Enter a room code to instantly connect.</p>
                 </div>
-                <div className="flex gap-3 w-full mt-auto">
+                <div className="flex items-center gap-3 w-full mt-4">
                   <input 
                     type="text" 
                     placeholder="Code" 
