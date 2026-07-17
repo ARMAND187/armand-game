@@ -52,12 +52,16 @@ export default function FriendsPage() {
 
     if (reqData) {
       setRequests(
-        reqData.map((r: { id: string, sender_id: string, profiles: { username: string, wins: number } | null }) => ({
-          id: r.id,
-          sender_id: r.sender_id,
-          username: r.profiles?.username || "unknown",
-          displayName: r.profiles?.username || "Unknown",
-        }))
+        reqData.map((r: unknown) => {
+          const req = r as { id: string; sender_id: string; profiles: { username: string; wins: number } | { username: string; wins: number }[] | null };
+          const p = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
+          return {
+            id: req.id,
+            sender_id: req.sender_id,
+            username: p?.username || "unknown",
+            displayName: p?.username || "Unknown",
+          };
+        })
       );
     }
 
@@ -75,14 +79,17 @@ export default function FriendsPage() {
 
     if (friendsData) {
       setFriends(
-        friendsData.map((f: { id: string, user1_id: string, user2_id: string, u1: { id: string, username: string, wins: number } | null, u2: { id: string, username: string, wins: number } | null }) => {
-          const other = f.user1_id === myUserId ? f.u2 : f.u1;
+        friendsData.map((f: unknown) => {
+          const fr = f as { id: string; user1_id: string; user2_id: string; u1: { id: string; username: string; wins: number } | { id: string; username: string; wins: number }[] | null; u2: { id: string; username: string; wins: number } | { id: string; username: string; wins: number }[] | null };
+          let p1 = Array.isArray(fr.u1) ? fr.u1[0] : fr.u1;
+          let p2 = Array.isArray(fr.u2) ? fr.u2[0] : fr.u2;
+          const other = fr.user1_id === myUserId ? p2 : p1;
           return {
-            id: f.id,
+            id: fr.id,
             profile_id: other?.id || "",
             username: other?.username || "unknown",
             displayName: other?.username || "Unknown",
-            online: false, // Could implement presence later
+            online: false,
             score: other?.wins || 0,
           };
         })
