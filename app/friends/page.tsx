@@ -288,7 +288,8 @@ export default function FriendsPage() {
 
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col gap-6 mt-8 px-4 md:px-8">
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-6xl flex flex-col gap-6 mt-8 px-4 md:px-8 pb-32">
 
       {/* ── Incoming Invites Toasts ── */}
       <div className="fixed top-24 right-4 z-50 flex flex-col gap-2">
