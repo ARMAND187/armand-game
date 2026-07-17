@@ -218,6 +218,13 @@ function GeoKurdistanInner() {
             setTotalScores(state.totalScores);
           }
         })
+        .on("broadcast", { event: "GAME_OVER" }, (payload) => {
+          const state = payload.payload;
+          if (state && state.totalScores) {
+             setTotalScores(state.totalScores);
+          }
+          setGameState("GAME_OVER");
+        })
         .subscribe(async (status) => {
           if (status === "SUBSCRIBED") {
             if (isRoomHost) {
@@ -295,6 +302,9 @@ function GeoKurdistanInner() {
   const handleNextRound = useCallback(async () => {
     if (round >= totalRounds) {
       setGameState("GAME_OVER");
+      if (channelRef.current && roomId) {
+        channelRef.current.send({ type: "broadcast", event: "GAME_OVER", payload: stateRef.current });
+      }
       
       // Update wins if I am the host, I will calculate the winner
       if (isHost) {
