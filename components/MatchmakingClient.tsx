@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { Users, Globe, Loader2 } from "lucide-react";
 
 type MatchState = "idle" | "searching" | "waiting" | "friends";
@@ -14,12 +14,20 @@ interface Props {
 
 export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const router = useRouter();
+  const supabase = createClient();
   const [matchState, setMatchState] = useState<MatchState>("idle");
   const [roomId, setRoomId] = useState<string | null>(null);
   const [players, setPlayers] = useState<string[]>([]);
-  // Generic username for now
-  const [myUsername] = useState(() => `Guest${Math.floor(Math.random() * 9000) + 1000}`);
+  const [myUsername, setMyUsername] = useState<string>("Player");
   const [roomCodeInput, setRoomCodeInput] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.user_metadata?.username) {
+        setMyUsername(data.user.user_metadata.username);
+      }
+    });
+  }, [supabase]);
 
   useEffect(() => {
     if (!roomId || matchState !== "waiting") return;
