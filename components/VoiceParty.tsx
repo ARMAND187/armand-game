@@ -93,7 +93,6 @@ function PartyLoungeInner() {
 }
 
 function ParticipantTile() {
-  const participants = useParticipants();
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-500/50 bg-zinc-800 flex items-center justify-center">

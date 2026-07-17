@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Bell, Trophy, UserPlus, Gamepad2, Gift, Clock, CheckCheck, Play, X } from "lucide-react";
+import { Bell, Trophy, UserPlus, Gamepad2, Gift, Clock, Play, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Notification {
@@ -12,7 +12,7 @@ interface Notification {
   body: string;
   created_at: string;
   read: boolean;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -30,19 +30,6 @@ export default function NotificationBell() {
   const router = useRouter();
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchNotifs();
-    
-    // Close on click outside
-    const handleClickOutside = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const fetchNotifs = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -55,6 +42,20 @@ export default function NotificationBell() {
     
     if (data) setNotifs(data as Notification[]);
   };
+
+  useEffect(() => {
+    fetchNotifs();
+    
+    // Close on click outside
+    const handleClickOutside = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const unreadCount = notifs.filter((n) => !n.read).length;
 
