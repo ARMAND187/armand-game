@@ -155,7 +155,7 @@ export default function MapillaryViewer({
       {status === "loading" && (
         <div className="mly-overlay">
           <div className="mly-spinner" />
-          <span className="mly-overlay-text">Finding imagery near {locationName}…</span>
+          <span className="mly-overlay-text">Finding imagery…</span>
         </div>
       )}
 
@@ -163,10 +163,7 @@ export default function MapillaryViewer({
       {status === "no-imagery" && (
         <div className="mly-overlay" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0a14", padding: "24px" }}>
           <WifiOff size={32} color="#a78bfa" style={{ marginBottom: 12 }} />
-          <span className="mly-overlay-text">No street-level imagery found near</span>
-          <span style={{ color: "#a78bfa", fontWeight: 700, fontSize: 16, marginTop: 8, marginBottom: 8, textAlign: "center" }}>
-            {locationName}
-          </span>
+          <span className="mly-overlay-text" style={{ marginBottom: 20 }}>No street-level imagery found for this location.</span>
           <span className="mly-overlay-subtext" style={{ marginBottom: 20 }}>
             Use the map below to guess the location anyway, or skip to the next round.
           </span>

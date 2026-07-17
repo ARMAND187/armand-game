@@ -82,6 +82,7 @@ function GeoKurdistanInner() {
   const [guessMarker, setGuessMarker] = useState<{ lat: number; lng: number } | null>(null);
   const [hasGuessed, setHasGuessed] = useState(false);
   const [roundGuesses, setRoundGuesses] = useState<MultiplayerGuess[]>([]);
+  const [showScoreboard, setShowScoreboard] = useState(false);
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -193,6 +194,7 @@ function GeoKurdistanInner() {
           setTotalScores({});
           setHasGuessed(false);
           setGuessMarker(null);
+          setShowScoreboard(false);
         })
         .on("broadcast", { event: "PLAYER_GUESS" }, (payload) => {
           setRoundGuesses((prev) => {
@@ -212,6 +214,7 @@ function GeoKurdistanInner() {
           setRoundGuesses([]);
           setHasGuessed(false);
           setGuessMarker(null);
+          setShowScoreboard(false);
         })
         .on("broadcast", { event: "REQUEST_SYNC" }, () => {
           if (isRoomHost) {
@@ -352,6 +355,7 @@ function GeoKurdistanInner() {
       setRoundGuesses([]);
       setHasGuessed(false);
       setGuessMarker(null);
+      setShowScoreboard(false);
     }
   }, [round, totalRounds, isHost, totalScores, roomId, myUsername]);
 
@@ -367,6 +371,7 @@ function GeoKurdistanInner() {
       setTotalScores({});
       setHasGuessed(false);
       setGuessMarker(null);
+      setShowScoreboard(false);
     } else {
       if (isHost && channelRef.current) {
         const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
@@ -384,18 +389,24 @@ function GeoKurdistanInner() {
         setTotalScores({});
         setHasGuessed(false);
         setGuessMarker(null);
+        setShowScoreboard(false);
       }
     }
   };
 
   useEffect(() => {
-    if (gameState === "ROUND_END" && (!roomId || isHost)) {
-      // In multiplayer, the host triggers the next round after 5 seconds
-      // In single player, we also auto-advance after 5 seconds
-      const t = setTimeout(() => {
-        handleNextRound();
-      }, 5000);
-      return () => clearTimeout(t);
+    if (gameState === "ROUND_END") {
+      const t1 = setTimeout(() => setShowScoreboard(true), 3000);
+      let t2: NodeJS.Timeout;
+      if (!roomId || isHost) {
+        t2 = setTimeout(() => {
+          handleNextRound();
+        }, 8000);
+      }
+      return () => {
+        clearTimeout(t1);
+        if (t2) clearTimeout(t2);
+      };
     }
   }, [gameState, isHost, handleNextRound, roomId]);
 
@@ -466,7 +477,7 @@ function GeoKurdistanInner() {
         </div>
       </div>
 
-      {gameState === "ROUND_END" && (
+      {gameState === "ROUND_END" && showScoreboard && (
         <div className="modal-backdrop">
           <div className="modal-sheet" style={{ maxWidth: 500 }}>
             <h2 className="modal-title" style={{ marginBottom: 16 }}>Round {round} Results</h2>
