@@ -384,8 +384,16 @@ function GeoKurdistanInner() {
         </div>
 
         <div className="geo-split">
-          <div className="geo-streetview flex-1 min-h-0 relative h-full w-full">
-            <MapillaryViewer lat={location.lat} lng={location.lng} locationName={location.name} onSkip={() => {}} />
+          <div className="geo-streetview">
+            {location && (
+              <MapillaryViewer 
+                lat={location.lat} 
+                lng={location.lng} 
+                locationName={location.name}
+                imageId={location.imageId}
+                onSkip={() => handleTimeUp()} 
+              />
+            )}
           </div>
 
           <div className="geo-map-panel flex-1 min-h-0 relative flex flex-col h-full w-full overflow-hidden">

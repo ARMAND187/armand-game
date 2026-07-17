@@ -61,6 +61,7 @@ interface MapillaryViewerProps {
   lat: number;
   lng: number;
   locationName: string;
+  imageId?: string;
   onSkip?: () => void;
 }
 
@@ -71,6 +72,7 @@ export default function MapillaryViewer({
   lat,
   lng,
   locationName,
+  imageId,
   onSkip,
 }: MapillaryViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -87,11 +89,11 @@ export default function MapillaryViewer({
       setStatus("loading");
 
       // --- 1. Lookup nearest image ---
-      const imageId = await findNearestImageId(lat, lng);
+      const finalImageId = imageId || await findNearestImageId(lat, lng);
 
       if (cancelled) return; // component unmounted while fetching
 
-      if (!imageId) {
+      if (!finalImageId) {
         setStatus("no-imagery");
         return;
       }
@@ -100,7 +102,7 @@ export default function MapillaryViewer({
       if (viewerRef.current) {
         // Viewer already exists — just navigate to new image
         try {
-          await viewerRef.current.moveTo(imageId);
+          await viewerRef.current.moveTo(finalImageId);
           if (!cancelled) setStatus("ready");
         } catch {
           // moveTo can throw if the viewer was disposed
@@ -113,7 +115,7 @@ export default function MapillaryViewer({
       const viewer = new Viewer({
         accessToken: MAPILLARY_TOKEN,
         container: containerRef.current, // the div#mly element
-        imageId,
+        imageId: finalImageId,
         component: {
           cover: false,        // skip the splash/cover screen
           attribution: true,   // keep Mapillary attribution
@@ -138,7 +140,7 @@ export default function MapillaryViewer({
         viewerRef.current = null;
       }
     };
-  }, [lat, lng]); // re-run whenever the round location changes
+  }, [lat, lng, imageId]); // re-run whenever the round location changes
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
