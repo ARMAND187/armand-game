@@ -98,7 +98,7 @@ export default async function LeaderboardPage() {
               </div>
               <div className="lb-info">
                 <div className="lb-name">{player.name}</div>
-                <div className="lb-score">@{player.username} · {player.games} games</div>
+                <div className="lb-score">@{player.username}</div>
               </div>
               <div className="lb-balance">{player.score.toLocaleString()}</div>
             </div>

@@ -179,6 +179,7 @@ function GeoKurdistanInner() {
           setTimer(30);
           setRound(1);
           setRoundGuesses([]);
+          setTotalScores({});
           setHasGuessed(false);
           setGuessMarker(null);
         })
@@ -342,7 +343,38 @@ function GeoKurdistanInner() {
       setHasGuessed(false);
       setGuessMarker(null);
     }
-  }, [round, totalRounds, isHost, totalScores, roomId]);
+  }, [round, totalRounds, isHost, totalScores, roomId, myUsername]);
+
+  const handlePlayAgain = () => {
+    if (!roomId) {
+      const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * kurdistanLocations.length));
+      setLocationIndices(indices);
+      setGameState("PLAYING");
+      setTimer(30);
+      setRound(1);
+      setRoundGuesses([]);
+      setTotalScores({});
+      setHasGuessed(false);
+      setGuessMarker(null);
+    } else {
+      if (isHost && channelRef.current) {
+        const indices = Array.from({ length: totalRounds }, () => Math.floor(Math.random() * kurdistanLocations.length));
+        channelRef.current.send({
+           type: "broadcast",
+           event: "GAME_START",
+           payload: { indices, players }
+        });
+        setLocationIndices(indices);
+        setGameState("PLAYING");
+        setTimer(30);
+        setRound(1);
+        setRoundGuesses([]);
+        setTotalScores({});
+        setHasGuessed(false);
+        setGuessMarker(null);
+      }
+    }
+  };
 
   useEffect(() => {
     if (gameState === "ROUND_END" && isHost) {
@@ -474,9 +506,21 @@ function GeoKurdistanInner() {
                 ))}
             </div>
 
-            <Link href="/" className="btn-lobby-play" style={{ display: "flex", justifyContent: "center", textDecoration: "none" }}>
-              Return to Lobby
-            </Link>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              {(!roomId || isHost) && (
+                <button onClick={handlePlayAgain} className="btn-lobby-play" style={{ border: "none", cursor: "pointer", background: "var(--neon)", color: "#000" }}>
+                  Play Again
+                </button>
+              )}
+              {roomId && !isHost && (
+                <div style={{ padding: "12px 24px", color: "var(--text-muted)", fontSize: 14, fontWeight: 600 }}>
+                  Waiting for host to restart...
+                </div>
+              )}
+              <Link href="/" className="btn-lobby-play" style={{ display: "flex", justifyContent: "center", textDecoration: "none", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+                Return to Lobby
+              </Link>
+            </div>
           </div>
         </div>
       )}
