@@ -242,5 +242,82 @@ export const kurdistanLocations: KurdistanLocation[] = [
     "city": "Rawanduz",
     "lat": 36.613,
     "lng": 44.517
-}
+  },
+  {
+    "name": "Kirkuk Citadel",
+    "city": "Kirkuk",
+    "lat": 35.473351700005,
+    "lng": 44.406784999996,
+    "imageId": "1180648973989941"
+  },
+  {
+    "name": "Kirkuk Center",
+    "city": "Kirkuk",
+    "lat": 35.480002196229,
+    "lng": 44.37984880711,
+    "imageId": "690491226956540"
+  },
+  {
+    "name": "Koya Center",
+    "city": "Koya",
+    "lat": 36.072664872005,
+    "lng": 44.639832906255,
+    "imageId": "1310390891078269"
+  },
+  {
+    "name": "Ranya Center",
+    "city": "Ranya",
+    "lat": 36.269332026532,
+    "lng": 44.869291289258,
+    "imageId": "309453507303554"
+  },
+  {
+    "name": "Halabja Center",
+    "city": "Halabja",
+    "lat": 35.187266410092,
+    "lng": 45.99422263448,
+    "imageId": "1131691188080322"
+  },
+  {
+    "name": "Soran Center",
+    "city": "Soran",
+    "lat": 36.660104309786,
+    "lng": 44.543568233474,
+    "imageId": "623855916560522"
+  },
+  {
+    "name": "Choman Center",
+    "city": "Choman",
+    "lat": 36.6375326,
+    "lng": 44.8889397,
+    "imageId": "596301820066577"
+  },
+  {
+    "name": "Darbandikhan Center",
+    "city": "Darbandikhan",
+    "lat": 35.124967377368,
+    "lng": 45.704296545349,
+    "imageId": "1013409441629254"
+  },
+  {
+    "name": "Erbil Ankawa",
+    "city": "Erbil",
+    "lat": 36.21839347821,
+    "lng": 43.99913746364,
+    "imageId": "207832667819226"
+  },
+  {
+    "name": "Erbil Bakhtiari",
+    "city": "Erbil",
+    "lat": 36.191671226486,
+    "lng": 44.027122771144,
+    "imageId": "1012109214966594"
+  },
+  {
+    "name": "Duhok Mazi",
+    "city": "Duhok",
+    "lat": 36.8622124,
+    "lng": 42.983617099999,
+    "imageId": "339952780807354"
+  }
 ];

@@ -1,4 +1,4 @@
-const accessToken = 'MLY|9053331168128362|20fcb53b8f2cce695a432cb390dc3657'; // From earlier conversation
+const accessToken = 'MLY|27954160734202280|be514215d6940ba81f5f40159f8368b2'; // From earlier conversation
 
 async function getImagesInBbox(minLng, minLat, maxLng, maxLat, limit = 5) {
   const url = `https://graph.mapillary.com/images?access_token=${accessToken}&fields=id,computed_geometry&bbox=${minLng},${minLat},${maxLng},${maxLat}&limit=${limit}`;

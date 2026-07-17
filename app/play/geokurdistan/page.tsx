@@ -65,11 +65,12 @@ function GeoKurdistanInner() {
   const [totalRounds, setTotalRounds] = useState(() => parseInt(searchParams.get("rounds") || "5", 10));
   const regionQuery = searchParams.get("region") || "All Kurdistan";
   
-  // Filter locations by region
+  // Filter locations by region and ensure they have a valid Mapillary image
   const availableLocations = React.useMemo(() => {
-    if (regionQuery === "Erbil Only") return kurdistanLocations.filter(loc => loc.city === "Erbil");
-    if (regionQuery === "Sulaymaniyah Only") return kurdistanLocations.filter(loc => loc.city === "Sulaymaniyah" || loc.city === "Slemani");
-    return kurdistanLocations;
+    let filtered = kurdistanLocations.filter(loc => !!loc.imageId);
+    if (regionQuery === "Erbil Only") filtered = filtered.filter(loc => loc.city === "Erbil");
+    if (regionQuery === "Sulaymaniyah Only") filtered = filtered.filter(loc => loc.city === "Sulaymaniyah" || loc.city === "Slemani");
+    return filtered.length > 0 ? filtered : kurdistanLocations.filter(loc => !!loc.imageId);
   }, [regionQuery]);
   const [locationIndices, setLocationIndices] = useState<number[]>([0, 1, 2, 3, 4]);
   const [timer, setTimer] = useState(30);
@@ -104,7 +105,7 @@ function GeoKurdistanInner() {
 
   const submitGuess = useCallback((marker: { lat: number; lng: number } | null) => {
     setHasGuessed(true);
-    const location = kurdistanLocations[locationIndices[round - 1]] || kurdistanLocations[0];
+    const location = availableLocations[locationIndices[round - 1]] || availableLocations[0];
     
     let distanceKm = 99999;
     let score = 0;
