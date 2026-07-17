@@ -23,6 +23,7 @@ export default function BottomNav() {
           <Link
             key={href}
             href={href}
+            prefetch={true}
             className={`bottom-nav-item${isActive ? " active" : ""}`}
           >
             <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
