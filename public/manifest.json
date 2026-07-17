@@ -1,11 +1,6 @@
 {
   "name": "Armand Games",
   "short_name": "Armand",
-  "description": "A mobile-first gaming platform. Play GeoKurdistan and explore the Kurdistan Region.",
-  "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#9333ea",
-  "start_url": "/",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -17,5 +12,10 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "theme_color": "#09090b",
+  "background_color": "#09090b",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
 }

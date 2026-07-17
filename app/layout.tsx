@@ -30,7 +30,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#9333ea",
+  themeColor: "#09090b",
 };
 
 import GlobalToaster from "@/components/GlobalToaster";
