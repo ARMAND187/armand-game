@@ -20,6 +20,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [players, setPlayers] = useState<string[]>([]);
   const [myUsername, setMyUsername] = useState<string>("Player");
   const [roomCodeInput, setRoomCodeInput] = useState("");
+  const [displayCode, setDisplayCode] = useState<string | null>(null);
+  const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -142,6 +144,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
   const createPrivateGame = async () => {
     setMatchState("searching");
+    const shortCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
     try {
       const { data: newRoom, error: insertError } = await supabase
         .from("rooms")
@@ -151,6 +155,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           is_public: false,
           player_count: 1,
           host_username: myUsername,
+          room_code: shortCode
         })
         .select()
         .single();
@@ -159,11 +164,13 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
       setPlayers([myUsername]);
       setRoomId(newRoom.id);
+      setDisplayCode(shortCode);
+      setIsHost(true);
       setMatchState("waiting");
     } catch (err) {
       console.error("Private room creation error:", err);
       setMatchState("idle");
-      alert("Failed to create private room.");
+      alert("Failed to create private room. Make sure you ran the SQL command to add 'room_code'!");
     }
   };
 
@@ -175,7 +182,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       const { data: rooms, error } = await supabase
         .from("rooms")
         .select("*")
-        .eq("id", roomCodeInput.trim())
+        .eq("room_code", roomCodeInput.trim().toUpperCase())
         .eq("status", "waiting")
         .lt("player_count", 4)
         .limit(1);
@@ -264,7 +271,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         <>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--neon)", marginBottom: 16 }}>
             Waiting for players... ({players.length}/4)
-            {roomId && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all" }}>Room ID: <span style={{ color: "#fff", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, letterSpacing: 1 }}>{roomId}</span></div>}
+            {displayCode && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all" }}>Room Code: <span style={{ color: "#fff", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, fontSize: 16 }}>{displayCode}</span></div>}
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -301,8 +308,22 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             })}
           </div>
 
+          {isHost && players.length >= 2 && (
+            <button 
+              className="btn-lobby-play"
+              style={{ width: "100%", marginTop: 24, padding: 12, borderRadius: 12 }}
+              onClick={() => {
+                const channel = supabase.channel(`room:${roomId}`);
+                channel.send({ type: "broadcast", event: "ROOM_READY", payload: {} });
+                router.push(playRoute);
+              }}
+            >
+              Start Game Now ({players.length} players)
+            </button>
+          )}
+
           <button 
-            style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, marginTop: 24, cursor: "pointer" }}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, marginTop: isHost && players.length >= 2 ? 12 : 24, cursor: "pointer" }}
             onClick={() => setMatchState("idle")}
           >
             Cancel Matchmaking
