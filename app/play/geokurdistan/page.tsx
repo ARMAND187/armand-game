@@ -35,7 +35,7 @@ export interface MultiplayerGuess {
   score: number;
 }
 
-type GameState = "WAITING" | "PLAYING" | "ROUND_END" | "GAME_OVER";
+type GameState = "WAITING" | "PLAYING" | "REVEALING" | "ROUND_END" | "GAME_OVER";
 
 function calculateScore(distanceKm: number): number {
   if (distanceKm < 1) return 100;
@@ -305,10 +305,11 @@ function GeoKurdistanInner() {
   useEffect(() => {
     if (gameState === "PLAYING" && roundGuesses.length > 0) {
       if (!roomId || (players.length > 0 && roundGuesses.length >= players.length)) {
+        setGameState("REVEALING");
         setTimeout(() => {
           setGameState("ROUND_END");
           updateTotalScores();
-        }, 0);
+        }, 2000);
       }
     }
   }, [roundGuesses, players, gameState, updateTotalScores, roomId]);
@@ -425,7 +426,16 @@ function GeoKurdistanInner() {
   
   return (
     <>
-      <div className="geo-page">
+      <div className="geo-page relative">
+        {gameState === "REVEALING" && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in" style={{ animationDuration: '300ms' }}>
+            <div className="bg-zinc-900 border border-purple-500/50 text-white px-8 py-6 rounded-2xl flex flex-col items-center shadow-2xl">
+              <Loader2 className="animate-spin text-purple-500 mb-4" size={40} />
+              <span className="font-extrabold text-xl mb-1">All players ready!</span>
+              <span className="text-sm text-zinc-400 font-medium">Revealing results...</span>
+            </div>
+          </div>
+        )}
         <div className="geo-top-bar">
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", textDecoration: "none" }}>
             <ArrowLeft size={18} />
