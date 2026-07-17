@@ -22,8 +22,8 @@ export default async function LeaderboardPage() {
     rank: i + 1,
     name: p.username ? (p.username.charAt(0).toUpperCase() + p.username.slice(1)) : "Anonymous",
     username: p.username || "anonymous",
-    score: Math.max(1000 - i * 50, 0),
-    games: Math.max(20 - i, 0),
+    score: 0,
+    games: 0,
   }));
 
   return (

@@ -132,6 +132,68 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     }
   };
 
+  const createPrivateGame = async () => {
+    setMatchState("searching");
+    try {
+      const { data: newRoom, error: insertError } = await supabase
+        .from("rooms")
+        .insert({
+          game_id: gameId,
+          status: "waiting",
+          is_public: false,
+          player_count: 1,
+          host_username: myUsername,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setPlayers([myUsername]);
+      setRoomId(newRoom.id);
+      setMatchState("waiting");
+    } catch (err) {
+      console.error("Private room creation error:", err);
+      setMatchState("idle");
+      alert("Failed to create private room.");
+    }
+  };
+
+  const joinPrivateGame = async () => {
+    if (!roomCodeInput.trim()) return;
+    setMatchState("searching");
+    
+    try {
+      const { data: rooms, error } = await supabase
+        .from("rooms")
+        .select("*")
+        .eq("id", roomCodeInput.trim())
+        .eq("status", "waiting")
+        .lt("player_count", 4)
+        .limit(1);
+
+      if (error || !rooms || rooms.length === 0) {
+        setMatchState("friends");
+        alert("Room not found, full, or already in progress.");
+        return;
+      }
+      
+      const room = rooms[0];
+      await supabase
+        .from("rooms")
+        .update({ player_count: room.player_count + 1 })
+        .eq("id", room.id);
+
+      setPlayers([room.host_username, myUsername]);
+      setRoomId(room.id);
+      setMatchState("waiting");
+    } catch(err) {
+      console.error("Private room join error:", err);
+      setMatchState("idle");
+      alert("Failed to join private room.");
+    }
+  };
+
   if (matchState === "idle") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -164,13 +226,13 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             value={roomCodeInput}
             onChange={(e) => setRoomCodeInput(e.target.value)}
           />
-          <button className="btn-lobby-play" style={{ borderRadius: 10, padding: "10px 20px" }}>
+          <button className="btn-lobby-play" style={{ borderRadius: 10, padding: "10px 20px" }} onClick={joinPrivateGame}>
             Join
           </button>
         </div>
         <div className="divider" style={{ margin: "16px 0" }} />
-        <button className="btn-redeem-ghost" style={{ width: "100%", justifyContent: "center", margin: 0 }}>
-          Create Private Room
+        <button className="btn-redeem-ghost" style={{ width: "100%", justifyContent: "center", margin: 0 }} onClick={createPrivateGame}>
+            Create Private Room
         </button>
         <button 
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, width: "100%", marginTop: 16, cursor: "pointer" }}
@@ -194,6 +256,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         <>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--neon)", marginBottom: 16 }}>
             Waiting for players... ({players.length}/4)
+            {roomId && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all" }}>Room ID: <span style={{ color: "#fff", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, letterSpacing: 1 }}>{roomId}</span></div>}
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
