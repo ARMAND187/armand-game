@@ -53,7 +53,9 @@ function gradeDistance(km: number) {
   return             { emoji: "😅", label: "Far off!",                  color: "#f87171" };
 }
 
-export default function GeoKurdistanPage() {
+import { Suspense } from "react";
+
+function GeoKurdistanInner() {
   const searchParams = useSearchParams();
   const roomId = searchParams.get("roomId");
   const supabase = createClient();
@@ -413,5 +415,18 @@ export default function GeoKurdistanPage() {
         </div>
       )}
     </>
+  );
+}
+
+export default function GeoKurdistanPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-[#0d0d1a] text-white flex-col gap-4">
+        <Loader2 className="animate-spin" size={48} color="var(--neon)" />
+        <h2 className="text-xl font-bold">Loading game...</h2>
+      </div>
+    }>
+      <GeoKurdistanInner />
+    </Suspense>
   );
 }
