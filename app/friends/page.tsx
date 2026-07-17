@@ -288,7 +288,7 @@ export default function FriendsPage() {
 
 
   return (
-    <div className="page-shell mt-8 md:mt-12 flex flex-col gap-6">
+    <div className="page-shell flex flex-col gap-8 w-full max-w-5xl mx-auto mt-6 md:mt-10 p-4 md:p-6">
 
       {/* ── Incoming Invites Toasts ── */}
       <div className="fixed top-24 right-4 z-50 flex flex-col gap-2">
@@ -315,39 +315,34 @@ export default function FriendsPage() {
         ))}
       </div>
 
-      <h1 className="page-header">Friends</h1>
+      <div>
+        <h1 className="page-header mb-1">Friends</h1>
+        <p className="page-subtitle mb-0">Connect and compete</p>
+      </div>
 
-      <p className="page-subtitle">Connect and compete</p>
-
-      {/* ── Active Friends ── */}
-      {activeFriends.length > 0 && (
-        <div>
-          <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">In a Party</h3>
-          <div className="flex flex-wrap gap-3">
-            {activeFriends.map(f => (
-              <div key={f.id} className="bg-zinc-900 border border-purple-500/30 rounded-xl p-3 flex items-center gap-3 pr-4 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
-                <img 
-                  src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`} 
-                  alt="Avatar" 
-                  className="w-8 h-8 rounded-full border border-zinc-700 bg-zinc-800"
-                />
-                <div>
-                  <div className="text-sm font-bold text-white">@{f.username}</div>
-                </div>
-                <button 
-                  onClick={() => handleJoinParty(f.currentParty!)}
-                  className="ml-2 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 text-xs px-3 py-1.5 rounded-lg font-bold transition-colors"
-                >
-                  Join
-                </button>
-              </div>
-            ))}
-          </div>
+      {/* ── Section 1: Add Friend Bar ── */}
+      <div>
+        <div className="add-friend-bar">
+          <UserPlus size={16} color="var(--neon)" style={{ flexShrink: 0 }} />
+          <input
+            className="add-friend-input"
+            placeholder="Add by username…"
+            value={addValue}
+            onChange={(e) => setAddValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          />
+          <button className="add-friend-btn" onClick={handleAdd} id="add-friend-btn">
+            Add
+          </button>
         </div>
-      )}
+        {addFeedback && (
+          <p style={{ fontSize: 12, color: addFeedback.type === "success" ? "#4ade80" : "#f87171", marginBottom: 12, paddingLeft: 4 }}>
+            {addFeedback.type === "success" ? "✓" : "✗"} {addFeedback.msg}
+          </p>
+        )}
+      </div>
 
-
-      {/* ── Party Lounge ── */}
+      {/* ── Section 2: Party Lounge ── */}
       <div className="bg-zinc-900 border-2 border-purple-600/30 rounded-2xl p-6 shadow-[0_0_15px_rgba(147,51,234,0.1)]">
         <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
           🎉 Party Lounge
@@ -359,7 +354,6 @@ export default function FriendsPage() {
               <span>Room Code: {activeParty}</span>
               <button onClick={() => {
                 navigator.clipboard.writeText(activeParty);
-                // Optional: show a mini toast
               }} className="text-purple-400 hover:text-white p-1">
                 <Copy size={14} />
               </button>
@@ -414,129 +408,142 @@ export default function FriendsPage() {
         )}
       </div>
 
-      {/* ── Add Friend ── */}
-      <div className="add-friend-bar">
-        <UserPlus size={16} color="var(--neon)" style={{ flexShrink: 0 }} />
-        <input
-          className="add-friend-input"
-          placeholder="Add by username…"
-          value={addValue}
-          onChange={(e) => setAddValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-        />
-        <button className="add-friend-btn" onClick={handleAdd} id="add-friend-btn">
-          Add
-        </button>
-      </div>
-      {addFeedback && (
-        <p style={{ fontSize: 12, color: addFeedback.type === "success" ? "#4ade80" : "#f87171", marginBottom: 12, paddingLeft: 4 }}>
-          {addFeedback.type === "success" ? "✓" : "✗"} {addFeedback.msg}
-        </p>
-      )}
-
-      {/* ── Tabs ── */}
-      <div className="tab-bar">
-        <button
-          className={`tab-btn${tab === "friends" ? " active" : ""}`}
-          onClick={() => setTab("friends")}
-        >
-          <Users size={14} /> Friends ({friends.length})
-        </button>
-        <button
-          className={`tab-btn${tab === "requests" ? " active" : ""}`}
-          onClick={() => setTab("requests")}
-        >
-          <Bell size={14} />
-          Requests
-          {requests.length > 0 && (
-            <span className="tab-badge">{requests.length}</span>
-          )}
-        </button>
-      </div>
-
-      {/* ── Friends list ── */}
-      {tab === "friends" && (
-        <>
-          <div className="search-bar" style={{ marginBottom: 14 }}>
-            <Search size={14} color="var(--text-muted)" />
-            <input
-              className="search-input"
-              placeholder="Search friends…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="empty-state">
-              <Users size={28} color="var(--text-muted)" />
-              <span>No friends found</span>
-            </div>
-          ) : (
-            filtered.map((friend) => (
-              <Link href={`/profile/${friend.username}`} key={friend.id} className="friend-row" style={{ textDecoration: "none", color: "inherit", cursor: "pointer", display: "flex", alignItems: "center" }}>
-                <div className="friend-avatar" style={{ border: "none", background: "none", padding: 0 }}>
-                  <img src={friend.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${friend.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-900" />
+      {/* ── Section 3: Active Parties ── */}
+      {activeFriends.length > 0 && (
+        <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-2xl p-6">
+          <h3 className="text-zinc-400 text-sm font-semibold uppercase tracking-wider mb-4">Active Voice Parties</h3>
+          <div className="flex flex-wrap gap-3">
+            {activeFriends.map(f => (
+              <div key={f.id} className="bg-zinc-900 border border-purple-500/30 rounded-xl p-3 flex items-center gap-3 pr-4 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                <img 
+                  src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`} 
+                  alt="Avatar" 
+                  className="w-8 h-8 rounded-full border border-zinc-700 bg-zinc-800"
+                />
+                <div>
+                  <div className="text-sm font-bold text-white">@{f.username}</div>
                 </div>
-                <div className="friend-info">
-                  <div className="friend-name" style={{textTransform: "none"}}>@{friend.username}</div>
-                  <div className="friend-score">{friend.score.toLocaleString()} wins</div>
-                </div>
-                
-                {activeParty && friend.currentParty !== activeParty && (
-                  <button 
-                    onClick={(e) => { e.preventDefault(); handleSendInvite(friend.profile_id); }}
-                    className="ml-auto bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700 flex items-center gap-1 transition-colors"
-                  >
-                    <PhoneCall size={12} /> Invite
-                  </button>
-                )}
-              </Link>
-            ))
-          )}
-        </>
-      )}
-
-      {/* ── Requests list ── */}
-      {tab === "requests" && (
-        <>
-          {requests.length === 0 ? (
-            <div className="empty-state">
-              <Check size={28} color="var(--text-muted)" />
-              <span>No pending requests</span>
-            </div>
-          ) : (
-            requests.map((req) => (
-              <div key={req.id} className="request-row">
-                <div className="friend-avatar" style={{ border: "none", background: "none", padding: 0 }}>
-                  <img src={req.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${req.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-900" />
-                </div>
-                <div className="friend-info">
-                  <div className="friend-name" style={{textTransform: "none"}}>@{req.username}</div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    className="req-btn req-btn--accept"
-                    onClick={() => handleAccept(req)}
-                    id={`accept-${req.id}`}
-                    title="Accept"
-                  >
-                    <Check size={16} />
-                  </button>
-                  <button
-                    className="req-btn req-btn--reject"
-                    onClick={() => handleReject(req.id)}
-                    id={`reject-${req.id}`}
-                    title="Reject"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
+                <button 
+                  onClick={() => handleJoinParty(f.currentParty!)}
+                  className="ml-2 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 text-xs px-3 py-1.5 rounded-lg font-bold transition-colors"
+                >
+                  Join
+                </button>
               </div>
-            ))
-          )}
-        </>
+            ))}
+          </div>
+        </div>
       )}
+
+      {/* ── Section 4: Tabs & Search ── */}
+      <div className="flex flex-col gap-4">
+        <div className="tab-bar">
+          <button
+            className={`tab-btn${tab === "friends" ? " active" : ""}`}
+            onClick={() => setTab("friends")}
+          >
+            <Users size={14} /> Friends ({friends.length})
+          </button>
+          <button
+            className={`tab-btn${tab === "requests" ? " active" : ""}`}
+            onClick={() => setTab("requests")}
+          >
+            <Bell size={14} />
+            Requests
+            {requests.length > 0 && (
+              <span className="tab-badge">{requests.length}</span>
+            )}
+          </button>
+        </div>
+
+        {/* ── Section 5: Friends list ── */}
+        {tab === "friends" && (
+          <>
+            <div className="search-bar mb-2">
+              <Search size={14} color="var(--text-muted)" />
+              <input
+                className="search-input"
+                placeholder="Search friends…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className="empty-state">
+                <Users size={28} color="var(--text-muted)" />
+                <span>No friends found</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {filtered.map((friend) => (
+                  <Link href={`/profile/${friend.username}`} key={friend.id} className="friend-row bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors p-4 rounded-xl flex items-center" style={{ textDecoration: "none", color: "inherit", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                    <div className="friend-avatar mr-4" style={{ border: "none", background: "none", padding: 0 }}>
+                      <img src={friend.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${friend.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-800" />
+                    </div>
+                    <div className="friend-info flex-1">
+                      <div className="friend-name font-bold text-white text-base">@{friend.username}</div>
+                      <div className="friend-score text-zinc-400 text-xs">{friend.score.toLocaleString()} wins</div>
+                    </div>
+                    
+                    {activeParty && friend.currentParty !== activeParty && (
+                      <button 
+                        onClick={(e) => { e.preventDefault(); handleSendInvite(friend.profile_id); }}
+                        className="ml-auto bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700 flex items-center gap-1 transition-colors"
+                      >
+                        <PhoneCall size={12} /> Invite
+                      </button>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Requests list ── */}
+        {tab === "requests" && (
+          <>
+            {requests.length === 0 ? (
+              <div className="empty-state">
+                <Check size={28} color="var(--text-muted)" />
+                <span>No pending requests</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {requests.map((req) => (
+                  <div key={req.id} className="request-row bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex items-center">
+                    <div className="friend-avatar mr-4" style={{ border: "none", background: "none", padding: 0 }}>
+                      <img src={req.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${req.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-800" />
+                    </div>
+                    <div className="friend-info flex-1">
+                      <div className="friend-name font-bold text-white text-base">@{req.username}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        className="req-btn req-btn--accept bg-purple-600 hover:bg-purple-500 text-white p-2 rounded-lg transition-colors"
+                        onClick={() => handleAccept(req)}
+                        id={`accept-${req.id}`}
+                        title="Accept"
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        className="req-btn req-btn--reject bg-zinc-800 hover:bg-zinc-700 text-zinc-400 p-2 rounded-lg transition-colors"
+                        onClick={() => handleReject(req.id)}
+                        id={`reject-${req.id}`}
+                        title="Reject"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
