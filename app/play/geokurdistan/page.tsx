@@ -61,7 +61,7 @@ export default function GeoKurdistanPage() {
   const [gameState, setGameState] = useState<GameState>("WAITING");
   const [round, setRound] = useState(1);
   const [totalRounds, setTotalRounds] = useState(5);
-  const [locationIndices, setLocationIndices] = useState<number[]>([]);
+  const [locationIndices, setLocationIndices] = useState<number[]>([0, 1, 2, 3, 4]);
   const [timer, setTimer] = useState(30);
   
   const [myUsername, setMyUsername] = useState("Player");
@@ -75,6 +75,61 @@ export default function GeoKurdistanPage() {
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  const updateTotalScores = useCallback(() => {
+    setTotalScores(prev => {
+      const newScores = { ...prev };
+      roundGuesses.forEach(g => {
+        newScores[g.username] = (newScores[g.username] || 0) + g.score;
+      });
+      return newScores;
+    });
+  }, [roundGuesses]);
+
+  const submitGuess = useCallback((marker: { lat: number; lng: number } | null) => {
+    setHasGuessed(true);
+    const location = kurdistanLocations[locationIndices[round - 1]] || kurdistanLocations[0];
+    
+    let distanceKm = 99999;
+    let score = 0;
+
+    if (marker) {
+      distanceKm = calculateHaversineDistance(marker.lat, marker.lng, location.lat, location.lng);
+      score = calculateScore(distanceKm);
+    }
+
+    const myGuess: MultiplayerGuess = {
+      username: myUsername,
+      guessLat: marker?.lat || 0,
+      guessLng: marker?.lng || 0,
+      distanceKm,
+      score,
+    };
+
+    if (channelRef.current && roomId) {
+      channelRef.current.send({
+        type: "broadcast",
+        event: "PLAYER_GUESS",
+        payload: myGuess
+      });
+    }
+
+    setRoundGuesses(prev => {
+      if (prev.find(g => g.username === myUsername)) return prev;
+      return [...prev, myGuess];
+    });
+  }, [locationIndices, round, myUsername, roomId]);
+
+  const handleTimeUp = useCallback(() => {
+    if (!hasGuessed) {
+      submitGuess(null);
+    }
+    // We defer the state update to avoid cascading renders warning
+    setTimeout(() => {
+      setGameState("ROUND_END");
+      updateTotalScores();
+    }, 0);
+  }, [hasGuessed, submitGuess, updateTotalScores]);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.user_metadata?.username) {
@@ -87,9 +142,9 @@ export default function GeoKurdistanPage() {
   useEffect(() => {
     if (!roomId) {
       // Single player fallback if no room ID provided
-      setLocationIndices([0, 1, 2, 3, 4]);
-      setTotalRounds(5);
-      setGameState("PLAYING");
+      setTimeout(() => {
+        setGameState("PLAYING");
+      }, 0);
       return;
     }
 
@@ -140,12 +195,6 @@ export default function GeoKurdistanPage() {
               );
               // Fetch players from room
               const { data: updatedRoom } = await supabase.from("rooms").select("player_count").eq("id", roomId).single();
-              // Broadcast start
-              // Note: without Presence we don't strictly know who is here right now. 
-              // We'll use a dummy player list based on the room's player_count, 
-              // but actually the guesses rely on who sends PLAYER_GUESS. 
-              // For a true multiplayer we should use Presence, but Broadcast is fine for testing.
-              // To handle "end round when everyone guesses", we need to know the number of players.
               const pCount = updatedRoom?.player_count || 1;
               channel.send({
                 type: "broadcast",
@@ -184,69 +233,19 @@ export default function GeoKurdistanPage() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [gameState]);
+  }, [gameState, handleTimeUp]);
 
   // End round if everyone guessed
   useEffect(() => {
     if (gameState === "PLAYING" && roundGuesses.length > 0 && players.length > 0) {
       if (roundGuesses.length >= players.length) {
-        setGameState("ROUND_END");
-        updateTotalScores();
+        setTimeout(() => {
+          setGameState("ROUND_END");
+          updateTotalScores();
+        }, 0);
       }
     }
-  }, [roundGuesses, players, gameState]);
-
-  const handleTimeUp = () => {
-    if (!hasGuessed) {
-      submitGuess(null);
-    }
-    setGameState("ROUND_END");
-    updateTotalScores();
-  };
-
-  const updateTotalScores = () => {
-    setTotalScores(prev => {
-      const newScores = { ...prev };
-      roundGuesses.forEach(g => {
-        newScores[g.username] = (newScores[g.username] || 0) + g.score;
-      });
-      return newScores;
-    });
-  };
-
-  const submitGuess = (marker: { lat: number; lng: number } | null) => {
-    setHasGuessed(true);
-    const location = kurdistanLocations[locationIndices[round - 1]] || kurdistanLocations[0];
-    
-    let distanceKm = 99999;
-    let score = 0;
-
-    if (marker) {
-      distanceKm = calculateHaversineDistance(marker.lat, marker.lng, location.lat, location.lng);
-      score = calculateScore(distanceKm);
-    }
-
-    const myGuess: MultiplayerGuess = {
-      username: myUsername,
-      guessLat: marker?.lat || 0,
-      guessLng: marker?.lng || 0,
-      distanceKm,
-      score,
-    };
-
-    if (channelRef.current && roomId) {
-      channelRef.current.send({
-        type: "broadcast",
-        event: "PLAYER_GUESS",
-        payload: myGuess
-      });
-    }
-
-    setRoundGuesses(prev => {
-      if (prev.find(g => g.username === myUsername)) return prev;
-      return [...prev, myGuess];
-    });
-  };
+  }, [roundGuesses, players, gameState, updateTotalScores]);
 
   const handleGuessBtn = () => {
     if (!guessMarker || hasGuessed) return;

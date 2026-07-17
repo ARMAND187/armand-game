@@ -10,8 +10,15 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, useMapEvents } from "react-leaflet";
 import type { LatLngExpression, LatLngBoundsExpression, DivIcon } from "leaflet";
-import type { GuessResult } from "@/app/play/geokurdistan/page";
+import type { KurdistanLocation } from "@/data/locations";
 import "leaflet/dist/leaflet.css";
+
+export interface GuessResult {
+  location: KurdistanLocation;
+  guessLat: number;
+  guessLng: number;
+  distanceKm: number;
+}
 
 // ---------------------------------------------------------------------------
 // Props
