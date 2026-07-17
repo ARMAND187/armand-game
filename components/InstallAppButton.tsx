@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, ChevronRight } from "lucide-react";
+import { Smartphone, ChevronRight } from "lucide-react";
 
 export default function InstallAppButton() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,11 +41,11 @@ export default function InstallAppButton() {
     >
       <div className="flex items-center gap-4">
         <div className="bg-purple-500/10 p-2.5 rounded-lg border border-purple-500/20 text-purple-400">
-          <Download className="w-5 h-5" />
+          <Smartphone className="w-5 h-5" />
         </div>
         <div className="flex flex-col">
           <span className="text-zinc-200 font-medium text-sm">Add Armand to Home screen</span>
-          <span className="text-zinc-500 text-xs mt-0.5">Download the app for a better experience</span>
+          <span className="text-zinc-500 text-xs mt-0.5">Install the app for the full experience</span>
         </div>
       </div>
       <ChevronRight className="w-5 h-5 text-zinc-600" />

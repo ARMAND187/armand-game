@@ -36,11 +36,20 @@ const sections: Array<{
   },
 ];
 
+import InstallAppButton from "@/components/InstallAppButton";
+
 export default function SettingsPage() {
   return (
     <div className="page-shell">
       <h1 className="page-header">Settings</h1>
       <p className="page-subtitle">App preferences & account</p>
+
+      <div style={{ marginBottom: 24 }}>
+        <p className="section-title">App Installation</p>
+        <div className="settings-card">
+          <InstallAppButton />
+        </div>
+      </div>
 
       {sections.map((section) => (
         <div key={section.heading} style={{ marginBottom: 24 }}>
