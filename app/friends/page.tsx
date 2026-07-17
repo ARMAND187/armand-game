@@ -14,6 +14,7 @@ interface Friend {
   profile_id: string; // The other user's ID
   username: string;
   displayName: string;
+  avatarUrl: string | null;
   online: boolean;
   score: number;
 }
@@ -22,6 +23,7 @@ interface Request {
   sender_id: string;
   username: string;
   displayName: string;
+  avatarUrl: string | null;
 }
 
 type Tab = "friends" | "requests";
@@ -53,7 +55,7 @@ export default function FriendsPage() {
         id,
         sender_id,
         profiles!friend_requests_sender_id_fkey (
-          username, wins
+          username, wins, avatar_url
         )
       `)
       .eq("receiver_id", myUserId);
@@ -61,13 +63,14 @@ export default function FriendsPage() {
     if (reqData) {
       setRequests(
         reqData.map((r: unknown) => {
-          const req = r as { id: string; sender_id: string; profiles: { username: string; wins: number } | { username: string; wins: number }[] | null };
+          const req = r as { id: string; sender_id: string; profiles: { username: string; wins: number; avatar_url: string | null } | { username: string; wins: number; avatar_url: string | null }[] | null };
           const p = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
           return {
             id: req.id,
             sender_id: req.sender_id,
             username: p?.username || "unknown",
             displayName: p?.username || "Unknown",
+            avatarUrl: p?.avatar_url || null,
           };
         })
       );
@@ -80,15 +83,15 @@ export default function FriendsPage() {
         id,
         user1_id,
         user2_id,
-        u1:profiles!friends_user1_id_fkey(id, username, wins),
-        u2:profiles!friends_user2_id_fkey(id, username, wins)
+        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url),
+        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url)
       `)
       .or(`user1_id.eq.${myUserId},user2_id.eq.${myUserId}`);
 
     if (friendsData) {
       setFriends(
         friendsData.map((f: unknown) => {
-          const fr = f as { id: string; user1_id: string; user2_id: string; u1: { id: string; username: string; wins: number } | { id: string; username: string; wins: number }[] | null; u2: { id: string; username: string; wins: number } | { id: string; username: string; wins: number }[] | null };
+          const fr = f as { id: string; user1_id: string; user2_id: string; u1: { id: string; username: string; wins: number; avatar_url: string | null } | { id: string; username: string; wins: number; avatar_url: string | null }[] | null; u2: { id: string; username: string; wins: number; avatar_url: string | null } | { id: string; username: string; wins: number; avatar_url: string | null }[] | null };
           const p1 = Array.isArray(fr.u1) ? fr.u1[0] : fr.u1;
           const p2 = Array.isArray(fr.u2) ? fr.u2[0] : fr.u2;
           const other = fr.user1_id === myUserId ? p2 : p1;
@@ -97,6 +100,7 @@ export default function FriendsPage() {
             profile_id: other?.id || "",
             username: other?.username || "unknown",
             displayName: other?.username || "Unknown",
+            avatarUrl: other?.avatar_url || null,
             online: false,
             score: other?.wins || 0,
           };
@@ -298,9 +302,9 @@ export default function FriendsPage() {
             </div>
           ) : (
             filtered.map((friend) => (
-              <Link href={`/profile/${friend.username}`} key={friend.id} className="friend-row" style={{ textDecoration: "none", color: "inherit", cursor: "pointer", display: "flex" }}>
-                <div className="friend-avatar">
-                  {friend.username[0]?.toUpperCase()}
+              <Link href={`/profile/${friend.username}`} key={friend.id} className="friend-row" style={{ textDecoration: "none", color: "inherit", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                <div className="friend-avatar" style={{ border: "none", background: "none", padding: 0 }}>
+                  <img src={friend.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${friend.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-900" />
                 </div>
                 <div className="friend-info">
                   <div className="friend-name" style={{textTransform: "none"}}>@{friend.username}</div>
@@ -323,7 +327,9 @@ export default function FriendsPage() {
           ) : (
             requests.map((req) => (
               <div key={req.id} className="request-row">
-                <div className="friend-avatar">{req.username[0]?.toUpperCase()}</div>
+                <div className="friend-avatar" style={{ border: "none", background: "none", padding: 0 }}>
+                  <img src={req.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${req.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-900" />
+                </div>
                 <div className="friend-info">
                   <div className="friend-name" style={{textTransform: "none"}}>@{req.username}</div>
                 </div>

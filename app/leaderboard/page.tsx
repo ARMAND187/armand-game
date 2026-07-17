@@ -13,15 +13,16 @@ export default async function LeaderboardPage() {
   const supabase = await createClient();
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("username, wins")
+    .select("username, wins, avatar_url")
     .order("wins", { ascending: false, nullsFirst: false })
     .limit(50);
 
-  const leaders = (profiles || []).map((p: { username: string | null; wins: number | null }, i: number) => ({
+  const leaders = (profiles || []).map((p: { username: string | null; wins: number | null; avatar_url: string | null }, i: number) => ({
     rank: i + 1,
     username: p.username || "anonymous",
     score: p.wins || 0,
     games: 0,
+    avatarUrl: p.avatar_url,
   }));
 
   return (
@@ -50,11 +51,17 @@ export default async function LeaderboardPage() {
                       style={{
                         width: i === 1 ? 52 : 42,
                         height: i === 1 ? 52 : 42,
-                        fontSize: i === 1 ? 18 : 14,
                         boxShadow: i === 1 ? "0 0 0 3px #09090b, 0 0 0 5px #fbbf24, 0 0 20px rgba(251,191,36,0.4)" : "none",
+                        overflow: "hidden",
+                        border: "none",
+                        background: "none"
                       }}
                     >
-                      {p.username[0]?.toUpperCase()}
+                      <img 
+                        src={p.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${p.username}`} 
+                        alt="Avatar" 
+                        style={{ width: "100%", height: "100%", objectFit: "cover", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "50%" }}
+                      />
                     </div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textAlign: "center", marginTop: 6, width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
                       @{p.username}
@@ -84,7 +91,7 @@ export default async function LeaderboardPage() {
           </div>
 
           {/* Full list */}
-          {leaders.map((player: { rank: number, username: string, score: number, games: number }) => (
+          {leaders.map((player: { rank: number, username: string, score: number, games: number, avatarUrl: string | null }) => (
             <div key={player.rank} className="lb-row">
               <span
                 className="lb-rank"
@@ -92,8 +99,12 @@ export default async function LeaderboardPage() {
               >
                 {MEDAL[player.rank - 1] ?? `#${player.rank}`}
               </span>
-              <div className="lb-avatar" style={{ width: 36, height: 36, fontSize: 14 }}>
-                {player.username[0]?.toUpperCase()}
+              <div className="lb-avatar" style={{ width: 36, height: 36, overflow: "hidden", border: "none", background: "none" }}>
+                <img 
+                  src={player.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${player.username}`} 
+                  alt="Avatar" 
+                  style={{ width: "100%", height: "100%", objectFit: "cover", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "50%" }}
+                />
               </div>
               <div className="lb-info">
                 <div className="lb-name" style={{ textTransform: "none" }}>@{player.username}</div>

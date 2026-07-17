@@ -30,18 +30,10 @@ export default function UserAvatar() {
   const fallbackSeed = username !== "AG" ? username : "guest";
 
   return (
-    <div 
-      style={{ 
-        width: "36px", height: "36px", borderRadius: "50%", 
-        overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-        border: "1px solid rgba(255,255,255,0.1)", background: "var(--bg-elevated)", flexShrink: 0
-      }}
-    >
-      <img 
-        src={avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${fallbackSeed}`} 
-        alt="Avatar" 
-        style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-      />
-    </div>
+    <img 
+      src={avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${fallbackSeed}`} 
+      alt="Profile" 
+      className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-900 object-cover"
+    />
   );
 }

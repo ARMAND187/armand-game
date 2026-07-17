@@ -18,9 +18,8 @@ export default function HomePage() {
     <div style={{ background: "#09090b", minHeight: "100vh", padding: "16px", paddingBottom: "100px" }}>
       {/* ── Header ── */}
       <header className="flex items-center justify-between w-full mb-8 relative">
-        <span className="whitespace-nowrap text-xl sm:text-2xl font-extrabold text-white tracking-tight">Armand Games</span>
+        <UserAvatar />
         <div className="flex items-center gap-3">
-          <UserAvatar />
           <NotificationBell />
           <WalletDisplay />
         </div>
