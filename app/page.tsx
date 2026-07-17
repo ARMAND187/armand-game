@@ -21,12 +21,7 @@ export default function HomePage() {
         <WalletDisplay />
       </header>
 
-      {/* ── Balance hero ── */}
-      <div className="balance-hero">
-        <div className="balance-hero-label">Armand Balance</div>
-        <BalanceDisplay />
-        <p className="balance-hero-sub">Earn by playing — spend in the store</p>
-      </div>
+
 
       {/* ── Quick stats removed for general game hub ── */}
 
