@@ -202,7 +202,7 @@ export default function FriendsPage() {
       <p className="page-subtitle">Connect and compete</p>
 
       {/* ── Party Lounge ── */}
-      <div className="bg-zinc-900 border border-purple-500/50 rounded-2xl p-6 mb-8 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+      <div className="bg-zinc-900 border-2 border-purple-600/30 rounded-2xl p-6 mb-8 shadow-[0_0_15px_rgba(147,51,234,0.1)]">
         <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
           🎉 Party Lounge
         </h2>
@@ -221,11 +221,11 @@ export default function FriendsPage() {
         ) : (
           <div>
             <p className="text-sm text-zinc-400 mb-4">Jump into a voice party with your friends.</p>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3 mt-4 w-full">
               <input 
                 type="text" 
                 placeholder="Enter Party Code" 
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500 transition-colors uppercase font-mono"
+                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all uppercase font-mono"
                 value={partyCodeInput}
                 onChange={(e) => setPartyCodeInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleJoinParty()}
@@ -233,7 +233,7 @@ export default function FriendsPage() {
               <button 
                 onClick={handleJoinParty}
                 disabled={!partyCodeInput.trim()}
-                className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-6 rounded-xl text-sm transition-colors"
+                className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Join
               </button>
