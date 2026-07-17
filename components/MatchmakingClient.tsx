@@ -48,12 +48,25 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           if (newPlayers.length === 4) {
             // Trigger ready if we are exactly 4
             setTimeout(() => {
-              channel.send({ type: "broadcast", event: "ROOM_READY", payload: {} });
+              if (isHost) channel.send({ type: "broadcast", event: "ROOM_READY", payload: {} });
               router.push(`${playRoute}?roomId=${roomId}`);
             }, 1000);
           }
+          
+          // If we are the host, broadcast the updated full player list so the new joiner sees everyone
+          if (isHost) {
+            setTimeout(() => {
+              channel.send({ type: "broadcast", event: "SYNC_PLAYERS", payload: { players: newPlayers } });
+            }, 500);
+          }
+          
           return newPlayers;
         });
+      })
+      .on("broadcast", { event: "SYNC_PLAYERS" }, (payload) => {
+        if (!isHost) {
+          setPlayers(payload.payload.players);
+        }
       })
       .on("broadcast", { event: "PLAYER_LEFT" }, (payload) => {
         setPlayers((prev) => prev.filter((p) => p !== payload.payload.username));
@@ -95,6 +108,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         .eq("status", "waiting")
         .eq("is_public", true)
         .eq("game_id", gameId)
+        .neq("host_username", myUsername) // Prevent joining your own abandoned room
         .lt("player_count", 4)
         .order("created_at", { ascending: true })
         .limit(1);
@@ -115,8 +129,9 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         // Actually, without Presence, Broadcast is best-effort. Let's start with just host + me, 
         // or just me if the host broadcasts back when someone joins.
         // For strict robustness, Supabase Presence is better, but we stick to Broadcasts.
-        setPlayers([room.host_username, myUsername]);
+        setPlayers(Array.from(new Set([room.host_username, myUsername])));
         setRoomId(room.id);
+        setIsHost(false);
         setMatchState("waiting");
       } else {
         // No room found. Create a new one.
@@ -205,8 +220,9 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         .update({ player_count: room.player_count + 1 })
         .eq("id", room.id);
 
-      setPlayers([room.host_username, myUsername]);
+      setPlayers(Array.from(new Set([room.host_username, myUsername])));
       setRoomId(room.id);
+      setIsHost(room.host_username === myUsername);
       setMatchState("waiting");
     } catch(err) {
       console.error("Private room join error:", err);
