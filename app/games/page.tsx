@@ -22,7 +22,7 @@ export default function GamesPage() {
           return (
             <Wrapper
               key={game.id}
-              {...(wrapperProps as any)}
+              {...(wrapperProps as Record<string, unknown>)}
               className={`game-list-row${!isLive ? " game-list-row--soon" : ""}`}
             >
               {/* Icon */}

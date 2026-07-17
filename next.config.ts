@@ -6,8 +6,10 @@ import type { NextConfig } from "next";
  * config empty to silence the Turbopack error, and add a turbopack
  * root hint to resolve the workspace-root warning.
  */
-// @ts-ignore — next-pwa ships no TypeScript declaration file
-const withPWA = require("next-pwa")({
+// @ts-expect-error — next-pwa ships no TypeScript declaration file
+import withPWAInit from "next-pwa";
+
+const withPWA = withPWAInit({
   dest: "public",
   register: true,
   skipWaiting: true,
@@ -23,4 +25,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+export default withPWA(nextConfig);
