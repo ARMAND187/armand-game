@@ -59,65 +59,6 @@ export default async function LobbyPage({ params }: Props) {
         )}
       </div>
 
-      {/* ── Modes ── */}
-      {game.modes.length > 0 && (
-        <>
-          <div className="lobby-section-header">
-            <Play size={14} color="var(--neon)" />
-            <span>Game Modes</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-            {game.modes.map((mode, i) => (
-              <div
-                key={mode.id}
-                className={`mode-card${i === 0 ? " mode-card--selected" : ""}`}
-              >
-                <div className="mode-card-emoji">{mode.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <div className="mode-card-name">{mode.name}</div>
-                  <div className="mode-card-desc">{mode.description}</div>
-                </div>
-                {i === 0 && (
-                  <span className="mode-selected-badge">Selected</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* ── Settings ── */}
-      {game.settings.length > 0 && (
-        <>
-          <div className="lobby-section-header">
-            <Settings size={14} color="var(--neon)" />
-            <span>Settings</span>
-          </div>
-          <div className="settings-card" style={{ marginBottom: 24 }}>
-            {game.settings.map((setting, i) => (
-              <div
-                key={setting.id}
-                className="settings-row"
-                style={{
-                  borderBottom: i < game.settings.length - 1 ? "1px solid var(--border)" : "none",
-                }}
-              >
-                <span className="settings-row-label">{setting.label}</span>
-                <div className="settings-row-options">
-                  {setting.options.map((opt) => (
-                    <button
-                      key={opt}
-                      className={`settings-option-btn${opt === setting.default ? " active" : ""}`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
 
       {/* Bottom CTA Removed */}
     </div>

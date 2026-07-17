@@ -235,7 +235,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         </div>
 
         <div className="settings-card" style={{ marginBottom: 24 }}>
-          <div className="settings-row" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div className="settings-row">
             <span className="settings-row-label">Rounds</span>
             <div className="settings-row-options">
               {[5, 10, 25].map(r => (
@@ -245,20 +245,6 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                   className={`settings-option-btn${totalRounds === r ? " active" : ""}`}
                 >
                   {r}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="settings-row">
-            <span className="settings-row-label">Region</span>
-            <div className="settings-row-options">
-              {["All Kurdistan", "Erbil Only", "Sulaymaniyah Only"].map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setRegion(opt)}
-                  className={`settings-option-btn${region === opt ? " active" : ""}`}
-                >
-                  {opt}
                 </button>
               ))}
             </div>
