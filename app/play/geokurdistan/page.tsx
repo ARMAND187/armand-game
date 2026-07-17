@@ -292,7 +292,7 @@ function GeoKurdistanInner() {
     submitGuess(guessMarker);
   };
 
-  const handleNextRound = async () => {
+  const handleNextRound = useCallback(async () => {
     if (round >= totalRounds) {
       setGameState("GAME_OVER");
       
@@ -327,7 +327,16 @@ function GeoKurdistanInner() {
       setHasGuessed(false);
       setGuessMarker(null);
     }
-  };
+  }, [round, totalRounds, isHost, totalScores, roomId]);
+
+  useEffect(() => {
+    if (gameState === "ROUND_END" && isHost) {
+      const t = setTimeout(() => {
+        handleNextRound();
+      }, 5000);
+      return () => clearTimeout(t);
+    }
+  }, [gameState, isHost, handleNextRound]);
 
   if (gameState === "WAITING") {
     return (
@@ -414,13 +423,9 @@ function GeoKurdistanInner() {
               })}
             </div>
             
-            {isHost ? (
-              <button className="btn-next-round" onClick={handleNextRound}>
-                {round >= totalRounds ? "View Final Results" : "Start Next Round →"}
-              </button>
-            ) : (
-              <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 14, fontWeight: 700 }}>Waiting for host to start next round...</div>
-            )}
+            <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 14, fontWeight: 700, padding: 12, background: "rgba(255,255,255,0.05)", borderRadius: 12 }}>
+              {round >= totalRounds ? "Calculating final standings..." : "Starting next round in 5 seconds..."}
+            </div>
           </div>
         </div>
       )}

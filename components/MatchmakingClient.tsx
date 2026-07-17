@@ -342,7 +342,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
               onClick={() => {
                 const channel = supabase.channel(`room:${roomId}`);
                 channel.send({ type: "broadcast", event: "ROOM_READY", payload: {} });
-                router.push(playRoute);
+                router.push(`${playRoute}?roomId=${roomId}`);
               }}
             >
               Start Game Now ({players.length} players)
