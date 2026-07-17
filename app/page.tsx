@@ -3,6 +3,7 @@ import { games } from "@/data/games";
 import { Zap } from "lucide-react";
 import WalletDisplay from "@/components/WalletDisplay";
 import NotificationBell from "@/components/NotificationBell";
+import UserAvatar from "@/components/UserAvatar";
 
 export const metadata = {
   title: "Home — Armand Games",
@@ -19,6 +20,7 @@ export default function HomePage() {
       <header className="flex items-center justify-between w-full mb-8 relative">
         <span className="whitespace-nowrap text-xl sm:text-2xl font-extrabold text-white tracking-tight">Armand Games</span>
         <div className="flex items-center gap-3">
+          <UserAvatar />
           <NotificationBell />
           <WalletDisplay />
         </div>

@@ -4,7 +4,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { useEffect, useState } from "react";
 import {
   Settings, Bell, Gift, ChevronRight,
-  Shield, Edit3,
+  Shield, Edit3, RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [editUsername, setEditUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -41,12 +42,15 @@ export default function ProfilePage() {
         
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin")
+          .select("is_admin, avatar_url")
           .eq("id", user.id)
           .single();
           
         if (profile?.is_admin) {
           setIsAdmin(true);
+        }
+        if (profile?.avatar_url) {
+          setAvatarUrl(profile.avatar_url);
         }
       }
     };
@@ -54,6 +58,24 @@ export default function ProfilePage() {
   }, [supabase.auth, supabase]);
 
 
+
+  const handleRandomizeAvatar = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    // Generate a random seed
+    const randomSeed = Math.random().toString(36).substring(7);
+    const newAvatarUrl = `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${randomSeed}`;
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: newAvatarUrl })
+      .eq("id", user.id);
+      
+    if (!error) {
+      setAvatarUrl(newAvatarUrl);
+    }
+  };
 
   const handleSave = async () => {
     const newUsername = editUsername.trim().toLowerCase();
@@ -109,8 +131,20 @@ export default function ProfilePage() {
     <div className="page-shell">
       {/* ── Profile card ── */}
       <div className="profile-card">
-        <div className="profile-avatar-ring">{username !== "Loading..." && username !== "Anonymous" ? username.charAt(0).toUpperCase() : "AG"}</div>
-        <div className="profile-username" style={{ textTransform: "none" }}>@{username}</div>
+        <div className="profile-avatar-ring" style={{ border: "none", background: "none", overflow: "visible" }}>
+          <img 
+            src={avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${username}`} 
+            alt="Avatar" 
+            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)", border: "2px solid var(--neon)" }} 
+          />
+        </div>
+        <button 
+          onClick={handleRandomizeAvatar}
+          style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)", fontSize: "12px", padding: "4px 10px", borderRadius: "10px", marginTop: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+        >
+          <RefreshCw size={12} /> Randomize Avatar
+        </button>
+        <div className="profile-username" style={{ textTransform: "none", marginTop: "16px" }}>@{username}</div>
 
         {errorMsg && (
           <div style={{ color: "#f87171", fontSize: 12, marginTop: 8, textAlign: "center" }}>

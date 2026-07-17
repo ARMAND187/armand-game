@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import VoiceParty from "@/components/VoiceParty";
+
 interface Friend {
   id: string; // ID of the friendship row or the user profile
   profile_id: string; // The other user's ID
@@ -31,8 +33,13 @@ export default function FriendsPage() {
   const [addFeedback, setAddFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [myUsername, setMyUsername] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
+  
+  // Voice Party state
+  const [partyCodeInput, setPartyCodeInput] = useState("");
+  const [activeParty, setActiveParty] = useState<string | null>(null);
   
   const supabase = createClient();
 
@@ -102,6 +109,7 @@ export default function FriendsPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setMyUserId(data.user.id);
+        setMyUsername(data.user.user_metadata?.username || "guest");
       }
     });
   }, [supabase]);
@@ -177,10 +185,58 @@ export default function FriendsPage() {
     loadData();
   };
 
+  const handleJoinParty = () => {
+    const code = partyCodeInput.trim().toUpperCase();
+    if (code) {
+      setActiveParty(code);
+    }
+  };
+
   return (
     <div className="page-shell">
       <h1 className="page-header">Friends</h1>
       <p className="page-subtitle">Connect and compete</p>
+
+      {/* ── Party Lounge ── */}
+      <div className="bg-zinc-900 border border-purple-500/50 rounded-2xl p-6 mb-8 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+        <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
+          🎉 Party Lounge
+        </h2>
+        
+        {activeParty && myUsername ? (
+          <div>
+            <div className="mb-4 text-sm text-purple-300 font-semibold bg-purple-500/10 inline-block px-3 py-1 rounded-full border border-purple-500/20">
+              Room Code: {activeParty}
+            </div>
+            <VoiceParty 
+              room={activeParty} 
+              username={myUsername} 
+              onLeave={() => setActiveParty(null)} 
+            />
+          </div>
+        ) : (
+          <div>
+            <p className="text-sm text-zinc-400 mb-4">Jump into a voice party with your friends.</p>
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                placeholder="Enter Party Code" 
+                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500 transition-colors uppercase font-mono"
+                value={partyCodeInput}
+                onChange={(e) => setPartyCodeInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleJoinParty()}
+              />
+              <button 
+                onClick={handleJoinParty}
+                disabled={!partyCodeInput.trim()}
+                className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-6 rounded-xl text-sm transition-colors"
+              >
+                Join
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ── Add Friend ── */}
       <div className="add-friend-bar">
