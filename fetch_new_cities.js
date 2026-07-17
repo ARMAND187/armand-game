@@ -9,21 +9,32 @@ async function getImagesInBbox(minLng, minLat, maxLng, maxLat, limit = 5) {
 
 async function main() {
   const regions = [
-    { name: 'Kirkuk Citadel', city: 'Kirkuk', bbox: [44.38, 35.45, 44.42, 35.48] },
-    { name: 'Kirkuk Center', city: 'Kirkuk', bbox: [44.37, 35.46, 44.40, 35.49] },
-    { name: 'Koya Center', city: 'Koya', bbox: [44.60, 36.07, 44.65, 36.10] },
-    { name: 'Ranya Center', city: 'Ranya', bbox: [44.85, 36.24, 44.90, 36.27] },
-    { name: 'Halabja Center', city: 'Halabja', bbox: [45.96, 35.16, 46.00, 35.19] },
-    { name: 'Zaxo Center', city: 'Zakho', bbox: [42.66, 37.13, 42.70, 37.15] },
-    { name: 'Soran Center', city: 'Soran', bbox: [44.52, 36.64, 44.56, 36.67] },
-    { name: 'Choman Center', city: 'Choman', bbox: [44.87, 36.62, 44.91, 36.65] },
-    { name: 'Kalar Center', city: 'Kalar', bbox: [45.29, 34.61, 45.33, 34.64] },
-    { name: 'Darbandikhan Center', city: 'Darbandikhan', bbox: [45.67, 35.10, 45.71, 35.13] },
-    { name: 'Erbil Ankawa', city: 'Erbil', bbox: [43.98, 36.21, 44.02, 36.24] },
-    { name: 'Erbil Bakhtiari', city: 'Erbil', bbox: [44.01, 36.18, 44.05, 36.21] },
-    { name: 'Slemani Salim Street', city: 'Sulaymaniyah', bbox: [45.42, 35.55, 45.45, 35.57] },
-    { name: 'Slemani Bakhtiari', city: 'Sulaymaniyah', bbox: [45.40, 35.56, 45.43, 35.58] },
-    { name: 'Duhok Mazi', city: 'Duhok', bbox: [42.98, 36.85, 43.01, 36.87] },
+    // Sulaymaniyah
+    { name: 'Slemani Salim St', city: 'Sulaymaniyah', bbox: [45.420, 35.550, 45.430, 35.560] },
+    { name: 'Slemani Bakhtiari', city: 'Sulaymaniyah', bbox: [45.400, 35.565, 45.415, 35.575] },
+    { name: 'Slemani Sarchnar', city: 'Sulaymaniyah', bbox: [45.370, 35.580, 45.385, 35.590] },
+    { name: 'Slemani Rizgari', city: 'Sulaymaniyah', bbox: [45.430, 35.570, 45.445, 35.580] },
+    { name: 'Slemani Azadi', city: 'Sulaymaniyah', bbox: [45.440, 35.560, 45.450, 35.570] },
+    // Kalar
+    { name: 'Kalar Center', city: 'Kalar', bbox: [45.300, 34.620, 45.310, 34.630] },
+    { name: 'Kalar Market', city: 'Kalar', bbox: [45.315, 34.625, 45.325, 34.635] },
+    { name: 'Kalar River', city: 'Kalar', bbox: [45.320, 34.610, 45.330, 34.620] },
+    // Halabja
+    { name: 'Halabja Center', city: 'Halabja', bbox: [45.980, 35.175, 45.990, 35.185] },
+    { name: 'Halabja Monument Area', city: 'Halabja', bbox: [45.970, 35.185, 45.980, 35.195] },
+    { name: 'Halabja South', city: 'Halabja', bbox: [45.985, 35.165, 45.995, 35.175] },
+    // Koya
+    { name: 'Koya Center', city: 'Koya', bbox: [44.620, 36.080, 44.630, 36.090] },
+    { name: 'Koya North', city: 'Koya', bbox: [44.630, 36.095, 44.640, 36.105] },
+    // Ranya
+    { name: 'Ranya Center', city: 'Ranya', bbox: [44.875, 36.250, 44.885, 36.260] },
+    { name: 'Ranya East', city: 'Ranya', bbox: [44.890, 36.255, 44.900, 36.265] },
+    // Penjwen
+    { name: 'Penjwen Center', city: 'Penjwen', bbox: [45.950, 35.615, 45.960, 35.625] },
+    { name: 'Penjwen Hills', city: 'Penjwen', bbox: [45.965, 35.610, 45.975, 35.620] },
+    // Kifri
+    { name: 'Kifri Center', city: 'Kifri', bbox: [44.960, 34.690, 44.970, 34.700] },
+    { name: 'Kifri South', city: 'Kifri', bbox: [44.965, 34.680, 44.975, 34.690] }
   ];
 
   const results = [];
@@ -31,7 +42,8 @@ async function main() {
   for (const reg of regions) {
     const images = await getImagesInBbox(...reg.bbox);
     if (images && images.length > 0) {
-      const img = images[0]; // Just take first one for now, or maybe random?
+      // Find an image roughly in the middle, or just take the first
+      const img = images[0]; 
       const coords = img.computed_geometry.coordinates;
       results.push({
         name: reg.name,

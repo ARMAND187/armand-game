@@ -319,5 +319,75 @@ export const kurdistanLocations: KurdistanLocation[] = [
     "lat": 36.8622124,
     "lng": 42.983617099999,
     "imageId": "339952780807354"
+  },
+  {
+    "name": "Slemani Salim St",
+    "city": "Sulaymaniyah",
+    "lat": 35.555312194222,
+    "lng": 45.426431944607,
+    "imageId": "1168223752094988"
+  },
+  {
+    "name": "Slemani Bakhtiari",
+    "city": "Sulaymaniyah",
+    "lat": 35.568104640468,
+    "lng": 45.414978355094,
+    "imageId": "1489480022370904"
+  },
+  {
+    "name": "Slemani Sarchnar",
+    "city": "Sulaymaniyah",
+    "lat": 35.589967758358,
+    "lng": 45.375221689441,
+    "imageId": "1343257827458429"
+  },
+  {
+    "name": "Slemani Rizgari",
+    "city": "Sulaymaniyah",
+    "lat": 35.570276404064,
+    "lng": 45.441414723896,
+    "imageId": "1102567468475168"
+  },
+  {
+    "name": "Slemani Azadi",
+    "city": "Sulaymaniyah",
+    "lat": 35.560269323106,
+    "lng": 45.445970054898,
+    "imageId": "1035561048893006"
+  },
+  {
+    "name": "Halabja Central Market",
+    "city": "Halabja",
+    "lat": 35.178527109758,
+    "lng": 45.987392732001,
+    "imageId": "1590587645048076"
+  },
+  {
+    "name": "Halabja Monument Area",
+    "city": "Halabja",
+    "lat": 35.186455479176,
+    "lng": 45.97635865616,
+    "imageId": "924012353061684"
+  },
+  {
+    "name": "Halabja South",
+    "city": "Halabja",
+    "lat": 35.174483540384,
+    "lng": 45.99306637312,
+    "imageId": "940181057649594"
+  },
+  {
+    "name": "Ranya Downtown",
+    "city": "Ranya",
+    "lat": 36.255286708201,
+    "lng": 44.883425691052,
+    "imageId": "114193484066869"
+  },
+  {
+    "name": "Ranya East",
+    "city": "Ranya",
+    "lat": 36.257416856081,
+    "lng": 44.89365024688,
+    "imageId": "3878854485544840"
   }
 ];
