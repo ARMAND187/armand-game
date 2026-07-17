@@ -25,8 +25,8 @@ export default function HomePage() {
       </header>
 
       {/* ── Arcade Container ── */}
-      <div className="mt-8 md:mt-12 overflow-hidden bg-zinc-900 border border-zinc-800 rounded-3xl p-4 md:p-6 lg:p-8 w-full">
-        <h2 style={{ fontSize: "18px", fontWeight: 700, color: "white", marginBottom: "20px", marginTop: 0 }}>The Arcade</h2>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-4 md:p-6 lg:p-8 w-full" style={{ marginTop: "40px" }}>
+        <h2 style={{ fontSize: "18px", fontWeight: 700, color: "white", marginBottom: "20px", marginTop: 0 }}>All Games</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full">
           {/* Live Games */}
