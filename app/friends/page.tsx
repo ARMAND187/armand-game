@@ -370,22 +370,26 @@ export default function FriendsPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               {/* Create Section */}
-              <div className="flex flex-col gap-3 justify-center border border-zinc-800 rounded-xl p-4 bg-zinc-950/50">
-                <h3 className="text-white font-bold text-sm">Start a Party</h3>
-                <p className="text-zinc-500 text-xs">Create a new private room and invite your friends.</p>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col h-full justify-between gap-4">
+                <div>
+                  <h3 className="text-white font-bold text-sm mb-1">Start a Party</h3>
+                  <p className="text-zinc-500 text-xs">Create a new private room and invite your friends.</p>
+                </div>
                 <button 
                   onClick={handleCreateParty}
-                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap mt-2 flex items-center justify-center gap-2"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap w-full flex items-center justify-center gap-2"
                 >
                   <Plus size={16} /> Create Party
                 </button>
               </div>
 
               {/* Join Section */}
-              <div className="flex flex-col gap-3 justify-center border border-zinc-800 rounded-xl p-4 bg-zinc-950/50">
-                <h3 className="text-white font-bold text-sm">Join a Party</h3>
-                <p className="text-zinc-500 text-xs">Enter a room code to instantly connect.</p>
-                <div className="flex items-center gap-2 mt-2 w-full">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 flex flex-col h-full justify-between gap-4">
+                <div>
+                  <h3 className="text-white font-bold text-sm mb-1">Join a Party</h3>
+                  <p className="text-zinc-500 text-xs">Enter a room code to instantly connect.</p>
+                </div>
+                <div className="flex gap-3 w-full mt-auto">
                   <input 
                     type="text" 
                     placeholder="Code" 
@@ -397,7 +401,7 @@ export default function FriendsPage() {
                   <button 
                     onClick={() => handleJoinParty()}
                     disabled={!partyCodeInput.trim()}
-                    className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-3 rounded-xl font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Join
                   </button>
@@ -410,8 +414,8 @@ export default function FriendsPage() {
 
       {/* ── Section 3: Active Parties ── */}
       {activeFriends.length > 0 && (
-        <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-2xl p-6">
-          <h3 className="text-zinc-400 text-sm font-semibold uppercase tracking-wider mb-4">Active Voice Parties</h3>
+        <div className="flex flex-col gap-3 mt-2">
+          <h3 className="text-zinc-400 font-semibold text-sm uppercase tracking-wider mb-2">Friends in Parties</h3>
           <div className="flex flex-wrap gap-3">
             {activeFriends.map(f => (
               <div key={f.id} className="bg-zinc-900 border border-purple-500/30 rounded-xl p-3 flex items-center gap-3 pr-4 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
