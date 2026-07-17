@@ -35,6 +35,7 @@ export const viewport: Viewport = {
 
 import GlobalToaster from "@/components/GlobalToaster";
 import UpdateNotification from "@/components/UpdateNotification";
+import AuthProvider from "@/components/AuthProvider";
 
 export default function RootLayout({
   children,
@@ -44,6 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
+        <AuthProvider />
         <UpdateNotification />
         <GlobalToaster />
         {/* Main scrollable area — padded so content clears the bottom nav */}

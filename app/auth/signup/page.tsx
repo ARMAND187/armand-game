@@ -180,21 +180,14 @@ export default function SignupPage() {
             </form>
           </>
         ) : (
-          <div style={{ textAlign: "center", padding: "32px 0" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>📬</div>
-            <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--neon)", marginBottom: "8px" }}>
-              Check your email!
+          <div style={{ textAlign: "center", padding: "48px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Loader2 className="mly-spinner" size={48} style={{ color: "var(--neon)", border: "none", marginBottom: "24px" }} />
+            <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "8px" }}>
+              Redirecting...
             </h2>
-            <p style={{ color: "var(--text-muted)", fontSize: "14px", lineHeight: "1.5", marginBottom: "24px" }}>
-              We have sent a verification link to <strong>{email}</strong>.<br />
-              Click the link in the email to activate your account and instantly log in!
+            <p style={{ color: "var(--text-muted)", fontSize: "14px", lineHeight: "1.5" }}>
+              Armand Games is loading...
             </p>
-            <button 
-              onClick={() => setSuccess(false)}
-              style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer", textDecoration: "underline" }}
-            >
-              Didn&apos;t get it? Try another email
-            </button>
           </div>
         )}
       </div>
