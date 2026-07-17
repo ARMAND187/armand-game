@@ -33,6 +33,8 @@ export const viewport: Viewport = {
   themeColor: "#09090b",
 };
 
+import GlobalToaster from "@/components/GlobalToaster";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -41,6 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
+        <GlobalToaster />
         {/* Main scrollable area — padded so content clears the bottom nav */}
         <main className="app-shell">{children}</main>
         <BottomNav />

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import { Users, Globe, Loader2, Play } from "lucide-react";
+import { Users, Globe, Loader2, Play, UserPlus, X, Check } from "lucide-react";
 
 type MatchState = "idle" | "searching" | "waiting" | "friends";
 
@@ -25,6 +25,58 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [isHost, setIsHost] = useState(false);
   const [totalRounds, setTotalRounds] = useState<number>(5);
   const [region, setRegion] = useState<string>("All Kurdistan");
+  
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [friends, setFriends] = useState<{id: string, username: string}[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
+  const [invitedMap, setInvitedMap] = useState<Record<string, boolean>>({});
+
+  const handleOpenInvite = async () => {
+    setShowInviteModal(true);
+    setLoadingFriends(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("friends")
+        .select(`
+          id,
+          user1_id,
+          user2_id,
+          u1:profiles!friends_user1_id_fkey(id, username),
+          u2:profiles!friends_user2_id_fkey(id, username)
+        `)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+        
+      if (data) {
+        setFriends(data.map((fr: any) => {
+          const p1 = Array.isArray(fr.u1) ? fr.u1[0] : fr.u1;
+          const p2 = Array.isArray(fr.u2) ? fr.u2[0] : fr.u2;
+          const other = fr.user1_id === user.id ? p2 : p1;
+          return {
+            id: other?.id || "",
+            username: other?.username || "Unknown"
+          };
+        }).filter((f: any) => f.id));
+      }
+    }
+    setLoadingFriends(false);
+  };
+
+  const sendInvite = async (friendId: string, friendUsername: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    await supabase.from("notifications").insert({
+      receiver_id: friendId,
+      sender_id: user.id,
+      type: "match",
+      title: "Game Invite",
+      body: `${myUsername} invited you to play!`,
+      metadata: { roomId, gameId, roomCode: displayCode }
+    });
+    
+    setInvitedMap(prev => ({ ...prev, [friendId]: true }));
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -366,6 +418,16 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             </button>
           )}
 
+          {isHost && displayCode && (
+            <button 
+              className="btn-lobby-play"
+              style={{ width: "100%", marginTop: 12, padding: 12, borderRadius: 12, background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+              onClick={handleOpenInvite}
+            >
+              <UserPlus size={16} /> Invite Friends
+            </button>
+          )}
+
           <button 
             style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, marginTop: isHost && players.length >= 2 ? 12 : 24, cursor: "pointer" }}
             onClick={() => setMatchState("idle")}
@@ -373,6 +435,48 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             Cancel Matchmaking
           </button>
         </>
+      )}
+
+      {showInviteModal && (
+        <div className="modal-backdrop">
+          <div className="modal-sheet" style={{ maxWidth: 400, textAlign: "left" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 className="modal-title" style={{ margin: 0, fontSize: 18 }}>Invite Friends</h2>
+              <button onClick={() => setShowInviteModal(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            {loadingFriends ? (
+              <div style={{ padding: 24, textAlign: "center" }}><Loader2 className="mly-spinner" size={24} color="var(--neon)" /></div>
+            ) : friends.length === 0 ? (
+              <div style={{ padding: 24, textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>No friends found. Add some friends first!</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 300, overflowY: "auto" }}>
+                {friends.map(f => (
+                  <div key={f.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 12, background: "var(--bg-elevated)", borderRadius: 12, border: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div className="lb-avatar">{f.username[0]?.toUpperCase()}</div>
+                      <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>{f.username}</span>
+                    </div>
+                    {invitedMap[f.id] ? (
+                      <div style={{ color: "var(--neon)", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                        <Check size={14} /> Sent
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => sendInvite(f.id, f.username)}
+                        style={{ background: "var(--neon)", color: "#000", border: "none", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                      >
+                        Invite
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
