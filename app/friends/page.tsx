@@ -288,7 +288,7 @@ export default function FriendsPage() {
 
 
   return (
-    <div className="page-shell">
+    <div className="page-shell mt-8 md:mt-12 flex flex-col gap-6">
 
       {/* ── Incoming Invites Toasts ── */}
       <div className="fixed top-24 right-4 z-50 flex flex-col gap-2">
@@ -321,7 +321,7 @@ export default function FriendsPage() {
 
       {/* ── Active Friends ── */}
       {activeFriends.length > 0 && (
-        <div className="mb-6">
+        <div>
           <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">In a Party</h3>
           <div className="flex flex-wrap gap-3">
             {activeFriends.map(f => (
@@ -348,7 +348,7 @@ export default function FriendsPage() {
 
 
       {/* ── Party Lounge ── */}
-      <div className="bg-zinc-900 border-2 border-purple-600/30 rounded-2xl p-6 mb-8 shadow-[0_0_15px_rgba(147,51,234,0.1)]">
+      <div className="bg-zinc-900 border-2 border-purple-600/30 rounded-2xl p-6 shadow-[0_0_15px_rgba(147,51,234,0.1)]">
         <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
           🎉 Party Lounge
         </h2>
@@ -435,7 +435,7 @@ export default function FriendsPage() {
       )}
 
       {/* ── Tabs ── */}
-      <div className="tab-bar" style={{ marginBottom: 16 }}>
+      <div className="tab-bar">
         <button
           className={`tab-btn${tab === "friends" ? " active" : ""}`}
           onClick={() => setTab("friends")}

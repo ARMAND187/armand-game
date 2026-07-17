@@ -22,6 +22,7 @@ interface VoicePartyProps {
 
 export default function VoiceParty({ room, username, onLeave }: VoicePartyProps) {
   const [token, setToken] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -29,17 +30,33 @@ export default function VoiceParty({ room, username, onLeave }: VoicePartyProps)
         const resp = await fetch(
           `/api/livekit?room=${encodeURIComponent(room)}&username=${encodeURIComponent(username)}`
         );
+        if (!resp.ok) {
+          throw new Error(`Server returned ${resp.status}`);
+        }
         const data = await resp.json();
         if (data.token) {
           setToken(data.token);
         } else {
           console.error("Failed to fetch token", data);
+          setError("Failed to fetch token from server.");
         }
       } catch (e) {
-        console.error(e);
+        console.error("LiveKit fetch error:", e);
+        setError("Failed to connect to voice server. Please check your API keys and restart the server.");
       }
     })();
   }, [room, username]);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-red-400 text-center border border-red-500/20 bg-red-500/10 rounded-xl">
+        <p className="font-bold">{error}</p>
+        <button onClick={onLeave} className="mt-4 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm">
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   if (token === "") {
     return (
