@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +35,7 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -48,7 +50,14 @@ export default function SignupPage() {
         throw error;
       }
 
-      setSuccess(true);
+      if (data.session) {
+        // Confirm email is disabled in Supabase, so they are instantly logged in!
+        router.push("/");
+        router.refresh();
+      } else {
+        // Confirm email is enabled, so they must check their email
+        setSuccess(true);
+      }
     } catch (err: unknown) {
       setErrorMsg((err as Error).message || "An error occurred during sign up.");
     } finally {
