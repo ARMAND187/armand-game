@@ -355,6 +355,7 @@ export default function FriendsPage() {
             room={activeParty} 
             username={myUsername} 
             onLeave={handleLeaveParty} 
+          />
         ) : (
           <div className="flex flex-col items-center justify-center p-4">
             <button 
