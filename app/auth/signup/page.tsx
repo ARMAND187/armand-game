@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff, AlertCircle, Mail, ArrowLeft } from "lucide-react";
@@ -23,7 +23,7 @@ function mapSignupError(message: string): string {
 function mapOtpError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("token has expired") || m.includes("invalid") || m.includes("otp")) {
-    return "Invalid or expired 6-digit code. Please check your email and try again.";
+    return "Invalid or expired code. Please check your email and try again.";
   }
   return message;
 }
@@ -42,8 +42,7 @@ export default function SignupPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   // OTP state
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const [otp, setOtp] = useState("");
 
   // Shared state
   const [stage, setStage] = useState<Stage>("signup");
@@ -88,33 +87,15 @@ export default function SignupPage() {
   };
 
   // ── OTP ───────────────────────────────────────────────────
-  const handleOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, "").slice(-1);
-    const next = [...otp];
-    next[index] = digit;
-    setOtp(next);
-    if (digit && index < 5) otpRefs.current[index + 1]?.focus();
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
-    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (text.length === 6) {
-      setOtp(text.split(""));
-      otpRefs.current[5]?.focus();
-    }
+  const handleOtpChange = (value: string) => {
+    setOtp(value.replace(/\D/g, "").slice(0, 8));
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
-    const token = otp.join("");
-    if (token.length < 6) { setErrorMsg("Please enter the full 6-digit code."); return; }
+    const token = otp.trim();
+    if (token.length < 6) { setErrorMsg("Please enter the full verification code."); return; }
 
     setLoading(true);
     try {
@@ -129,7 +110,7 @@ export default function SignupPage() {
     }
   };
 
-  const otpComplete = otp.every((d) => d !== "");
+  const otpComplete = otp.length >= 6;
 
   // ── Render ────────────────────────────────────────────────
   return (
@@ -190,8 +171,8 @@ export default function SignupPage() {
               }}>
                 <Mail size={22} color="var(--neon)" />
               </div>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", lineHeight: 1.5 }}>
-                We sent a <strong style={{ color: "var(--text-primary)" }}>6-digit code</strong> to your inbox. Enter it below to activate your account.
+              <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", lineHeight: 1.6 }}>
+                We sent a <strong style={{ color: "var(--text-primary)" }}>verification code</strong> to your inbox. Enter it below to activate your account.
               </p>
             </div>
 
@@ -207,29 +188,35 @@ export default function SignupPage() {
               </div>
             )}
 
-            {/* 6-digit OTP input */}
-            <div style={{ display: "flex", gap: 8, justifyContent: "center" }} onPaste={handleOtpPaste}>
-              {otp.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { otpRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  disabled={loading}
-                  onChange={(e) => handleOtpChange(i, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  style={{
-                    width: 48, height: 56, textAlign: "center", fontSize: 22, fontWeight: 700,
-                    background: "var(--bg-base)", border: `2px solid ${digit ? "var(--neon)" : "var(--border)"}`,
-                    borderRadius: 12, color: "var(--text-primary)", outline: "none",
-                    opacity: loading ? 0.5 : 1,
-                    transition: "border-color 0.15s ease",
-                  }}
-                />
-              ))}
-            </div>
+            {/* Single OTP input — supports 6-8 digit codes */}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={8}
+              value={otp}
+              disabled={loading}
+              onChange={(e) => handleOtpChange(e.target.value)}
+              placeholder="00000000"
+              autoComplete="one-time-code"
+              autoFocus
+              style={{
+                width: "100%",
+                padding: "18px 16px",
+                background: "var(--bg-base)",
+                border: `2px solid ${otp.length >= 6 ? "var(--neon)" : "var(--border)"}`,
+                borderRadius: 14,
+                color: "var(--text-primary)",
+                fontSize: 28,
+                fontWeight: 700,
+                letterSpacing: "0.35em",
+                textAlign: "center",
+                outline: "none",
+                opacity: loading ? 0.5 : 1,
+                transition: "border-color 0.15s ease",
+                boxSizing: "border-box",
+              }}
+            />
 
             <button
               type="submit"
@@ -253,7 +240,7 @@ export default function SignupPage() {
 
             <button
               type="button"
-              onClick={() => { setStage("signup"); setOtp(["","","","","",""]); setErrorMsg(""); }}
+              onClick={() => { setStage("signup"); setOtp(""); setErrorMsg(""); }}
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 background: "none", border: "none", color: "var(--text-muted)",
