@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff, AlertCircle, Mail, ArrowLeft } from "lucide-react";
@@ -47,7 +47,16 @@ export default function SignupPage() {
   // Shared state
   const [stage, setStage] = useState<Stage>("signup");
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Verifying...");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Prefetch the home route as soon as the OTP stage appears so any
+  // serverless cold-start happens in the background, not on click.
+  useEffect(() => {
+    if (stage === "otp") {
+      router.prefetch("/");
+    }
+  }, [stage, router]);
 
   // ── Signup ────────────────────────────────────────────────
   const handleSignup = async (e: React.FormEvent) => {
@@ -97,13 +106,18 @@ export default function SignupPage() {
     const token = otp.trim();
     if (token.length < 6) { setErrorMsg("Please enter the full verification code."); return; }
 
+    setLoadingText("Verifying...");
     setLoading(true);
     try {
       const { error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
       if (error) throw error;
-      // Keep loading true while navigating
+      // Code was correct — start routing. If the server is cold-starting,
+      // update the label after 1.5s so the user knows it's working.
+      const slowTimer = setTimeout(() => setLoadingText("Loading game world..."), 1500);
       router.push("/");
       router.refresh();
+      // If we somehow get here before navigation clears the component, tidy up.
+      clearTimeout(slowTimer);
     } catch (err: any) {
       setErrorMsg(mapOtpError(err?.message || "An unexpected error occurred."));
       setLoading(false);
@@ -233,7 +247,7 @@ export default function SignupPage() {
               {loading ? (
                 <>
                   <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
-                  Verifying...
+                  {loadingText}
                 </>
               ) : "Verify & Continue"}
             </button>
