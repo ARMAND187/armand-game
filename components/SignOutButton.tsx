@@ -5,14 +5,22 @@ import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
+import { useWalletStore } from "@/store/useWalletStore";
+
 export default function SignOutButton() {
   const router = useRouter();
   const supabase = createClient();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/auth/login");
+    
+    // Explicitly clear local state
+    useWalletStore.getState().setBalance(0);
+    localStorage.removeItem("wallet-storage");
+    
+    // Dump cache and erase ghost session
     router.refresh();
+    router.push("/auth/login");
   };
 
   return (

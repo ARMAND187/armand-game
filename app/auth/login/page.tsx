@@ -33,9 +33,9 @@ export default function LoginPage() {
       // Successful login, go home
       router.push("/");
       router.refresh(); // Refresh to update middleware state
+      // DO NOT setLoading(false) here, leave it true while routing
     } catch (err: unknown) {
       setErrorMsg((err as Error).message || "An error occurred during login.");
-    } finally {
       setLoading(false);
     }
   };
