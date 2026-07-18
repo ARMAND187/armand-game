@@ -32,6 +32,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friends, setFriends] = useState<{id: string, username: string}[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const [invitedMap, setInvitedMap] = useState<Record<string, boolean>>({});
 
   const handleOpenInvite = async () => {
@@ -95,6 +96,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     const channel = supabase.channel(`room:${roomId}`, {
       config: { presence: { key: myUsername } }
     });
+    channelRef.current = channel;
 
     channel
       .on("presence", { event: "sync" }, () => {
@@ -121,6 +123,9 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           });
         }
       })
+      .on("broadcast", { event: "start-game" }, () => {
+        router.push(`${playRoute}?roomId=${roomId}`);
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({ online_at: new Date().toISOString(), isHost });
@@ -131,6 +136,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       // Clean up on unmount. The presence 'leave' event will fire for others.
       channel.untrack().then(() => {
         supabase.removeChannel(channel);
+        channelRef.current = null;
       });
     };
   }, [roomId, matchState, myUsername, playRoute, router]);
@@ -230,7 +236,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     
     try {
       const isUuid = target.length > 20;
-      let query = supabase.from("rooms").select("*").eq("status", "waiting").lt("player_count", 4).limit(1);
+      let query = supabase.from("rooms").select("*").in("status", ["waiting", "playing"]).lt("player_count", 4).limit(1);
       
       if (isUuid) {
         query = query.eq("id", target);
@@ -247,18 +253,27 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       }
       
       const room = rooms[0];
-      await supabase
-        .from("rooms")
-        .update({ 
-          player_count: room.player_count + 1,
-          players: [...(room.players || []), myUsername]
-        })
-        .eq("id", room.id);
+      const isAlreadyInRoom = (room.players || []).includes(myUsername);
+
+      if (!isAlreadyInRoom) {
+        await supabase
+          .from("rooms")
+          .update({ 
+            player_count: room.player_count + 1,
+            players: [...(room.players || []), myUsername]
+          })
+          .eq("id", room.id);
+      }
 
       setPlayers(Array.from(new Set([room.host_username, myUsername])));
       setRoomId(room.id);
       setIsHost(room.host_username === myUsername);
-      setMatchState("waiting");
+      
+      if (room.status === "playing") {
+         router.push(`${playRoute}?roomId=${room.id}`);
+      } else {
+         setMatchState("waiting");
+      }
     } catch(err) {
       console.error("Private room join error:", err);
       setMatchState("idle");
@@ -400,9 +415,19 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             <button 
               className="btn-lobby-play"
               style={{ width: "100%", marginTop: 24, padding: 12, borderRadius: 12 }}
-              onClick={() => {
-                const channel = supabase.channel(`room:${roomId}`);
-                channel.send({ type: "broadcast", event: "ROOM_READY", payload: {} });
+              onClick={async () => {
+                // Update the DB so anyone loading mid-refresh goes straight to game
+                await supabase.from("rooms").update({ status: "playing" }).eq("id", roomId);
+                
+                // Broadcast to anyone actively in the lobby
+                if (channelRef.current) {
+                  channelRef.current.send({
+                    type: "broadcast",
+                    event: "start-game",
+                    payload: { timestamp: Date.now() }
+                  });
+                }
+                
                 router.push(`${playRoute}?roomId=${roomId}`);
               }}
             >
