@@ -51,8 +51,10 @@ function LoginForm() {
       const t1 = setTimeout(() => setLoadingText("Authenticating..."), 1500);
       const t2 = setTimeout(() => setLoadingText("Waking up servers..."), 4000);
 
-      router.push("/");
+      // refresh() FIRST — invalidates stale Server Component cache so the
+      // destination page sees the newly-set Supabase auth cookie immediately.
       router.refresh();
+      router.push("/");
 
       clearTimeout(t1);
       clearTimeout(t2);

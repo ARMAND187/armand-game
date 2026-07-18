@@ -82,8 +82,9 @@ export default function SignupPage() {
 
       if (data.session) {
         // Email verification disabled — instant login
-        router.push("/");
+        // refresh() FIRST — invalidates stale Server Component cache.
         router.refresh();
+        router.push("/");
       } else {
         // OTP / verification required
         setStage("otp");
@@ -114,8 +115,10 @@ export default function SignupPage() {
       // Code was correct — start routing. If the server is cold-starting,
       // update the label after 1.5s so the user knows it's working.
       const slowTimer = setTimeout(() => setLoadingText("Loading game world..."), 1500);
-      router.push("/");
+      // refresh() FIRST — invalidates stale Server Component cache so the
+      // destination page sees the newly-set Supabase auth cookie immediately.
       router.refresh();
+      router.push("/");
       // If we somehow get here before navigation clears the component, tidy up.
       clearTimeout(slowTimer);
     } catch (err: any) {
