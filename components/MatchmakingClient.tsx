@@ -145,53 +145,26 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     setMatchState("searching");
 
     try {
-      // 1. Look for an available public room using RPC to prevent race conditions
-      const { data: openRoomId, error: rpcError } = await supabase.rpc('find_open_room', {
-        p_game_id: gameId
+      // Look for an available public room, or create one natively if none exist
+      const { data, error: rpcError } = await supabase.rpc('join_public_lobby', {
+        p_game_id: gameId,
+        p_username: myUsername
       });
 
       if (rpcError) throw rpcError;
 
-      if (openRoomId) {
-        // Found and joined a room via RPC!
-        
-        // Fetch the host's username so we can populate the initial players list
-        const { data: roomInfo } = await supabase.from('rooms').select('host_username').eq('id', openRoomId).single();
-        const hostName = roomInfo?.host_username || 'Host';
-
-        // When joining, we know about ourselves + the host initially. 
-        // Real-time broadcasts will sync the rest.
-        setPlayers(Array.from(new Set([hostName, myUsername])));
-        setRoomId(openRoomId);
-        setIsHost(false);
+      if (data && data.roomId) {
+        setPlayers(Array.from(new Set([data.hostUsername, myUsername])));
+        setRoomId(data.roomId);
+        setIsHost(data.isHost);
         setMatchState("waiting");
       } else {
-        // No room found. Create a new one.
-        const { data: newRoom, error: insertError } = await supabase
-          .from("rooms")
-          .insert({
-            game_id: gameId,
-            status: "waiting",
-            is_public: true,
-            player_count: 1,
-            players: [myUsername],
-            host_username: myUsername,
-            total_rounds: 10
-          })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-
-        setPlayers([myUsername]);
-        setRoomId(newRoom.id);
-        setIsHost(true);
-        setMatchState("waiting");
+        throw new Error("Invalid response from join_public_lobby RPC");
       }
     } catch (err) {
       console.error("Matchmaking error:", err);
       setMatchState("idle");
-      alert("Failed to connect to matchmaking. Make sure the 'rooms' table exists in Supabase, and total_rounds is added.");
+      alert("Failed to connect to matchmaking. Make sure the 'rooms' table and the join_public_lobby RPC exist in Supabase.");
     }
   };
 
