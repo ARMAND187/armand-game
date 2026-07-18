@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2 } from "lucide-react";
 import Link from "next/link";
+import AdminDashboardStats from "@/components/AdminDashboardStats";
 
 interface Profile {
   id: string;
@@ -132,14 +133,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
-        <div className="settings-card" style={{ padding: 20, textAlign: "center" }}>
-          <Users size={24} color="var(--neon)" style={{ margin: "0 auto 8px" }} />
-          <div style={{ fontSize: 24, fontWeight: 800, color: "white" }}>{totalUsers}</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1 }}>Total Users</div>
-        </div>
-      </div>
+      <AdminDashboardStats totalRegistered={totalUsers} />
 
       {/* Global Notifications */}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24 }}>
