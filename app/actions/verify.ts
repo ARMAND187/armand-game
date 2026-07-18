@@ -44,7 +44,7 @@ export async function verifyCustomOTP(userId: string, otp: string) {
 
     if (updateError) {
       console.error("Error updating profile status:", updateError);
-      throw new Error("Failed to update profile verification status");
+      throw new Error(`Failed to update profile verification status: ${updateError.message}`);
     }
 
     // Force server revalidation
