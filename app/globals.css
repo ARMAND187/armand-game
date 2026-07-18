@@ -19,6 +19,18 @@
   --safe-bottom:   env(safe-area-inset-bottom, 0px);
 }
 
+[data-theme="light"] {
+  --bg-base:       #f4f4f5;   /* zinc-100 */
+  --bg-surface:    #ffffff;   /* white */
+  --bg-elevated:   #e4e4e7;   /* zinc-200 */
+  --border:        #d4d4d8;   /* zinc-300 */
+  --text-primary:  #18181b;   /* zinc-900 */
+  --text-muted:    #71717a;   /* zinc-500 */
+  --neon:          #8b5cf6;   /* violet-500 */
+  --neon-glow:     rgba(139, 92, 246, 0.2);
+  color-scheme: light;
+}
+
 /* =========================================================
    RESET & BASE
    ========================================================= */
@@ -26,6 +38,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 html {
@@ -33,7 +46,6 @@ html {
   /* Prevent pull-to-refresh and elastic scroll on iOS */
   overscroll-behavior: none;
   background-color: var(--bg-base);
-  color-scheme: dark;
 }
 
 body {

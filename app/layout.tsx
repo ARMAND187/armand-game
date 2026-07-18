@@ -37,20 +37,24 @@ import GlobalToaster from "@/components/GlobalToaster";
 import UpdateNotification from "@/components/UpdateNotification";
 import AuthProvider from "@/components/AuthProvider";
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable}`}>
+    <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
       <body>
-        <AuthProvider />
-        <UpdateNotification />
-        <GlobalToaster />
-        {/* Main scrollable area — padded so content clears the bottom nav */}
-        <main className="app-shell">{children}</main>
-        <BottomNav />
+        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
+          <AuthProvider />
+          <UpdateNotification />
+          <GlobalToaster />
+          {/* Main scrollable area — padded so content clears the bottom nav */}
+          <main className="app-shell">{children}</main>
+          <BottomNav />
+        </ThemeProvider>
       </body>
     </html>
   );
