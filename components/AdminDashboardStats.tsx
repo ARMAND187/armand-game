@@ -9,18 +9,33 @@ export default function AdminDashboardStats({ totalRegistered }: { totalRegister
   const supabase = createClient();
 
   useEffect(() => {
-    const channel = supabase.channel("global-lobby");
+    // AuthProvider already creates and subscribes to global-lobby.
+    // We just need to find it and listen to its presence state.
+    let channel = supabase.getChannels().find(c => c.topic === "realtime:global-lobby");
+    let isMounted = true;
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const newState = channel.presenceState();
-        // The number of unique keys (users/sessions) currently in the lobby
-        setOnlineCount(Object.keys(newState).length);
-      })
-      .subscribe();
+    if (!channel) {
+      // Fallback just in case AuthProvider hasn't initialized it yet
+      channel = supabase.channel("global-lobby");
+      channel.subscribe();
+    }
+
+    const updateCount = () => {
+      if (!isMounted) return;
+      const newState = channel.presenceState();
+      setOnlineCount(Object.keys(newState).length);
+    };
+
+    channel.on("presence", { event: "sync" }, updateCount);
+
+    // Initial count in case it's already synced
+    updateCount();
 
     return () => {
-      supabase.removeChannel(channel);
+      isMounted = false;
+      // DO NOT remove the channel, AuthProvider needs it!
+      // Supabase JS doesn't have a simple way to remove just one "on" listener 
+      // without unsubscribing the whole channel, so we just use isMounted.
     };
   }, [supabase]);
 
