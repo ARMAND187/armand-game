@@ -10,6 +10,9 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import InstallAppButton from "@/components/InstallAppButton";
 import { sendOtpEmail } from "@/app/actions/mailer";
+import { verifyCustomOTP } from "@/app/actions/verify";
+import { useRouter } from "next/navigation";
+
 const menuItems = [
   { icon: Gift,    label: "Redeem Code",    sub: "Enter a gift code",      href: "/redeem" },
   { icon: Shield,  label: "Privacy & Security", sub: "Manage your account", href: "/settings" },
@@ -17,6 +20,7 @@ const menuItems = [
 ];
 
 export default function ProfilePage() {
+  const router = useRouter();
   const armandBalance = useWalletStore((s) => s.armandBalance);
   const [username, setUsername] = useState("Loading...");
   const [isEditing, setIsEditing] = useState(false);
@@ -50,7 +54,7 @@ export default function ProfilePage() {
         
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, avatar_url")
+          .select("is_admin, avatar_url, is_verified")
           .eq("id", user.id)
           .single();
           
@@ -59,6 +63,9 @@ export default function ProfilePage() {
         }
         if (profile?.avatar_url) {
           setAvatarUrl(profile.avatar_url);
+        }
+        if (profile?.is_verified) {
+          setIsVerified(true);
         }
       }
     };
@@ -176,23 +183,14 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      const { data, error } = await supabase
-        .from("otp_codes")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("code", otp.trim())
-        .gt("expires_at", new Date().toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) {
-        throw new Error("Invalid or expired code. Please check your email and try again.");
+      const res = await verifyCustomOTP(user.id, otp);
+      if (!res.success) {
+        throw new Error(res.error);
       }
 
       setIsVerified(true);
       setVerificationStage("idle");
+      router.refresh();
     } catch (err: any) {
       setVerifyError(err.message || "Verification failed");
     } finally {
