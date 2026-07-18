@@ -24,7 +24,6 @@ const sections: Array<{
   {
     heading: "Preferences",
     items: [
-      { icon: Bell,    label: "Notifications",     sub: "Push & email alerts",     href: "#" },
       { icon: Palette, label: "Appearance",        sub: "Theme (dark only for now)", href: "#" },
     ],
   },
