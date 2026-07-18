@@ -1,9 +1,31 @@
 "use server";
 
 import nodemailer from "nodemailer";
+import { createClient } from "@supabase/supabase-js";
 
-export async function sendOtpEmail(email: string, code: string) {
+export async function sendOtpEmail(email: string, code: string, userId: string) {
   try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Missing Supabase admin credentials");
+    }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Guard clause: check if already verified
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("is_verified")
+      .eq("id", userId)
+      .single();
+
+    if (profile?.is_verified) {
+      return { success: false, error: "Account is already verified." };
+    }
+
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,

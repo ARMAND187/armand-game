@@ -62,8 +62,10 @@ export default function SignupPage() {
       });
 
       if (error) throw error;
-
-      if (error) throw error;
+      
+      if (data.user && data.user.identities?.length === 0) {
+        throw new Error("An account with this email already exists.");
+      }
 
       // Email verification disabled — instant login
       // refresh() FIRST — invalidates stale Server Component cache.

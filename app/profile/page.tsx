@@ -34,6 +34,7 @@ export default function ProfilePage() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Verification state
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [verificationStage, setVerificationStage] = useState<"idle" | "sending" | "verifying">("idle");
   const [otp, setOtp] = useState("");
   const [isVerified, setIsVerified] = useState(false);
@@ -67,6 +68,9 @@ export default function ProfilePage() {
         if (profile?.is_verified) {
           setIsVerified(true);
         }
+        setIsProfileLoading(false);
+      } else {
+        setIsProfileLoading(false);
       }
     };
     fetchUser();
@@ -163,7 +167,7 @@ export default function ProfilePage() {
 
       if (dbError) throw dbError;
 
-      const res = await sendOtpEmail(user.email, code);
+      const res = await sendOtpEmail(user.email, code, user.id);
       if (!res.success) {
         throw new Error(res.error || "Failed to send email");
       }
@@ -355,7 +359,11 @@ export default function ProfilePage() {
 
               <div className="profile-field" style={{ borderBottom: "none" }}>
                 <span className="profile-field-label">Account Status</span>
-                {isVerified ? (
+                {isProfileLoading ? (
+                  <div style={{ marginLeft: "auto", padding: "6px" }}>
+                    <Loader2 size={18} style={{ animation: "spin 1s linear infinite", color: "var(--text-muted)" }} />
+                  </div>
+                ) : isVerified ? (
                   <span className="profile-field-value" style={{ color: "var(--neon)", display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
                     <Shield size={14} /> Verified
                   </span>
