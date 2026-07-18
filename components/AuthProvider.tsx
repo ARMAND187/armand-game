@@ -4,9 +4,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
+import { usePresenceStore } from "@/store/usePresenceStore";
+
 export default function AuthProvider() {
   const router = useRouter();
   const supabase = createClient();
+  const setOnlineCount = usePresenceStore((state) => state.setOnlineCount);
 
   useEffect(() => {
     // 1. Listen for auth changes to trigger redirect
@@ -32,13 +35,18 @@ export default function AuthProvider() {
         },
       });
 
-      presenceChannel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await presenceChannel!.track({
-            online_at: new Date().toISOString(),
-          });
-        }
-      });
+      presenceChannel
+        .on("presence", { event: "sync" }, () => {
+          const state = presenceChannel!.presenceState();
+          setOnlineCount(Object.keys(state).length);
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await presenceChannel!.track({
+              online_at: new Date().toISOString(),
+            });
+          }
+        });
     };
 
     initPresence();

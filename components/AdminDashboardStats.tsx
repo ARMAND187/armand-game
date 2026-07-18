@@ -1,36 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { Users, Activity } from "lucide-react";
+import { usePresenceStore } from "@/store/usePresenceStore";
 
 export default function AdminDashboardStats({ totalRegistered }: { totalRegistered: number }) {
-  const [onlineCount, setOnlineCount] = useState<number>(0);
-  const supabase = createClient();
-
-  useEffect(() => {
-    let isMounted = true;
-    const channel = supabase.channel("global-lobby");
-
-    channel
-      .on("presence", { event: "sync" }, () => {
-        if (!isMounted) return;
-        const state = channel.presenceState();
-        setOnlineCount(Object.keys(state).length);
-      })
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          channel.track({ online_at: new Date().toISOString() });
-        }
-      });
-
-    return () => {
-      isMounted = false;
-      // Note: we let AuthProvider manage the actual removal if they share it, 
-      // or we can remove the channel here, but just unmounting is safer 
-      // to avoid breaking global-lobby for the rest of the app.
-    };
-  }, [supabase]);
+  const onlineCount = usePresenceStore((state) => state.onlineCount);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
