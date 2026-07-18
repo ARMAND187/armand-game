@@ -15,6 +15,9 @@ const tabs = [
 export default function BottomNav() {
   const pathname = usePathname();
 
+  // Hide entirely on auth pages
+  if (pathname.startsWith("/auth")) return null;
+
   return (
     <nav className="bottom-nav pb-[max(env(safe-area-inset-bottom),1rem)]">
       {tabs.map(({ href, label, icon: Icon, match }) => {
