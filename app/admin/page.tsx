@@ -5,7 +5,12 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2 } from "lucide-react";
 import Link from "next/link";
-import AdminDashboardStats from "@/components/AdminDashboardStats";
+import dynamic from "next/dynamic";
+
+const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardStats"), {
+  ssr: false,
+  loading: () => <div style={{ height: 110, width: "100%", background: "var(--bg-card)", borderRadius: 16, marginBottom: 24, display: "flex", justifyContent: "center", alignItems: "center" }}><Loader2 className="mly-spinner" color="var(--neon)" /></div>
+});
 
 interface Profile {
   id: string;
