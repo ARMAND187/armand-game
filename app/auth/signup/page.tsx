@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Eye, EyeOff, AlertCircle, Mail, ArrowLeft } from "lucide-react";
+import { Loader2, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
-
-type Stage = "signup" | "otp";
 
 function mapSignupError(message: string): string {
   const m = message.toLowerCase();
@@ -20,13 +18,6 @@ function mapSignupError(message: string): string {
   return message;
 }
 
-function mapOtpError(message: string): string {
-  const m = message.toLowerCase();
-  if (m.includes("token has expired") || m.includes("invalid") || m.includes("otp")) {
-    return "Invalid or expired code. Please check your email and try again.";
-  }
-  return message;
-}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -41,22 +32,14 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // OTP state
-  const [otp, setOtp] = useState("");
-
   // Shared state
-  const [stage, setStage] = useState<Stage>("signup");
   const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState("Verifying...");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Prefetch the home route as soon as the OTP stage appears so any
-  // serverless cold-start happens in the background, not on click.
+  // Prefetch the home route as soon as possible so any serverless cold-start happens in the background.
   useEffect(() => {
-    if (stage === "otp") {
-      router.prefetch("/");
-    }
-  }, [stage, router]);
+    router.prefetch("/");
+  }, [router]);
 
   // ── Signup ────────────────────────────────────────────────
   const handleSignup = async (e: React.FormEvent) => {
@@ -80,54 +63,17 @@ export default function SignupPage() {
 
       if (error) throw error;
 
-      if (data.session) {
-        // Email verification disabled — instant login
-        // refresh() FIRST — invalidates stale Server Component cache.
-        router.refresh();
-        router.push("/");
-      } else {
-        // OTP / verification required
-        setStage("otp");
-        setLoading(false);
-      }
+      if (error) throw error;
+
+      // Email verification disabled — instant login
+      // refresh() FIRST — invalidates stale Server Component cache.
+      router.refresh();
+      router.push("/");
     } catch (err: any) {
       setErrorMsg(mapSignupError(err?.message || "An unexpected error occurred."));
       setLoading(false);
     }
   };
-
-  // ── OTP ───────────────────────────────────────────────────
-  const handleOtpChange = (value: string) => {
-    setOtp(value.replace(/\D/g, "").slice(0, 8));
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
-    const token = otp.trim();
-    if (token.length < 6) { setErrorMsg("Please enter the full verification code."); return; }
-
-    setLoadingText("Verifying...");
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
-      if (error) throw error;
-      // Code was correct — start routing. If the server is cold-starting,
-      // update the label after 1.5s so the user knows it's working.
-      const slowTimer = setTimeout(() => setLoadingText("Loading game world..."), 1500);
-      // refresh() FIRST — invalidates stale Server Component cache so the
-      // destination page sees the newly-set Supabase auth cookie immediately.
-      router.refresh();
-      router.push("/");
-      // If we somehow get here before navigation clears the component, tidy up.
-      clearTimeout(slowTimer);
-    } catch (err: any) {
-      setErrorMsg(mapOtpError(err?.message || "An unexpected error occurred."));
-      setLoading(false);
-    }
-  };
-
-  const otpComplete = otp.length >= 6;
 
   // ── Render ────────────────────────────────────────────────
   return (
@@ -156,10 +102,10 @@ export default function SignupPage() {
           </svg>
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5 }}>
-          {stage === "signup" ? "Create account" : "Verify your email"}
+          Create account
         </h1>
         <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 6 }}>
-          {stage === "signup" ? "Join Armand Games" : `Code sent to ${email}`}
+          Join Armand Games
         </p>
       </div>
 
@@ -172,105 +118,8 @@ export default function SignupPage() {
         padding: "32px 24px",
       }}>
 
-        {/* ── OTP Stage ── */}
-        {stage === "otp" ? (
-          <form onSubmit={handleVerifyOtp} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-            {/* Mail icon banner */}
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
-              padding: "20px", background: "rgba(167,139,250,0.06)",
-              border: "1px solid rgba(167,139,250,0.15)", borderRadius: 16,
-            }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: "50%",
-                background: "rgba(167,139,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Mail size={22} color="var(--neon)" />
-              </div>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", lineHeight: 1.6 }}>
-                We sent a <strong style={{ color: "var(--text-primary)" }}>verification code</strong> to your inbox. Enter it below to activate your account.
-              </p>
-            </div>
-
-            {/* Error Banner */}
-            {errorMsg && (
-              <div style={{
-                display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px",
-                background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)",
-                borderRadius: 12, color: "#f87171", fontSize: 13, fontWeight: 500, lineHeight: 1.5,
-              }}>
-                <AlertCircle size={16} style={{ marginTop: 1, flexShrink: 0 }} />
-                {errorMsg}
-              </div>
-            )}
-
-            {/* Single OTP input — supports 6-8 digit codes */}
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={8}
-              value={otp}
-              disabled={loading}
-              onChange={(e) => handleOtpChange(e.target.value)}
-              placeholder="00000000"
-              autoComplete="one-time-code"
-              autoFocus
-              style={{
-                width: "100%",
-                padding: "18px 16px",
-                background: "var(--bg-base)",
-                border: `2px solid ${otp.length >= 6 ? "var(--neon)" : "var(--border)"}`,
-                borderRadius: 14,
-                color: "var(--text-primary)",
-                fontSize: 28,
-                fontWeight: 700,
-                letterSpacing: "0.35em",
-                textAlign: "center",
-                outline: "none",
-                opacity: loading ? 0.5 : 1,
-                transition: "border-color 0.15s ease",
-                boxSizing: "border-box",
-              }}
-            />
-
-            <button
-              type="submit"
-              disabled={loading || !otpComplete}
-              style={{
-                padding: "14px",
-                background: "var(--neon)", border: "none", borderRadius: 12,
-                color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                opacity: (loading || !otpComplete) ? 0.6 : 1,
-                transition: "opacity 0.2s",
-              }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
-                  {loadingText}
-                </>
-              ) : "Verify & Continue"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setStage("signup"); setOtp(""); setErrorMsg(""); }}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                background: "none", border: "none", color: "var(--text-muted)",
-                fontSize: 13, cursor: "pointer", padding: 4,
-              }}
-            >
-              <ArrowLeft size={14} /> Back to sign up
-            </button>
-          </form>
-
-        ) : (
-          /* ── Signup Stage ── */
-          <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* ── Signup Form ── */}
+        <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
             {/* Error Banner */}
             {errorMsg && (
@@ -403,7 +252,6 @@ export default function SignupPage() {
               </Link>
             </p>
           </form>
-        )}
       </div>
     </div>
   );
