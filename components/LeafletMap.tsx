@@ -133,7 +133,7 @@ export default function LeafletMap({
   };
 
   const myColor = myUsername ? generatePlayerColor(myUsername) : "#a78bfa";
-  const localGuessIcon = createPlayerIcon(myColor, "You");
+  const localGuessIcon = createPlayerIcon(myColor, myUsername || "Player");
 
   // Determine lines to draw
   // If round ended and we have multiplayer guesses, draw lines for everyone
@@ -180,7 +180,7 @@ export default function LeafletMap({
         <Marker 
           key={i} 
           position={[g.guessLat, g.guessLng]} 
-          icon={createPlayerIcon(generatePlayerColor(g.username), g.username)} 
+          icon={createPlayerIcon(generatePlayerColor(g.username), g.username === myUsername ? `${g.username} (You)` : g.username)} 
         />
       ))}
 

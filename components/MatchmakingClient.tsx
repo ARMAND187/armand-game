@@ -156,36 +156,24 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     setMatchState("searching");
 
     try {
-      // 1. Look for an available public room
-      const { data: rooms, error: fetchError } = await supabase
-        .from("rooms")
-        .select("*")
-        .eq("status", "waiting")
-        .eq("is_public", true)
-        .eq("game_id", gameId)
-        .neq("host_username", myUsername) // Prevent joining your own abandoned room
-        .lt("player_count", 4)
-        .order("created_at", { ascending: true })
-        .limit(1);
+      // 1. Look for an available public room using RPC to prevent race conditions
+      const { data: openRoomId, error: rpcError } = await supabase.rpc('find_open_room', {
+        p_game_id: gameId
+      });
 
-      if (fetchError) throw fetchError;
+      if (rpcError) throw rpcError;
 
-      if (rooms && rooms.length > 0) {
-        // Found a room! Join it.
-        const room = rooms[0];
-        await supabase
-          .from("rooms")
-          .update({ player_count: room.player_count + 1 })
-          .eq("id", room.id);
+      if (openRoomId) {
+        // Found and joined a room via RPC!
+        
+        // Fetch the host's username so we can populate the initial players list
+        const { data: roomInfo } = await supabase.from('rooms').select('host_username').eq('id', openRoomId).single();
+        const hostName = roomInfo?.host_username || 'Host';
 
-        // When joining, we only know about ourselves + the host initially. 
-        // Real-time broadcasts will sync the rest if they re-announce.
-        // Or if there are 3 players, the others will broadcast PLAYER_JOINED when we subscribe.
-        // Actually, without Presence, Broadcast is best-effort. Let's start with just host + me, 
-        // or just me if the host broadcasts back when someone joins.
-        // For strict robustness, Supabase Presence is better, but we stick to Broadcasts.
-        setPlayers(Array.from(new Set([room.host_username, myUsername])));
-        setRoomId(room.id);
+        // When joining, we know about ourselves + the host initially. 
+        // Real-time broadcasts will sync the rest.
+        setPlayers(Array.from(new Set([hostName, myUsername])));
+        setRoomId(openRoomId);
         setIsHost(false);
         setMatchState("waiting");
       } else {
