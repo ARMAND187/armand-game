@@ -7,33 +7,40 @@ export default function AdminDashboardStats({ totalRegistered }: { totalRegister
   const onlineCount = usePresenceStore((state) => state.onlineCount);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 24, marginBottom: 32 }}>
       {/* Total Registered Card */}
-      <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex items-center justify-between">
+      <div className="settings-card" style={{ padding: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h3 className="text-zinc-400 font-bold text-sm uppercase tracking-wider mb-2">Total Users</h3>
-          <p className="text-4xl font-extrabold text-white">{totalRegistered}</p>
+          <h3 style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, margin: "0 0 8px 0" }}>
+            Total Users
+          </h3>
+          <p style={{ fontSize: 36, fontWeight: 800, color: "white", margin: 0 }}>
+            {totalRegistered}
+          </p>
         </div>
-        <div className="w-16 h-16 rounded-full bg-purple-600/20 flex items-center justify-center">
+        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(168, 85, 247, 0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Users size={32} color="#a855f7" />
         </div>
       </div>
 
       {/* Live Players Card */}
-      <div className="bg-zinc-900 border border-green-500/30 p-6 rounded-2xl flex items-center justify-between relative overflow-hidden">
+      <div className="settings-card" style={{ padding: 24, display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", overflow: "hidden", border: "1px solid rgba(74, 222, 128, 0.3)" }}>
         {/* Pulse effect in background */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div style={{ position: "absolute", top: 0, right: 0, width: 128, height: 128, background: "rgba(74, 222, 128, 0.1)", borderRadius: "50%", filter: "blur(40px)", animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }}></div>
         
-        <div className="relative z-10">
-          <h3 className="text-zinc-400 font-bold text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
-            Live Players <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
+        <div style={{ position: "relative", zIndex: 10 }}>
+          <h3 style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, margin: "0 0 8px 0", display: "flex", alignItems: "center", gap: 8 }}>
+            Live Players
+            <div style={{ position: "relative", width: 8, height: 8, display: "flex" }}>
+              <span style={{ position: "absolute", width: "100%", height: "100%", background: "#4ade80", borderRadius: "50%", opacity: 0.75, animation: "ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite" }}></span>
+              <span style={{ position: "relative", width: 8, height: 8, background: "#4ade80", borderRadius: "50%" }}></span>
+            </div>
           </h3>
-          <p className="text-4xl font-extrabold text-green-400">{onlineCount}</p>
+          <p style={{ fontSize: 36, fontWeight: 800, color: "#4ade80", margin: 0 }}>
+            {onlineCount}
+          </p>
         </div>
-        <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center relative z-10">
+        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(74, 222, 128, 0.2)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 10 }}>
           <Activity size={32} color="#4ade80" />
         </div>
       </div>
