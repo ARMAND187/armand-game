@@ -28,7 +28,7 @@ export async function sendOtpEmail(email: string, code: string) {
     `;
 
     await transporter.sendMail({
-      from: \`"Armand Games" <\${process.env.GMAIL_USER}>\`,
+      from: `"Armand Games" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: "Your Verification Code - Armand Games",
       html: htmlBody,
