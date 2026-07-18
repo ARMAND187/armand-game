@@ -92,61 +92,44 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   useEffect(() => {
     if (!roomId || matchState !== "waiting") return;
 
-    // Connect to a channel specific to this room ID
-    const channel = supabase.channel(`room:${roomId}`);
+    const channel = supabase.channel(`room:${roomId}`, {
+      config: { presence: { key: myUsername } }
+    });
 
     channel
-      .on("broadcast", { event: "PLAYER_JOINED" }, (payload) => {
-        setPlayers((prev) => {
-          if (prev.includes(payload.payload.username)) return prev;
-          const newPlayers = [...prev, payload.payload.username];
-          if (newPlayers.length === 4) {
-            // Trigger ready if we are exactly 4
-            setTimeout(() => {
-              if (isHost) channel.send({ type: "broadcast", event: "ROOM_READY", payload: {} });
-              router.push(`${playRoute}?roomId=${roomId}`);
-            }, 1000);
-          }
-          
-          // If we are the host, broadcast the updated full player list so the new joiner sees everyone
-          if (isHost) {
-            setTimeout(() => {
-              channel.send({ type: "broadcast", event: "SYNC_PLAYERS", payload: { players: newPlayers } });
-            }, 500);
-          }
-          
-          return newPlayers;
-        });
-      })
-      .on("broadcast", { event: "SYNC_PLAYERS" }, (payload) => {
-        if (!isHost) {
-          setPlayers(payload.payload.players);
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        const activePlayers = Object.keys(state);
+        setPlayers(activePlayers);
+
+        if (activePlayers.length >= 4) {
+          // Trigger ready if we are exactly 4
+          setTimeout(() => {
+            router.push(`${playRoute}?roomId=${roomId}`);
+          }, 1000);
         }
       })
-      .on("broadcast", { event: "PLAYER_LEFT" }, (payload) => {
-        setPlayers((prev) => prev.filter((p) => p !== payload.payload.username));
-      })
-      .on("broadcast", { event: "ROOM_READY" }, () => {
-        router.push(`${playRoute}?roomId=${roomId}`);
+      .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+        // A player dropped! First active player handles the RPC to avoid duplicate DB calls
+        const state = channel.presenceState();
+        const activePlayers = Object.keys(state);
+        if (activePlayers[0] === myUsername) {
+          supabase.rpc('handle_player_leave', { p_room_id: roomId, p_username: key }).then(({ data }) => {
+            if (data?.new_host && data.new_host === myUsername) {
+              setIsHost(true);
+            }
+          });
+        }
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          // Announce ourselves to everyone else in the room
-          await channel.send({
-            type: "broadcast",
-            event: "PLAYER_JOINED",
-            payload: { username: myUsername },
-          });
+          await channel.track({ online_at: new Date().toISOString(), isHost });
         }
       });
 
     return () => {
-      // Announce we are leaving when component unmounts
-      channel.send({
-        type: "broadcast",
-        event: "PLAYER_LEFT",
-        payload: { username: myUsername },
-      }).then(() => {
+      // Clean up on unmount. The presence 'leave' event will fire for others.
+      channel.untrack().then(() => {
         supabase.removeChannel(channel);
       });
     };
@@ -185,6 +168,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             status: "waiting",
             is_public: true,
             player_count: 1,
+            players: [myUsername],
             host_username: myUsername,
             total_rounds: 10
           })
@@ -217,6 +201,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           status: "waiting",
           is_public: false,
           player_count: 1,
+          players: [myUsername],
           host_username: myUsername,
           room_code: shortCode,
           total_rounds: totalRounds
@@ -264,7 +249,10 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       const room = rooms[0];
       await supabase
         .from("rooms")
-        .update({ player_count: room.player_count + 1 })
+        .update({ 
+          player_count: room.player_count + 1,
+          players: [...(room.players || []), myUsername]
+        })
         .eq("id", room.id);
 
       setPlayers(Array.from(new Set([room.host_username, myUsername])));

@@ -53,6 +53,23 @@ function gradeDistance(km: number) {
   return             { emoji: "😅", label: "Far off!",                  color: "#f87171" };
 }
 
+function seededRandom(seed: number) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+function generateDeterministicIndices(seedStr: string, count: number, maxVal: number) {
+    let seed = 0;
+    for(let i = 0; i < seedStr.length; i++) seed += seedStr.charCodeAt(i);
+    const indices: number[] = [];
+    while(indices.length < count) {
+        seed++;
+        const val = Math.floor(seededRandom(seed) * maxVal);
+        if(!indices.includes(val) && val < maxVal) indices.push(val);
+    }
+    return indices;
+}
+
 import { Suspense } from "react";
 
 function GeoKurdistanInner() {
@@ -84,6 +101,8 @@ function GeoKurdistanInner() {
   const [hasGuessed, setHasGuessed] = useState(false);
   const [roundGuesses, setRoundGuesses] = useState<MultiplayerGuess[]>([]);
   const [showScoreboard, setShowScoreboard] = useState(false);
+  const [forfeitWin, setForfeitWin] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -177,17 +196,47 @@ function GeoKurdistanInner() {
       const { data: room } = await supabase.from("rooms").select("*").eq("id", roomId).single();
       if (!room) return;
       
+      const isPublicRoom = room.is_public;
+      setIsPublic(isPublicRoom);
       setTotalRounds(room.total_rounds || 5);
       const isRoomHost = room.host_username === realUsername;
       setIsHost(isRoomHost);
 
-      const channel = supabase.channel(`game:${roomId}`);
+      const channel = supabase.channel(`game:${roomId}`, {
+        config: { presence: { key: realUsername } }
+      });
       channelRef.current = channel;
 
       channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel.presenceState();
+          const activePlayers = Object.keys(state);
+          setPlayers(activePlayers);
+        })
+        .on("presence", { event: "leave" }, ({ key }) => {
+          const state = channel.presenceState();
+          const activePlayers = Object.keys(state);
+          
+          if (activePlayers[0] === realUsername) {
+            supabase.rpc("handle_player_leave", { p_room_id: roomId, p_username: key }).then(({ data }) => {
+              if (data?.new_host && data.new_host === realUsername) setIsHost(true);
+            });
+          }
+
+          // Win Condition A: Forfeit Win
+          if (activePlayers.length <= 1) {
+             setGameState(prev => {
+               if (prev !== "GAME_OVER" && prev !== "WAITING") {
+                 setForfeitWin(true);
+                 return "GAME_OVER";
+               }
+               return prev;
+             });
+          }
+        })
         .on("broadcast", { event: "GAME_START" }, (payload) => {
+          if (isPublicRoom) return; // Public uses deterministic logic
           setLocationIndices(payload.payload.indices);
-          setPlayers(payload.payload.players);
           setGameState("PLAYING");
           setTimer(30);
           setRound(1);
@@ -205,6 +254,7 @@ function GeoKurdistanInner() {
           });
         })
         .on("broadcast", { event: "NEXT_ROUND" }, (payload) => {
+          if (isPublicRoom) return; // Public transitions locally
           if (payload.payload && payload.payload.round) {
             setRound(payload.payload.round);
           } else {
@@ -218,7 +268,7 @@ function GeoKurdistanInner() {
           setShowScoreboard(false);
         })
         .on("broadcast", { event: "REQUEST_SYNC" }, () => {
-          if (isRoomHost) {
+          if (isRoomHost && !isPublicRoom) {
             channel.send({
               type: "broadcast",
               event: "SYNC_STATE",
@@ -227,10 +277,9 @@ function GeoKurdistanInner() {
           }
         })
         .on("broadcast", { event: "SYNC_STATE" }, (payload) => {
-          if (!isRoomHost) {
+          if (!isRoomHost && !isPublicRoom) {
             const state = payload.payload;
             setLocationIndices(state.locationIndices);
-            setPlayers(state.players);
             setRound(state.round);
             setTimer(state.timer);
             setGameState(state.gameState);
@@ -239,6 +288,7 @@ function GeoKurdistanInner() {
           }
         })
         .on("broadcast", { event: "GAME_OVER" }, (payload) => {
+          if (isPublicRoom) return;
           const state = payload.payload;
           if (state && state.totalScores) {
              setTotalScores(state.totalScores);
@@ -247,31 +297,39 @@ function GeoKurdistanInner() {
         })
         .subscribe(async (status) => {
           if (status === "SUBSCRIBED") {
-            if (isRoomHost) {
-            // Wait a sec for others to subscribe before sending game start
-            setTimeout(async () => {
-              // Generate random locations
-              const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
-              const indices = shuffled.slice(0, room.total_rounds || 5);
-              // Fetch players from room
-              const { data: updatedRoom } = await supabase.from("rooms").select("player_count").eq("id", roomId).single();
-              const pCount = updatedRoom?.player_count || 1;
-              channel.send({
-                type: "broadcast",
-                event: "GAME_START",
-                payload: { indices, players: Array.from({length: pCount}, (_, i) => `Player${i+1}`) }, 
-              });
-              
-              setLocationIndices(indices);
-              setPlayers(Array.from({length: pCount}, (_, i) => `Player${i+1}`));
-              setGameState("PLAYING");
-              setTimer(30);
-            }, 2000);
+            await channel.track({ online_at: new Date().toISOString() });
+            
+            if (isPublicRoom) {
+               // Deterministic start
+               const indices = generateDeterministicIndices(roomId, room.total_rounds || 5, availableLocations.length);
+               setLocationIndices(indices);
+               setGameState("PLAYING");
+               setTimer(30);
+               setRound(1);
+               setRoundGuesses([]);
+               setTotalScores({});
+               setHasGuessed(false);
+               setGuessMarker(null);
+               setShowScoreboard(false);
             } else {
-              // I am a guest, request current state from host
-              setTimeout(() => {
-                channel.send({ type: "broadcast", event: "REQUEST_SYNC" });
-              }, 500);
+               if (isRoomHost) {
+                 setTimeout(async () => {
+                   const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+                   const indices = shuffled.slice(0, room.total_rounds || 5);
+                   channel.send({
+                     type: "broadcast",
+                     event: "GAME_START",
+                     payload: { indices, players: [] }, // Players tracked via presence
+                   });
+                   setLocationIndices(indices);
+                   setGameState("PLAYING");
+                   setTimer(30);
+                 }, 2000);
+               } else {
+                 setTimeout(() => {
+                   channel.send({ type: "broadcast", event: "REQUEST_SYNC" });
+                 }, 500);
+               }
             }
           }
         });
@@ -322,12 +380,12 @@ function GeoKurdistanInner() {
   const handleNextRound = useCallback(async () => {
     if (round >= totalRounds) {
       setGameState("GAME_OVER");
-      if (channelRef.current && roomId) {
+      if (channelRef.current && roomId && !isPublic) {
         channelRef.current.send({ type: "broadcast", event: "GAME_OVER", payload: stateRef.current });
       }
       
-      // Update wins if I am the host, I will calculate the winner
-      if (isHost && roomId) {
+      // Update wins
+      if ((isHost || isPublic) && roomId) {
         let maxScore = -1;
         let winner = "";
         Object.entries(totalScores).forEach(([user, score]) => {
@@ -338,7 +396,6 @@ function GeoKurdistanInner() {
         });
         
         if (winner) {
-          // Fire and forget updating the wins
           fetch("/api/game/winner", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -348,7 +405,7 @@ function GeoKurdistanInner() {
       }
     } else {
       const nextRoundNum = round + 1;
-      if (channelRef.current && roomId) {
+      if (channelRef.current && roomId && !isPublic) {
         channelRef.current.send({ type: "broadcast", event: "NEXT_ROUND", payload: { round: nextRoundNum } });
       }
       setRound(nextRoundNum);
@@ -359,7 +416,7 @@ function GeoKurdistanInner() {
       setGuessMarker(null);
       setShowScoreboard(false);
     }
-  }, [round, totalRounds, isHost, totalScores, roomId, myUsername]);
+  }, [round, totalRounds, isHost, isPublic, totalScores, roomId, myUsername]);
 
   const handlePlayAgain = () => {
     if (!roomId) {
@@ -400,7 +457,7 @@ function GeoKurdistanInner() {
     if (gameState === "ROUND_END") {
       const t1 = setTimeout(() => setShowScoreboard(true), 3000);
       let t2: NodeJS.Timeout;
-      if (!roomId || isHost) {
+      if (!roomId || isHost || isPublic) {
         t2 = setTimeout(() => {
           handleNextRound();
         }, 8000);
@@ -410,7 +467,7 @@ function GeoKurdistanInner() {
         if (t2) clearTimeout(t2);
       };
     }
-  }, [gameState, isHost, handleNextRound, roomId]);
+  }, [gameState, isHost, isPublic, handleNextRound, roomId]);
 
   if (gameState === "WAITING") {
     return (
@@ -527,7 +584,9 @@ function GeoKurdistanInner() {
         <div className="modal-backdrop">
           <div className="modal-sheet" style={{ maxWidth: 500, padding: 32 }}>
             <Trophy size={48} color="#fbbf24" style={{ margin: "0 auto 16px" }} />
-            <h2 className="modal-title" style={{ fontSize: 32, marginBottom: 8 }}>Game Over!</h2>
+            <h2 className="modal-title" style={{ fontSize: 32, marginBottom: 8 }}>
+              {forfeitWin ? "You win! All other players have left." : "Game Over!"}
+            </h2>
             <div style={{ marginBottom: 32, color: "var(--text-muted)", fontWeight: 700 }}>Final Standings</div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
