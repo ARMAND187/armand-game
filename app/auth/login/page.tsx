@@ -42,14 +42,12 @@ function LoginForm() {
     setLoadingText("Logging in...");
     setLoading(true);
 
+    const t1 = setTimeout(() => setLoadingText("Authenticating..."), 1500);
+    const t2 = setTimeout(() => setLoadingText("Waking up servers..."), 4000);
+
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-
-      // Auth succeeded — set up progressive labels in case the serverless
-      // function is cold-starting. clearTimeout ensures no flicker if fast.
-      const t1 = setTimeout(() => setLoadingText("Authenticating..."), 1500);
-      const t2 = setTimeout(() => setLoadingText("Waking up servers..."), 4000);
 
       // refresh() FIRST — invalidates stale Server Component cache so the
       // destination page sees the newly-set Supabase auth cookie immediately.
@@ -59,9 +57,12 @@ function LoginForm() {
       clearTimeout(t1);
       clearTimeout(t2);
     } catch (err: any) {
+      clearTimeout(t1);
+      clearTimeout(t2);
       // Always unblock the button on failure — this was causing the infinite freeze.
       setErrorMsg(mapAuthError(err?.message || "An unexpected error occurred."));
       setLoading(false);
+      setLoadingText("Log In");
     }
   };
 
