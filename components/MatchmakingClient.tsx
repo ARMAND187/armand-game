@@ -34,6 +34,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [loadingFriends, setLoadingFriends] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const [invitedMap, setInvitedMap] = useState<Record<string, boolean>>({});
+  const [expiresAt, setExpiresAt] = useState<Date | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(300);
 
   const handleOpenInvite = async () => {
     setShowInviteModal(true);
@@ -141,6 +143,32 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     };
   }, [roomId, matchState, myUsername, playRoute, router]);
 
+  // Countdown timer logic for private waiting rooms
+  useEffect(() => {
+    if (matchState !== "waiting" || !expiresAt) return;
+
+    const interval = setInterval(() => {
+      const remaining = Math.floor((expiresAt.getTime() - Date.now()) / 1000);
+      if (remaining <= 0) {
+        clearInterval(interval);
+        setTimeLeft(0);
+        // If timer hits zero and we are the host with less than required players, clean up
+        if (isHost && players.length < 2) {
+          supabase.rpc('handle_player_leave', { p_room_id: roomId, p_username: myUsername }).then(() => {
+            setMatchState("idle");
+            setRoomId(null);
+            setExpiresAt(null);
+            alert("Invite expired. Room closed.");
+          });
+        }
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [matchState, expiresAt, isHost, players.length, roomId, myUsername]);
+
   const joinPublicGame = async () => {
     setMatchState("searching");
 
@@ -171,6 +199,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const createPrivateGame = async () => {
     setMatchState("searching");
     const shortCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const expiration = new Date(Date.now() + 5 * 60 * 1000);
     
     try {
       const { data: newRoom, error: insertError } = await supabase
@@ -183,7 +212,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           players: [myUsername],
           host_username: myUsername,
           room_code: shortCode,
-          total_rounds: totalRounds
+          total_rounds: totalRounds,
+          expires_at: expiration.toISOString()
         })
         .select()
         .single();
@@ -194,6 +224,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       setRoomId(newRoom.id);
       setDisplayCode(shortCode);
       setIsHost(true);
+      setExpiresAt(expiration);
+      setTimeLeft(300);
       setMatchState("waiting");
     } catch (err) {
       console.error("Private room creation error:", err);
@@ -226,6 +258,14 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       }
       
       const room = rooms[0];
+      
+      // The Gatekeeper
+      if (room.expires_at && new Date(room.expires_at).getTime() < Date.now()) {
+        setMatchState("idle");
+        alert("This invite has expired.");
+        return;
+      }
+
       const isAlreadyInRoom = (room.players || []).includes(myUsername);
 
       if (!isAlreadyInRoom) {
@@ -347,7 +387,14 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         <>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--neon)", marginBottom: 16 }}>
             Waiting for players... ({players.length}/4)
-            {displayCode && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all" }}>Room Code: <span style={{ color: "#fff", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, fontSize: 16 }}>{displayCode}</span></div>}
+            {displayCode && (
+              <>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all" }}>Room Code: <span style={{ color: "#fff", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, fontSize: 16 }}>{displayCode}</span></div>
+                <div style={{ fontSize: 12, color: timeLeft <= 60 ? "#ef4444" : "var(--text-muted)", marginTop: 8, fontWeight: 500 }}>
+                  Invite expires in: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+                </div>
+              </>
+            )}
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
