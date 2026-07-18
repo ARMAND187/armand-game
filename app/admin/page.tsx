@@ -17,6 +17,7 @@ interface Profile {
   username: string;
   wins: number;
   is_admin: boolean;
+  is_verified: boolean;
   created_at: string;
 }
 
@@ -180,6 +181,7 @@ export default function AdminDashboard() {
             <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textAlign: "left" }}>
               <th style={{ paddingBottom: 12 }}>Username</th>
               <th style={{ paddingBottom: 12 }}>Wins</th>
+              <th style={{ paddingBottom: 12 }}>Status</th>
               <th style={{ paddingBottom: 12 }}>Role</th>
               <th style={{ paddingBottom: 12 }}>Action</th>
             </tr>
@@ -189,6 +191,16 @@ export default function AdminDashboard() {
               <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ padding: "12px 0", color: "white", fontWeight: 600 }}>@{p.username}</td>
                 <td style={{ padding: "12px 0", color: "var(--text-muted)" }}>{p.wins}</td>
+                <td style={{ padding: "12px 0" }}>
+                  <span style={{ 
+                    background: p.is_verified ? "rgba(74, 222, 128, 0.15)" : "rgba(255, 255, 255, 0.05)",
+                    color: p.is_verified ? "#4ade80" : "var(--text-muted)",
+                    padding: "4px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4
+                  }}>
+                    {p.is_verified && <Shield size={12} />}
+                    {p.is_verified ? "Verified" : "Unverified"}
+                  </span>
+                </td>
                 <td style={{ padding: "12px 0" }}>
                   <span style={{ 
                     background: p.is_admin ? "rgba(167, 139, 250, 0.2)" : "rgba(255, 255, 255, 0.05)",
