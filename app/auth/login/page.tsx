@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
@@ -23,24 +23,41 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Logging in...");
   const [errorMsg, setErrorMsg] = useState(
     searchParams.get("error") === "invalid_link"
       ? "Your verification link is invalid or has expired. Please request a new one."
       : ""
   );
 
+  // Prefetch the destination on mount so Vercel wakes the serverless
+  // function in the background while the user types their credentials.
+  useEffect(() => {
+    router.prefetch("/");
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    setLoadingText("Logging in...");
     setLoading(true);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      // Keep button in loading state while page transitions — don't call setLoading(false)
+
+      // Auth succeeded — set up progressive labels in case the serverless
+      // function is cold-starting. clearTimeout ensures no flicker if fast.
+      const t1 = setTimeout(() => setLoadingText("Authenticating..."), 1500);
+      const t2 = setTimeout(() => setLoadingText("Waking up servers..."), 4000);
+
       router.push("/");
       router.refresh();
+
+      clearTimeout(t1);
+      clearTimeout(t2);
     } catch (err: any) {
+      // Always unblock the button on failure — this was causing the infinite freeze.
       setErrorMsg(mapAuthError(err?.message || "An unexpected error occurred."));
       setLoading(false);
     }
@@ -170,7 +187,7 @@ function LoginForm() {
             {loading ? (
               <>
                 <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
-                Logging in...
+                {loadingText}
               </>
             ) : "Log In"}
           </button>
