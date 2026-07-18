@@ -34,8 +34,12 @@ export default function LoginPage() {
       router.push("/");
       router.refresh(); // Refresh to update middleware state
       // DO NOT setLoading(false) here, leave it true while routing
-    } catch (err: unknown) {
-      setErrorMsg((err as Error).message || "An error occurred during login.");
+    } catch (err: any) {
+      if (err.message && err.message.toLowerCase().includes("email not confirmed")) {
+        setErrorMsg("Please verify your email address before logging in.");
+      } else {
+        setErrorMsg(err.message || "An error occurred during login.");
+      }
       setLoading(false);
     }
   };

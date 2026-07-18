@@ -181,13 +181,22 @@ export default function SignupPage() {
           </>
         ) : (
           <div style={{ textAlign: "center", padding: "48px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <Loader2 className="mly-spinner" size={48} style={{ color: "var(--neon)", border: "none", marginBottom: "24px" }} />
+            <div style={{ background: "rgba(167,139,250,0.1)", padding: "16px", borderRadius: "50%", marginBottom: "24px" }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                <path d="m16 19 2 2 4-4" />
+              </svg>
+            </div>
             <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "8px" }}>
-              Redirecting...
+              Verification link sent!
             </h2>
-            <p style={{ color: "var(--text-muted)", fontSize: "14px", lineHeight: "1.5" }}>
-              Armand Games is loading...
+            <p style={{ color: "var(--text-muted)", fontSize: "14px", lineHeight: "1.5", maxWidth: "260px" }}>
+              Please check your email inbox to activate your account.
             </p>
+            <Link href="/auth/login" className="btn-lobby-play" style={{ marginTop: "32px", padding: "12px 24px" }}>
+              Go to Login
+            </Link>
           </div>
         )}
       </div>
