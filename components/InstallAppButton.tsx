@@ -42,7 +42,7 @@ export default function InstallAppButton() {
           <Smartphone className="w-5 h-5" />
         </div>
         <div className="flex flex-col">
-          <span className="text-zinc-200 font-medium text-sm">Add Armand to Home screen</span>
+          <span className="text-zinc-200 font-medium text-sm">Install the App to Home screen</span>
           <span className="text-zinc-500 text-xs mt-0.5">Install the app for the full experience</span>
         </div>
       </div>

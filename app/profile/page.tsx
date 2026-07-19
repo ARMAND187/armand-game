@@ -464,7 +464,7 @@ export default function ProfilePage() {
               <Smartphone size={17} />
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Add Armand to Home screen</div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Install the App to Home screen</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>Install the app for the full experience</div>
             </div>
           </div>
