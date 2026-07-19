@@ -39,7 +39,7 @@ export interface MultiplayerGuess {
 type GameState = "WAITING" | "PLAYING" | "REVEALING" | "ROUND_END" | "GAME_OVER";
 
 function calculateScore(distanceKm: number): number {
-  if (distanceKm < 0.2) return 100;
+  if (distanceKm <= 0.6) return 100;
   if (distanceKm > 160) return 0;
   // Linear decay: 100 * (1 - distance / 160)
   // 10km = 94 pts
