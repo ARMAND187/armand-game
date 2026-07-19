@@ -194,7 +194,10 @@ function GeoKurdistanInner() {
       setMyUsername(realUsername);
 
       const { data: room } = await supabase.from("rooms").select("*").eq("id", roomId).single();
-      if (!room) return;
+      if (!room || room.status === "expired") {
+        window.location.href = "/";
+        return;
+      }
       
       const isPublicRoom = room.is_public;
       setIsPublic(isPublicRoom);
