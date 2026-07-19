@@ -45,8 +45,8 @@ export async function updateLobbyRP(playerScores: Record<string, number>, totalR
     let rpChange = 0;
     
     if (numPlayers === 1) {
-      if (player.score === maxPossibleScore) {
-        rpChange = 100; // Full perfect win
+      if (player.score === maxPossibleScore && totalRounds > 5) {
+        rpChange = 100; // Full perfect win only for 10 and 25 rounds
       } else if (totalRounds === 5) {
         if (player.score >= 320) rpChange = 10;
         else if (player.score >= 291) rpChange = 0;
