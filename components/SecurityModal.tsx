@@ -1,7 +1,7 @@
 "use client";
 
 import { X, ShieldAlert, Lock, CheckCircle2, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 interface Props {
@@ -14,7 +14,18 @@ export default function SecurityModal({ onClose }: Props) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
   
+  useEffect(() => {
+    const fetchEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setEmail(user.email);
+      }
+    };
+    fetchEmail();
+  }, [supabase.auth]);
+
   const [toast, setToast] = useState<{ message: string, type: "success" | "error" } | null>(null);
 
   const showToast = (message: string, type: "success" | "error") => {
@@ -64,6 +75,11 @@ export default function SecurityModal({ onClose }: Props) {
           <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
             <X size={20} />
           </button>
+        </div>
+
+        <div style={{ marginBottom: 24, padding: 16, background: "var(--bg-base)", borderRadius: 12, border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", marginBottom: 4 }}>Account Email</div>
+          <div style={{ color: "var(--text-primary)", fontWeight: 600 }}>{email || "Loading..."}</div>
         </div>
 
         <form onSubmit={handleUpdatePassword} style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>

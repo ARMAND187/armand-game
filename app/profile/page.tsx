@@ -383,13 +383,6 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <div className="profile-field">
-                <span className="profile-field-label">Email</span>
-                <span className="profile-field-value" style={{ color: "var(--text-muted)" }}>
-                  {email || "Loading..."}
-                </span>
-              </div>
-
               <div className="profile-field" style={{ borderBottom: "none" }}>
                 <span className="profile-field-label">Account Status</span>
                 {isProfileLoading ? (
