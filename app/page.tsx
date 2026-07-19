@@ -71,7 +71,7 @@ export default async function HomePage() {
     <div style={{ background: "#09090b", minHeight: "100vh", padding: "16px", paddingBottom: "100px" }}>
 
       {/* ── Header ── */}
-      <header className="flex items-center justify-end w-full mb-8 relative pt-[max(env(safe-area-inset-top),1rem)]">
+      <header className="flex items-center justify-end w-full mb-12 relative pt-[max(env(safe-area-inset-top),1rem)]">
         <div className="flex items-center gap-3">
           <NotificationBell />
           <WalletDisplay />
@@ -93,7 +93,7 @@ export default async function HomePage() {
           />
 
           {/* ── 1. Player Identity Header ── */}
-          <div className="relative z-10 flex items-center gap-4 mb-6">
+          <div className="relative z-10 flex items-center gap-4 mb-10 mt-2">
             {/* Avatar with online dot */}
             <div className="relative shrink-0">
               {avatarUrl ? (
