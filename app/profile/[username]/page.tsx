@@ -34,17 +34,11 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         
         <div className="profile-fields" style={{ marginTop: 24, display: "flex", flexDirection: "column" }}>
           
-          <div className="profile-field" style={{ justifyContent: "center" }}>
+          <div className="profile-field" style={{ justifyContent: "center", borderBottom: "none" }}>
             <span style={{ fontSize: 24, marginRight: 8 }}>{getRankFromRP(profile.rp || 0).icon}</span>
             <span style={{ color: getRankFromRP(profile.rp || 0).color, fontWeight: 700, fontSize: 18, textTransform: "uppercase", letterSpacing: "0.05em" }}>{getRankFromRP(profile.rp || 0).tier}</span>
             <span className="text-zinc-500" style={{ margin: "0 12px" }}>•</span>
             <span style={{ fontSize: 16, fontWeight: 600 }}>{(profile.rp || 0).toLocaleString()} RP</span>
-          </div>
-
-          <div className="profile-field" style={{ borderBottom: "none", justifyContent: "center" }}>
-            <Trophy size={16} color="var(--neon)" style={{ marginRight: 8 }} />
-            <span style={{ fontSize: 16, fontWeight: 700 }}>{profile.wins.toLocaleString()}</span>
-            <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>Total Wins</span>
           </div>
 
         </div>
