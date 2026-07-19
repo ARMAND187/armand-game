@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Trophy, Users } from "lucide-react";
+import { getRankFromRP } from "@/utils/RankSystem";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -12,7 +13,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   // Fetch the public profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, wins")
+    .select("id, username, wins, rp")
     .eq("username", decodedUsername)
     .maybeSingle();
 
@@ -31,12 +32,21 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         <div className="profile-avatar-ring">{profile.username.charAt(0).toUpperCase()}</div>
         <div className="profile-username" style={{ textTransform: "none" }}>@{profile.username}</div>
         
-        <div className="profile-fields" style={{ marginTop: 24 }}>
+        <div className="profile-fields" style={{ marginTop: 24, display: "flex", flexDirection: "column" }}>
+          
+          <div className="profile-field" style={{ justifyContent: "center" }}>
+            <span style={{ fontSize: 24, marginRight: 8 }}>{getRankFromRP(profile.rp || 0).icon}</span>
+            <span style={{ color: getRankFromRP(profile.rp || 0).color, fontWeight: 700, fontSize: 18, textTransform: "uppercase", letterSpacing: "0.05em" }}>{getRankFromRP(profile.rp || 0).tier}</span>
+            <span className="text-zinc-500" style={{ margin: "0 12px" }}>•</span>
+            <span style={{ fontSize: 16, fontWeight: 600 }}>{(profile.rp || 0).toLocaleString()} RP</span>
+          </div>
+
           <div className="profile-field" style={{ borderBottom: "none", justifyContent: "center" }}>
             <Trophy size={16} color="var(--neon)" style={{ marginRight: 8 }} />
             <span style={{ fontSize: 16, fontWeight: 700 }}>{profile.wins.toLocaleString()}</span>
             <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>Total Wins</span>
           </div>
+
         </div>
       </div>
     </div>
