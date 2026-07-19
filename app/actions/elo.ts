@@ -45,21 +45,26 @@ export async function updateLobbyRP(playerScores: Record<string, number>, totalR
     let rpChange = 0;
     
     if (numPlayers === 1) {
-      if (totalRounds === 5) {
-        if (player.score >= 300) rpChange = 10;
-        else if (player.score >= 290) rpChange = 0;
+      if (player.score === maxPossibleScore) {
+        rpChange = 100; // Full perfect win
+      } else if (totalRounds === 5) {
+        if (player.score >= 320) rpChange = 10;
+        else if (player.score >= 291) rpChange = 0;
         else rpChange = -5;
       } else if (totalRounds === 10) {
-        if (player.score >= 600) rpChange = 10;
-        else if (player.score >= 499) rpChange = 0;
+        if (player.score >= 720) rpChange = 10;
+        else if (player.score >= 551) rpChange = 5;
+        else if (player.score >= 500) rpChange = 0;
         else rpChange = -5;
       } else if (totalRounds === 25) {
-        if (player.score >= 1500) rpChange = 10;
-        else if (player.score >= 1100) rpChange = 0;
-        else rpChange = -5;
+        if (player.score >= 1800) rpChange = 10;
+        else if (player.score >= 1401) rpChange = 5;
+        else if (player.score >= 1120) rpChange = 0;
+        else if (player.score >= 900) rpChange = -5;
+        else rpChange = -10;
       } else {
         // Fallback for custom rounds
-        if (player.score >= maxPossibleScore * 0.6) rpChange = 10;
+        if (player.score >= maxPossibleScore * 0.7) rpChange = 10;
         else if (player.score >= maxPossibleScore * 0.5) rpChange = 0;
         else rpChange = -5;
       }
@@ -73,8 +78,8 @@ export async function updateLobbyRP(playerScores: Record<string, number>, totalR
 
     const currentRP = player.profile?.rp || 0;
     
-    // The -5 RP penalty for low scores in solo mode should ONLY apply to Diamond players (RP >= 3600)
-    if (numPlayers === 1 && rpChange === -5 && currentRP < 3600) {
+    // RP penalties for low scores in solo mode should ONLY apply to Diamond players (RP >= 3600)
+    if (numPlayers === 1 && rpChange < 0 && currentRP < 3600) {
       rpChange = 0;
     }
 
