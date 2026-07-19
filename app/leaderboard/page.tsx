@@ -140,9 +140,11 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                   style={{ width: "100%", height: "100%", objectFit: "cover", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "50%" }}
                 />
               </div>
-              <div className="lb-info">
-                <div className="lb-name" style={{ textTransform: "none", display: "flex", alignItems: "center", gap: 6 }}>
+              <div className="lb-info" style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                <div className="lb-name" style={{ textTransform: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   @{player.username}
+                </div>
+                <div style={{ display: "flex", alignItems: "center" }}>
                   <span style={{ 
                     fontSize: 10, 
                     fontWeight: 800, 
@@ -155,7 +157,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                   </span>
                 </div>
               </div>
-              <div className="lb-balance" style={{ color: "var(--neon)" }}>{player.rp.toLocaleString()} RP</div>
+              <div className="lb-balance" style={{ color: "var(--neon)", whiteSpace: "nowrap", marginLeft: 8 }}>{player.rp.toLocaleString()} RP</div>
             </div>
           )})}
         </>
