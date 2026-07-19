@@ -40,8 +40,12 @@ export default function SettingsMenu() {
     <>
       <div style={{ marginBottom: 24 }}>
         <p className="section-title">App Installation</p>
-        <div className="settings-card">
+        <div className="settings-card" style={{ marginBottom: 12 }}>
           <InstallAppButton />
+        </div>
+        <div style={{ padding: "0 4px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+          <div style={{ marginBottom: 6 }}><strong style={{ color: "var(--text-primary)" }}>iPhone:</strong> Open in Safari, tap the Share icon, then select <strong style={{ color: "white" }}>Add to Home Screen</strong>.</div>
+          <div><strong style={{ color: "var(--text-primary)" }}>Android:</strong> Open in Chrome, tap the 3-dot menu, then select <strong style={{ color: "white" }}>Install App</strong>.</div>
         </div>
       </div>
 
