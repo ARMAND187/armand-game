@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { kurdistanLocations, KurdistanLocation } from "@/data/locations";
 import { calculateHaversineDistance } from "@/utils/haversine";
+import { updateLobbyRP } from "@/app/actions/elo";
 
 const MapillaryViewer = dynamic(() => import("@/components/MapillaryViewer"), {
   ssr: false,
@@ -38,11 +39,14 @@ export interface MultiplayerGuess {
 type GameState = "WAITING" | "PLAYING" | "REVEALING" | "ROUND_END" | "GAME_OVER";
 
 function calculateScore(distanceKm: number): number {
-  if (distanceKm < 1) return 100;
-  if (distanceKm > 500) return 0;
-  // Exponential decay: 100 * e^(-k * distance)
-  const k = 0.01;
-  return Math.max(0, Math.round(100 * Math.exp(-k * distanceKm)));
+  if (distanceKm < 0.2) return 5000;
+  // Exponential decay: 5000 * e^(-distance / 150)
+  // 10km = 4678 pts
+  // 50km = 3582 pts
+  // 150km = 1839 pts
+  // 400km = 347 pts
+  // 1000km = 6 pts
+  return Math.max(0, Math.round(5000 * Math.exp(-distanceKm / 150)));
 }
 
 function gradeDistance(km: number) {
@@ -383,8 +387,13 @@ function GeoKurdistanInner() {
   const handleNextRound = useCallback(async () => {
     if (round >= totalRounds) {
       setGameState("GAME_OVER");
-      if (channelRef.current && roomId && !isPublic) {
+      if (channelRef.current && isHost) {
         channelRef.current.send({ type: "broadcast", event: "GAME_OVER", payload: stateRef.current });
+        
+        // Distribute RP if there are scores
+        if (stateRef.current.totalScores && Object.keys(stateRef.current.totalScores).length > 0) {
+          updateLobbyRP(stateRef.current.totalScores).catch(console.error);
+        }
       }
       
       // Update wins

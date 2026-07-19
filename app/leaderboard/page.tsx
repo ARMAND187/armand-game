@@ -1,5 +1,6 @@
 import { Trophy } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
+import { getRankFromRP } from "@/utils/RankSystem";
 
 export const metadata = {
   title: "Leaderboard — Armand Games",
@@ -13,13 +14,14 @@ export default async function LeaderboardPage() {
   const supabase = await createClient();
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("username, wins, avatar_url")
-    .order("wins", { ascending: false, nullsFirst: false })
+    .select("username, rp, wins, avatar_url")
+    .order("rp", { ascending: false, nullsFirst: false })
     .limit(50);
 
-  const leaders = (profiles || []).map((p: { username: string | null; wins: number | null; avatar_url: string | null }, i: number) => ({
+  const leaders = (profiles || []).map((p: any, i: number) => ({
     rank: i + 1,
     username: p.username || "anonymous",
+    rp: p.rp || 0,
     score: p.wins || 0,
     games: 0,
     avatarUrl: p.avatar_url,
@@ -63,18 +65,22 @@ export default async function LeaderboardPage() {
                         style={{ width: "100%", height: "100%", objectFit: "cover", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "50%" }}
                       />
                     </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textAlign: "center", marginTop: 6, width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      @{p.username}
-                    </div>
-                    <div
-                      className="podium-block"
-                      style={{
-                        height: heights[i],
-                        background: i === 1 ? "linear-gradient(180deg,rgba(167,139,250,0.18) 0%,rgba(167,139,250,0.04) 100%)" : "var(--bg-surface)",
-                        borderColor: i === 1 ? "rgba(167,139,250,0.3)" : "var(--border)",
-                        color: i === 1 ? "#a78bfa" : "var(--text-muted)",
-                      }}
-                    >
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textAlign: "center", marginTop: 6, width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        @{p.username}
+                      </div>
+                      <div style={{ fontSize: 10, color: "var(--neon)", fontWeight: 700, marginTop: 2 }}>
+                        {p.rp} RP
+                      </div>
+                      <div
+                        className="podium-block"
+                        style={{
+                          height: heights[i],
+                          background: i === 1 ? "linear-gradient(180deg,rgba(167,139,250,0.18) 0%,rgba(167,139,250,0.04) 100%)" : "var(--bg-surface)",
+                          borderColor: i === 1 ? "rgba(167,139,250,0.3)" : "var(--border)",
+                          color: i === 1 ? "#a78bfa" : "var(--text-muted)",
+                          marginTop: 6
+                        }}
+                      >
                       #{actualRank}
                     </div>
                   </div>
@@ -91,7 +97,9 @@ export default async function LeaderboardPage() {
           </div>
 
           {/* Full list */}
-          {leaders.map((player: { rank: number, username: string, score: number, games: number, avatarUrl: string | null }) => (
+          {leaders.map((player: any) => {
+            const rankInfo = getRankFromRP(player.rp);
+            return (
             <div key={player.rank} className="lb-row">
               <span
                 className="lb-rank"
@@ -107,11 +115,23 @@ export default async function LeaderboardPage() {
                 />
               </div>
               <div className="lb-info">
-                <div className="lb-name" style={{ textTransform: "none" }}>@{player.username}</div>
+                <div className="lb-name" style={{ textTransform: "none", display: "flex", alignItems: "center", gap: 6 }}>
+                  @{player.username}
+                  <span style={{ 
+                    fontSize: 10, 
+                    fontWeight: 800, 
+                    color: rankInfo.color, 
+                    background: rankInfo.glow, 
+                    padding: "2px 6px", 
+                    borderRadius: 6 
+                  }}>
+                    {rankInfo.icon} {rankInfo.tier}
+                  </span>
+                </div>
               </div>
-              <div className="lb-balance">{player.score.toLocaleString()}</div>
+              <div className="lb-balance" style={{ color: "var(--neon)" }}>{player.rp.toLocaleString()} RP</div>
             </div>
-          ))}
+          )})}
         </>
       )}
     </div>
