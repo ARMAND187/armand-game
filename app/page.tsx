@@ -71,8 +71,7 @@ export default async function HomePage() {
     <div style={{ background: "#09090b", minHeight: "100vh", padding: "16px", paddingBottom: "100px" }}>
 
       {/* ── Header ── */}
-      <header className="flex items-center justify-between w-full mb-8 relative pt-[max(env(safe-area-inset-top),1rem)]">
-        <UserAvatar />
+      <header className="flex items-center justify-end w-full mb-8 relative pt-[max(env(safe-area-inset-top),1rem)]">
         <div className="flex items-center gap-3">
           <NotificationBell />
           <WalletDisplay />
@@ -193,30 +192,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* ── 3. Quick Stats 2×2 Grid ── */}
-          <div className="relative z-10 grid grid-cols-2 gap-3 mb-5">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="rounded-xl transition-colors"
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  padding: "12px 14px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6, color: "rgba(167,139,250,0.7)" }}>
-                  {s.icon}
-                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    {s.label}
-                  </span>
-                </div>
-                <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fff", lineHeight: 1 }}>
-                  {s.value}
-                </p>
-              </div>
-            ))}
-          </div>
+          {/* Quick Stats Removed per request */}
 
           {/* ── Find Match Button ── */}
           <div className="relative z-10 mt-auto">
