@@ -387,13 +387,16 @@ function GeoKurdistanInner() {
   const handleNextRound = useCallback(async () => {
     if (round >= totalRounds) {
       setGameState("GAME_OVER");
+      
+      const shouldDistributeRP = (!roomId) || (channelRef.current && isHost);
+      
       if (channelRef.current && isHost) {
         channelRef.current.send({ type: "broadcast", event: "GAME_OVER", payload: stateRef.current });
-        
-        // Distribute RP if there are scores
-        if (stateRef.current.totalScores && Object.keys(stateRef.current.totalScores).length > 0) {
-          updateLobbyRP(stateRef.current.totalScores, totalRounds).catch(console.error);
-        }
+      }
+      
+      // Distribute RP if there are scores
+      if (shouldDistributeRP && stateRef.current.totalScores && Object.keys(stateRef.current.totalScores).length > 0) {
+        updateLobbyRP(stateRef.current.totalScores, totalRounds).catch(console.error);
       }
       
       // Update wins
