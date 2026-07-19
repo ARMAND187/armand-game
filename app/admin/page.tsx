@@ -125,6 +125,15 @@ export default function AdminDashboard() {
       const parsed = JSON.parse(bulkJson);
       if (!Array.isArray(parsed)) throw new Error("JSON must be an array of locations.");
       
+      setUploadingLocations(true);
+
+      const { data: existingData } = await supabase.from('locations').select('lat, lng, name');
+      const existingLocs = new Set(existingData?.map(l => `${l.lat},${l.lng}`) || []);
+      const existingNames = new Set(existingData?.map(l => l.name) || []);
+
+      const newLocations = [];
+      let skippedCount = 0;
+
       for (const loc of parsed) {
         if (!loc.name || !loc.city || !loc.lat || !loc.lng || !loc.source_type) {
           throw new Error(`Missing required fields in location: ${loc.name || JSON.stringify(loc)}`);
@@ -135,13 +144,29 @@ export default function AdminDashboard() {
         if (loc.source_type === "custom" && !loc.image_url) {
           throw new Error(`Custom location '${loc.name}' requires an image_url.`);
         }
+
+        const key = `${loc.lat},${loc.lng}`;
+        if (existingLocs.has(key) || existingNames.has(loc.name)) {
+          skippedCount++;
+          continue;
+        }
+
+        newLocations.push(loc);
+        existingLocs.add(key);
+        existingNames.add(loc.name);
       }
 
-      setUploadingLocations(true);
-      const { error } = await supabase.from("locations").insert(parsed);
+      if (newLocations.length === 0) {
+        setUploadStatus(`No new locations found. Skipped ${skippedCount} duplicates.`);
+        setBulkJson("");
+        setUploadingLocations(false);
+        return;
+      }
+
+      const { error } = await supabase.from("locations").insert(newLocations);
       if (error) throw error;
       
-      setUploadStatus(`Successfully imported ${parsed.length} locations!`);
+      setUploadStatus(`Successfully imported ${newLocations.length} locations! Skipped ${skippedCount} duplicates.`);
       setBulkJson("");
       fetchData(); // Refresh the counts
     } catch (err: any) {

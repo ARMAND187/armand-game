@@ -1,0 +1,330 @@
+[
+  {
+    "name": "Erbil Citadel",
+    "city": "Erbil",
+    "lat": 36.1911,
+    "lng": 44.0091,
+    "source_type": "mapillary",
+    "image_id": "229054835989130"
+  },
+  {
+    "name": "Mudhafaria Minaret",
+    "city": "Erbil",
+    "lat": 36.1858,
+    "lng": 44.0038,
+    "source_type": "mapillary",
+    "image_id": "343768417607504"
+  },
+  {
+    "name": "Sami Abdulrahman Park",
+    "city": "Erbil",
+    "lat": 36.185,
+    "lng": 43.98,
+    "source_type": "mapillary",
+    "image_id": "9305637632811848"
+  },
+  {
+    "name": "Qaysari Bazaar",
+    "city": "Erbil",
+    "lat": 36.1895,
+    "lng": 44.0095,
+    "source_type": "mapillary",
+    "image_id": "807525306733107"
+  },
+  {
+    "name": "Iskan Street",
+    "city": "Erbil",
+    "lat": 36.183,
+    "lng": 44.004,
+    "source_type": "mapillary",
+    "image_id": "942065816743861"
+  },
+  {
+    "name": "Shaqlawa Center",
+    "city": "Erbil",
+    "lat": 36.4,
+    "lng": 44.333,
+    "source_type": "mapillary",
+    "image_id": "2076355919399706"
+  },
+  {
+    "name": "Amna Suraka",
+    "city": "Sulaymaniyah",
+    "lat": 35.5568,
+    "lng": 45.4361,
+    "source_type": "mapillary",
+    "image_id": "1168691748319280"
+  },
+  {
+    "name": "Azadi Park",
+    "city": "Sulaymaniyah",
+    "lat": 35.568,
+    "lng": 45.441,
+    "source_type": "mapillary",
+    "image_id": "1032671429271393"
+  },
+  {
+    "name": "Chavi Land",
+    "city": "Sulaymaniyah",
+    "lat": 35.586,
+    "lng": 45.452,
+    "source_type": "mapillary",
+    "image_id": "1277371154123704"
+  },
+  {
+    "name": "Goyzha Mountain",
+    "city": "Sulaymaniyah",
+    "lat": 35.581,
+    "lng": 45.466,
+    "source_type": "mapillary",
+    "image_id": "1145429364301364"
+  },
+  {
+    "name": "Halabja Monument",
+    "city": "Halabja",
+    "lat": 35.1833,
+    "lng": 45.9833,
+    "source_type": "mapillary",
+    "image_id": "747991594184513"
+  },
+  {
+    "name": "Dukan Lake",
+    "city": "Sulaymaniyah",
+    "lat": 35.945,
+    "lng": 44.945,
+    "source_type": "mapillary",
+    "image_id": "466574331303024"
+  },
+  {
+    "name": "Darbandikhan Lake",
+    "city": "Sulaymaniyah",
+    "lat": 35.116,
+    "lng": 45.698,
+    "source_type": "mapillary",
+    "image_id": "1432695108904422"
+  },
+  {
+    "name": "Gali Ali Beg Waterfall",
+    "city": "Erbil",
+    "lat": 36.633,
+    "lng": 44.6,
+    "source_type": "mapillary",
+    "image_id": "1184682131957558"
+  },
+  {
+    "name": "Bekhal Waterfall",
+    "city": "Erbil",
+    "lat": 36.621,
+    "lng": 44.536,
+    "source_type": "mapillary",
+    "image_id": "304299004704314"
+  },
+  {
+    "name": "Korek Mountain Resort",
+    "city": "Erbil",
+    "lat": 36.583,
+    "lng": 44.466,
+    "source_type": "mapillary",
+    "image_id": "1157660625369206"
+  },
+  {
+    "name": "Pank Resort",
+    "city": "Rawanduz",
+    "lat": 36.611,
+    "lng": 44.512,
+    "source_type": "mapillary",
+    "image_id": "297869651809815"
+  },
+  {
+    "name": "Duhok Dam",
+    "city": "Duhok",
+    "lat": 36.883,
+    "lng": 43.001,
+    "source_type": "mapillary",
+    "image_id": "395876742677931"
+  },
+  {
+    "name": "Family Mall",
+    "city": "Duhok",
+    "lat": 36.861,
+    "lng": 42.989,
+    "source_type": "mapillary",
+    "image_id": "319328093088412"
+  },
+  {
+    "name": "Shanidar Cave",
+    "city": "Erbil",
+    "lat": 36.8,
+    "lng": 44.2,
+    "source_type": "mapillary",
+    "image_id": "313138110221163"
+  },
+  {
+    "name": "Kirkuk Citadel",
+    "city": "Kirkuk",
+    "lat": 35.473351700005,
+    "lng": 44.406784999996,
+    "source_type": "mapillary",
+    "image_id": "1180648973989941"
+  },
+  {
+    "name": "Kirkuk Center",
+    "city": "Kirkuk",
+    "lat": 35.480002196229,
+    "lng": 44.37984880711,
+    "source_type": "mapillary",
+    "image_id": "690491226956540"
+  },
+  {
+    "name": "Koya Center",
+    "city": "Koya",
+    "lat": 36.072664872005,
+    "lng": 44.639832906255,
+    "source_type": "mapillary",
+    "image_id": "1310390891078269"
+  },
+  {
+    "name": "Ranya Center",
+    "city": "Ranya",
+    "lat": 36.269332026532,
+    "lng": 44.869291289258,
+    "source_type": "mapillary",
+    "image_id": "309453507303554"
+  },
+  {
+    "name": "Halabja Center",
+    "city": "Halabja",
+    "lat": 35.187266410092,
+    "lng": 45.99422263448,
+    "source_type": "mapillary",
+    "image_id": "1131691188080322"
+  },
+  {
+    "name": "Soran Center",
+    "city": "Soran",
+    "lat": 36.660104309786,
+    "lng": 44.543568233474,
+    "source_type": "mapillary",
+    "image_id": "623855916560522"
+  },
+  {
+    "name": "Choman Center",
+    "city": "Choman",
+    "lat": 36.6375326,
+    "lng": 44.8889397,
+    "source_type": "mapillary",
+    "image_id": "596301820066577"
+  },
+  {
+    "name": "Darbandikhan Center",
+    "city": "Darbandikhan",
+    "lat": 35.124967377368,
+    "lng": 45.704296545349,
+    "source_type": "mapillary",
+    "image_id": "1013409441629254"
+  },
+  {
+    "name": "Erbil Ankawa",
+    "city": "Erbil",
+    "lat": 36.21839347821,
+    "lng": 43.99913746364,
+    "source_type": "mapillary",
+    "image_id": "207832667819226"
+  },
+  {
+    "name": "Erbil Bakhtiari",
+    "city": "Erbil",
+    "lat": 36.191671226486,
+    "lng": 44.027122771144,
+    "source_type": "mapillary",
+    "image_id": "1012109214966594"
+  },
+  {
+    "name": "Duhok Mazi",
+    "city": "Duhok",
+    "lat": 36.8622124,
+    "lng": 42.983617099999,
+    "source_type": "mapillary",
+    "image_id": "339952780807354"
+  },
+  {
+    "name": "Slemani Salim St",
+    "city": "Sulaymaniyah",
+    "lat": 35.555312194222,
+    "lng": 45.426431944607,
+    "source_type": "mapillary",
+    "image_id": "1168223752094988"
+  },
+  {
+    "name": "Slemani Bakhtiari",
+    "city": "Sulaymaniyah",
+    "lat": 35.568104640468,
+    "lng": 45.414978355094,
+    "source_type": "mapillary",
+    "image_id": "1489480022370904"
+  },
+  {
+    "name": "Slemani Sarchnar",
+    "city": "Sulaymaniyah",
+    "lat": 35.589967758358,
+    "lng": 45.375221689441,
+    "source_type": "mapillary",
+    "image_id": "1343257827458429"
+  },
+  {
+    "name": "Slemani Rizgari",
+    "city": "Sulaymaniyah",
+    "lat": 35.570276404064,
+    "lng": 45.441414723896,
+    "source_type": "mapillary",
+    "image_id": "1102567468475168"
+  },
+  {
+    "name": "Slemani Azadi",
+    "city": "Sulaymaniyah",
+    "lat": 35.560269323106,
+    "lng": 45.445970054898,
+    "source_type": "mapillary",
+    "image_id": "1035561048893006"
+  },
+  {
+    "name": "Halabja Central Market",
+    "city": "Halabja",
+    "lat": 35.178527109758,
+    "lng": 45.987392732001,
+    "source_type": "mapillary",
+    "image_id": "1590587645048076"
+  },
+  {
+    "name": "Halabja Monument Area",
+    "city": "Halabja",
+    "lat": 35.186455479176,
+    "lng": 45.97635865616,
+    "source_type": "mapillary",
+    "image_id": "924012353061684"
+  },
+  {
+    "name": "Halabja South",
+    "city": "Halabja",
+    "lat": 35.174483540384,
+    "lng": 45.99306637312,
+    "source_type": "mapillary",
+    "image_id": "940181057649594"
+  },
+  {
+    "name": "Ranya Downtown",
+    "city": "Ranya",
+    "lat": 36.255286708201,
+    "lng": 44.883425691052,
+    "source_type": "mapillary",
+    "image_id": "114193484066869"
+  },
+  {
+    "name": "Ranya East",
+    "city": "Ranya",
+    "lat": 36.257416856081,
+    "lng": 44.89365024688,
+    "source_type": "mapillary",
+    "image_id": "3878854485544840"
+  }
+]
