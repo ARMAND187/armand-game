@@ -12,6 +12,7 @@
     "@livekit/components-react": "^2.9.23",
     "@livekit/components-styles": "^1.2.0",
     "@photo-sphere-viewer/core": "^5.14.3",
+    "@photo-sphere-viewer/markers-plugin": "^5.14.3",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
     "@types/nodemailer": "^8.0.1",
