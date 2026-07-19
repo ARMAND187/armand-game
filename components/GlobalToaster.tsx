@@ -103,22 +103,24 @@ export default function GlobalToaster() {
         </div>
         
         <div style={{ display: "flex", gap: 10 }}>
-          <button 
-            onClick={handleAction}
-            style={{
-              flex: 1,
-              background: "var(--neon)",
-              color: "#000",
-              border: "none",
-              padding: "8px",
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: "pointer"
-            }}
-          >
-            {toast.type === "match" ? "Accept Invite" : "View"}
-          </button>
+          {toast.type === "match" && (
+            <button 
+              onClick={handleAction}
+              style={{
+                flex: 1,
+                background: "var(--neon)",
+                color: "#000",
+                border: "none",
+                padding: "8px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer"
+              }}
+            >
+              Accept Invite
+            </button>
+          )}
           <button 
             onClick={() => setToast(null)}
             style={{
