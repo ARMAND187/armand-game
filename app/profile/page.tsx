@@ -12,6 +12,7 @@ import InstallAppButton from "@/components/InstallAppButton";
 import { sendOtpEmail } from "@/app/actions/mailer";
 import { verifyCustomOTP } from "@/app/actions/verify";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const menuItems = [
   { icon: Gift,    label: "Redeem Code",    sub: "Enter a gift code",      href: "/redeem" },
@@ -199,12 +200,15 @@ export default function ProfilePage() {
       const res = await verifyCustomOTP(user.id, otp);
       if (!res.success) {
         throw new Error(res.error);
+      } else {
+        setIsVerified(true);
+        setVerificationStage("idle");
+        localStorage.removeItem("verificationStage");
+        
+        // Globally unlock the Soft Gate immediately
+        useAuthStore.getState().setIsVerified(true);
+        router.refresh();
       }
-
-      setIsVerified(true);
-      setVerificationStage("idle");
-      localStorage.removeItem("verificationStage");
-      router.refresh();
     } catch (err: any) {
       setVerifyError(err.message || "Verification failed");
     } finally {

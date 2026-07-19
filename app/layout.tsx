@@ -38,6 +38,7 @@ import { Suspense } from "react";
 import UpdateNotification from "@/components/UpdateNotification";
 import AuthProvider from "@/components/AuthProvider";
 import PathTracker from "@/components/PathTracker";
+import VerifyOverlay from "@/components/VerifyOverlay";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 
@@ -74,6 +75,7 @@ export default function RootLayout({
           <AuthProvider />
           <UpdateNotification />
           <GlobalToaster />
+          <VerifyOverlay />
           {/* Main scrollable area — padded so content clears the bottom nav */}
           <main className="app-shell">{children}</main>
           <BottomNav />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 import { usePresenceStore } from "@/store/usePresenceStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function AuthProvider() {
   const router = useRouter();
@@ -15,10 +16,40 @@ export default function AuthProvider() {
     // 1. Listen for auth changes to trigger redirect
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         router.push("/");
         router.refresh();
+      }
+      
+      if (session?.user) {
+        // Fetch verification status whenever auth state changes and a user exists
+        supabase
+          .from("profiles")
+          .select("is_verified")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            useAuthStore.getState().setIsVerified(data?.is_verified ?? false);
+          });
+      } else {
+        useAuthStore.getState().setIsVerified(false);
+      }
+    });
+
+    // Fetch initial verification state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("is_verified")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            useAuthStore.getState().setIsVerified(data?.is_verified ?? false);
+          });
+      } else {
+        useAuthStore.getState().setIsVerified(false);
       }
     });
 
