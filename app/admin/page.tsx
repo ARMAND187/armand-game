@@ -125,17 +125,24 @@ export default function AdminDashboard() {
 
   const handleImageUpload = async (file: File) => {
     setUploadingImage(true);
+    setNotifStatus("");
     const ext = file.name.split(".").pop();
     const filename = `broadcast_${Date.now()}.${ext}`;
-    const { data, error } = await supabase.storage
+    console.log("[ImageUpload] Uploading", filename, "to 360photo/broadcasts/");
+    const { error } = await supabase.storage
       .from("360photo")
       .upload(`broadcasts/${filename}`, file, { upsert: true, contentType: file.type });
     if (error) {
-      setNotifStatus("Image upload failed: " + error.message);
-    } else {
-      const { data: { publicUrl } } = supabase.storage.from("360photo").getPublicUrl(`broadcasts/${filename}`);
-      setNotifImageUrl(publicUrl);
+      console.error("[ImageUpload] Error:", error);
+      setNotifStatus("❌ Image upload failed: " + error.message);
+      setUploadingImage(false);
+      return;
     }
+    const { data: { publicUrl } } = supabase.storage.from("360photo").getPublicUrl(`broadcasts/${filename}`);
+    console.log("[ImageUpload] Success, public URL:", publicUrl);
+    setNotifImageUrl(publicUrl);
+    setNotifStatus("✅ Image uploaded!");
+    setTimeout(() => setNotifStatus(""), 3000);
     setUploadingImage(false);
   };
 
