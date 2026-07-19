@@ -1780,3 +1780,18 @@ body {
 
 
 @keyframes slideDown { from { transform: translate(-50%, -100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+/* NewsBoard Scrollbar */
+.news-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.news-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.news-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.news-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
