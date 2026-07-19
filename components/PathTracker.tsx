@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 // Track the last time the user physically touched or clicked the app.
 // If the route changes to "/" without a recent interaction, we know the OS forced it!
@@ -16,6 +16,7 @@ if (typeof window !== "undefined") {
 export default function PathTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -37,8 +38,8 @@ export default function PathTracker() {
             
             // Restore the state if it's less than 2 hours old and not Home
             if (NOW - time < 2 * 60 * 60 * 1000 && path !== "/") {
-              // We use window.location.replace to prevent adding the unwanted Home page to browser history
-              window.location.replace(path);
+              // We use Next.js router to prevent a full page reload (eliminating the flicker)
+              router.replace(path);
               return;
             }
           } catch (e) {}

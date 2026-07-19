@@ -37,6 +37,49 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(300);
 
+  // Restore PWA matchmaking state on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pwa_active_room");
+      if (saved) {
+        try {
+          const state = JSON.parse(saved);
+          // Only restore if it's not expired
+          if (state.expiresAt && new Date(state.expiresAt).getTime() > Date.now()) {
+            setRoomId(state.id);
+            setDisplayCode(state.code);
+            setIsHost(state.isHost);
+            setExpiresAt(new Date(state.expiresAt));
+            setTotalRounds(state.totalRounds);
+            setRegion(state.region);
+            setMatchState(state.matchState);
+          } else {
+            localStorage.removeItem("pwa_active_room");
+          }
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  // Save PWA matchmaking state whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (roomId && (matchState === "waiting" || matchState === "searching")) {
+        localStorage.setItem("pwa_active_room", JSON.stringify({
+          id: roomId,
+          code: displayCode,
+          isHost,
+          expiresAt: expiresAt?.toISOString(),
+          totalRounds,
+          region,
+          matchState
+        }));
+      } else if (matchState === "idle") {
+        localStorage.removeItem("pwa_active_room");
+      }
+    }
+  }, [roomId, matchState, displayCode, isHost, expiresAt, totalRounds, region]);
+
   const handleOpenInvite = async () => {
     setShowInviteModal(true);
     setLoadingFriends(true);
@@ -158,6 +201,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             setMatchState("idle");
             setRoomId(null);
             setExpiresAt(null);
+            localStorage.removeItem("pwa_active_room");
             alert("Invite expired. Room closed.");
           });
         }
