@@ -4,11 +4,7 @@ import { X, ShieldAlert, Lock, CheckCircle2, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 
-interface Props {
-  onClose: () => void;
-}
-
-export default function SecurityModal({ onClose }: Props) {
+export default function SecuritySettings() {
   const supabase = createClient();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -68,14 +64,11 @@ export default function SecurityModal({ onClose }: Props) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-sheet" onClick={(e) => e.stopPropagation()} style={{ paddingBottom: 32, position: "relative" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h2 className="modal-title" style={{ margin: 0, fontSize: 18 }}>Security</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
-            <X size={20} />
-          </button>
-        </div>
+    <div className="settings-card" style={{ padding: 20, marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <ShieldAlert size={20} color="var(--neon)" />
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>Security</h2>
+      </div>
 
         <div style={{ marginBottom: 24, padding: 16, background: "var(--bg-base)", borderRadius: 12, border: "1px solid var(--border)" }}>
           <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", marginBottom: 4 }}>Account Email</div>
@@ -153,20 +146,19 @@ export default function SecurityModal({ onClose }: Props) {
           </div>
         </div>
 
-        {/* Local Toast Overlay */}
+        {/* Local Toast */}
         {toast && (
           <div style={{
-            position: "absolute", bottom: 20, left: 16, right: 16,
-            background: toast.type === "error" ? "#ef4444" : "var(--neon-green)",
-            color: "#fff", padding: "12px 16px", borderRadius: "12px",
-            display: "flex", alignItems: "center", gap: 12, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)",
-            animation: "fade-in 0.2s ease-out"
+            marginTop: 16,
+            background: toast.type === "error" ? "rgba(239, 68, 68, 0.1)" : "rgba(74, 222, 128, 0.1)",
+            color: toast.type === "error" ? "#ef4444" : "#4ade80",
+            padding: "12px", borderRadius: "8px", fontSize: 14, fontWeight: 600,
+            display: "flex", alignItems: "center", gap: 8, border: `1px solid ${toast.type === "error" ? "rgba(239, 68, 68, 0.2)" : "rgba(74, 222, 128, 0.2)"}`
           }}>
-            {toast.type === "error" ? <ShieldAlert size={18} /> : <CheckCircle2 size={18} />}
-            <span style={{ fontSize: 13, fontWeight: 600 }}>{toast.message}</span>
+            {toast.type === "success" && <CheckCircle2 size={18} />}
+            {toast.message}
           </div>
         )}
       </div>
-    </div>
   );
 }

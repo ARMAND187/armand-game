@@ -6,7 +6,7 @@ import SignOutButton from "@/components/SignOutButton";
 import InstallAppButton from "@/components/InstallAppButton";
 import { useState } from "react";
 import AppearanceModal from "@/components/AppearanceModal";
-import SecurityModal from "@/components/SecurityModal";
+import SecuritySettings from "@/components/SecuritySettings";
 
 const sections: Array<{
   heading: string;
@@ -17,7 +17,6 @@ const sections: Array<{
     items: [
       { icon: HelpCircle, label: "Help & Support",   sub: "FAQs, contact us",        href: "#" },
       { icon: FileText,   label: "Privacy Policy",   sub: "How we handle your data", href: "#" },
-      { icon: Shield,     label: "Security",          sub: "Password, 2FA, sessions", onClickId: "security" },
     ],
   },
   {
@@ -36,7 +35,6 @@ const sections: Array<{
 
 export default function SettingsMenu() {
   const [showAppearance, setShowAppearance] = useState(false);
-  const [showSecurity, setShowSecurity] = useState(false);
 
   return (
     <>
@@ -45,6 +43,11 @@ export default function SettingsMenu() {
         <div className="settings-card">
           <InstallAppButton />
         </div>
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        <p className="section-title">Security & Account</p>
+        <SecuritySettings />
       </div>
 
       {sections.map((section) => (
@@ -93,7 +96,6 @@ export default function SettingsMenu() {
                     style={style}
                     onClick={() => {
                       if (onClickId === "appearance") setShowAppearance(true);
-                      if (onClickId === "security") setShowSecurity(true);
                     }}
                   >
                     {content}
@@ -121,7 +123,6 @@ export default function SettingsMenu() {
       ))}
 
       {showAppearance && <AppearanceModal onClose={() => setShowAppearance(false)} />}
-      {showSecurity && <SecurityModal onClose={() => setShowSecurity(false)} />}
     </>
   );
 }
