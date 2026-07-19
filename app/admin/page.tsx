@@ -36,6 +36,7 @@ export default function AdminDashboard() {
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
   const [notifImageUrl, setNotifImageUrl] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [sendingNotif, setSendingNotif] = useState(false);
   const [notifStatus, setNotifStatus] = useState("");
 
@@ -120,6 +121,22 @@ export default function AdminDashboard() {
     setSendingNotif(false);
     
     setTimeout(() => setNotifStatus(""), 3000);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    const ext = file.name.split(".").pop();
+    const filename = `broadcast_${Date.now()}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("360photo")
+      .upload(`broadcasts/${filename}`, file, { upsert: true, contentType: file.type });
+    if (error) {
+      setNotifStatus("Image upload failed: " + error.message);
+    } else {
+      const { data: { publicUrl } } = supabase.storage.from("360photo").getPublicUrl(`broadcasts/${filename}`);
+      setNotifImageUrl(publicUrl);
+    }
+    setUploadingImage(false);
   };
 
   const handleBulkUpload = async () => {
@@ -262,13 +279,54 @@ export default function AdminDashboard() {
             onChange={e => setNotifBody(e.target.value)}
             style={{ background: "var(--bg-base)", minHeight: 80, resize: "vertical" }}
           />
-          <input
-            className="search-input"
-            placeholder="🖼️ Slide Background Image URL (optional — from Supabase Storage)"
-            value={notifImageUrl}
-            onChange={e => setNotifImageUrl(e.target.value)}
-            style={{ background: "var(--bg-base)" }}
-          />
+          {/* Image Picker */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 16px",
+                background: "var(--bg-base)",
+                border: "1px dashed rgba(167,139,250,0.4)",
+                borderRadius: 10,
+                cursor: uploadingImage ? "not-allowed" : "pointer",
+                color: notifImageUrl ? "var(--neon)" : "var(--text-muted)",
+                fontSize: 13,
+                fontWeight: 600,
+                transition: "border-color 0.2s",
+              }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                disabled={uploadingImage}
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file);
+                }}
+              />
+              {uploadingImage ? (
+                <><Loader2 className="mly-spinner" size={16} /> Uploading image...</>
+              ) : notifImageUrl ? (
+                <>✅ Image ready — click to replace</>
+              ) : (
+                <>🖼️ Click to pick a slide background image (optional)</>
+              )}
+            </label>
+            {notifImageUrl && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <img src={notifImageUrl} alt="preview" style={{ width: 60, height: 40, objectFit: "cover", borderRadius: 6, border: "1px solid rgba(167,139,250,0.3)" }} />
+                <button
+                  onClick={() => setNotifImageUrl("")}
+                  style={{ fontSize: 11, color: "#ef4444", background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
           <button 
             className="btn-lobby-play" 
             onClick={handleSendGlobalNotif}
