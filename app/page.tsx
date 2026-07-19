@@ -4,7 +4,7 @@ import { Zap, Play } from "lucide-react";
 import WalletDisplay from "@/components/WalletDisplay";
 import NotificationBell from "@/components/NotificationBell";
 import UserAvatar from "@/components/UserAvatar";
-import NewsBoard from "@/components/NewsBoard";
+import NewsCarousel from "@/components/NewsCarousel";
 import { createClient } from "@/utils/supabase/server";
 import { getRankFromRP } from "@/utils/RankSystem";
 
@@ -95,9 +95,9 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Right Column (News & Updates Board) */}
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 shadow-xl">
-          <NewsBoard />
+        {/* Right Column (News Carousel) */}
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col" style={{ minHeight: 420 }}>
+          <NewsCarousel />
         </div>
 
       </div>

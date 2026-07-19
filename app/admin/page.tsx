@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   // Notification states
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
+  const [notifImageUrl, setNotifImageUrl] = useState("");
   const [sendingNotif, setSendingNotif] = useState(false);
   const [notifStatus, setNotifStatus] = useState("");
 
@@ -103,6 +104,7 @@ export default function AdminDashboard() {
       type: "system",
       title: notifTitle,
       body: notifBody,
+      image_url: notifImageUrl.trim() || null,
     }));
 
     const { error } = await supabase.from("notifications").insert(inserts);
@@ -113,6 +115,7 @@ export default function AdminDashboard() {
       setNotifStatus("Broadcast sent!");
       setNotifTitle("");
       setNotifBody("");
+      setNotifImageUrl("");
     }
     setSendingNotif(false);
     
@@ -258,6 +261,13 @@ export default function AdminDashboard() {
             value={notifBody}
             onChange={e => setNotifBody(e.target.value)}
             style={{ background: "var(--bg-base)", minHeight: 80, resize: "vertical" }}
+          />
+          <input
+            className="search-input"
+            placeholder="🖼️ Slide Background Image URL (optional — from Supabase Storage)"
+            value={notifImageUrl}
+            onChange={e => setNotifImageUrl(e.target.value)}
+            style={{ background: "var(--bg-base)" }}
           />
           <button 
             className="btn-lobby-play" 
