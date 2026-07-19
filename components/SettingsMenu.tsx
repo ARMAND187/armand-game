@@ -44,6 +44,9 @@ export default function SettingsMenu() {
           <InstallAppButton />
         </div>
         <div style={{ padding: "0 4px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+          <div style={{ marginBottom: 12, fontWeight: 600, color: "var(--text-primary)" }}>
+            First, click the install button above! If it doesn't work, follow the steps below ↓
+          </div>
           <div style={{ marginBottom: 6 }}><strong style={{ color: "var(--text-primary)" }}>iPhone:</strong> Open in Safari, tap the Share icon, then select <strong style={{ color: "white" }}>Add to Home Screen</strong>.</div>
           <div><strong style={{ color: "var(--text-primary)" }}>Android:</strong> Simply tap the <strong style={{ color: "white" }}>Install</strong> button above!</div>
         </div>
