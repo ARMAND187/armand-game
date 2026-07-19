@@ -24,6 +24,7 @@ interface Profile {
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [totalUsers, setTotalUsers] = useState(0);
 
@@ -175,7 +176,16 @@ export default function AdminDashboard() {
 
       {/* User List */}
       <div className="settings-card" style={{ padding: 20, overflowX: "auto" }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 16 }}>Registered Users</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Registered Users</h2>
+          <input
+            className="search-input"
+            placeholder="Search username..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ background: "var(--bg-base)", width: "100%", maxWidth: 300, margin: 0 }}
+          />
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textAlign: "left" }}>
@@ -187,7 +197,7 @@ export default function AdminDashboard() {
             </tr>
           </thead>
           <tbody>
-            {profiles.map(p => (
+            {profiles.filter(p => p.username.toLowerCase().includes(searchQuery.toLowerCase())).map(p => (
               <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ padding: "12px 0", color: "white", fontWeight: 600 }}>@{p.username}</td>
                 <td style={{ padding: "12px 0", color: "var(--text-muted)" }}>{p.wins}</td>
