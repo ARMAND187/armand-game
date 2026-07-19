@@ -37,7 +37,7 @@ export default function NewsCarousel() {
       const { data } = await supabase
         .from("notifications")
         .select("id, title, body, created_at, image_url")
-        .eq("type", "system")
+        .eq("type", "broadcast")
         .eq("receiver_id", user.id)
         .order("created_at", { ascending: false })
         .limit(3);

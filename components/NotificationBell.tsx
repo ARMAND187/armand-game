@@ -38,6 +38,7 @@ export default function NotificationBell() {
       .from("notifications")
       .select("*")
       .eq("receiver_id", user.id)
+      .neq("type", "broadcast")
       .order("created_at", { ascending: false });
     
     if (data) setNotifs(data as Notification[]);

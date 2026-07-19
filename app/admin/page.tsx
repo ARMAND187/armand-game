@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   // Notification states
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
+  const [notifType, setNotifType] = useState("broadcast");
   const [notifImageUrl, setNotifImageUrl] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [sendingNotif, setSendingNotif] = useState(false);
@@ -102,7 +103,7 @@ export default function AdminDashboard() {
     const inserts = profiles.map(p => ({
       receiver_id: p.id,
       sender_id: user.id,
-      type: "system",
+      type: notifType,
       title: notifTitle,
       body: notifBody,
       image_url: notifImageUrl.trim() || null,
@@ -272,6 +273,15 @@ export default function AdminDashboard() {
           <Send size={18} color="var(--neon)" /> Global Broadcast
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <select
+            className="search-input"
+            value={notifType}
+            onChange={e => setNotifType(e.target.value)}
+            style={{ background: "var(--bg-base)", cursor: "pointer" }}
+          >
+            <option value="broadcast">📢 News Carousel Broadcast (Dashboard Only)</option>
+            <option value="system">🔔 System Notification (Bell Popup Only)</option>
+          </select>
           <input 
             className="search-input" 
             placeholder="Notification Title" 
