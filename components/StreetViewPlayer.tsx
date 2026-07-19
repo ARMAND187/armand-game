@@ -11,6 +11,28 @@ import { Viewer as MapillaryViewerInstance } from "mapillary-js";
 import "mapillary-js/dist/mapillary.css";
 import { Eye, WifiOff, Camera } from "lucide-react";
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
+import { MarkersPlugin } from "@photo-sphere-viewer/markers-plugin";
+import "@photo-sphere-viewer/markers-plugin/index.css";
+
+const CUSTOM_PLUGINS: any[] = [
+  [
+    MarkersPlugin,
+    {
+      markers: [
+        {
+          id: 'nadir-patch',
+          position: { pitch: -Math.PI / 2, yaw: 0 },
+          html: `<div style="width: 250px; height: 250px; background: rgba(0,0,0,0.85); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(0,0,0,0.9); border: 2px solid rgba(167,139,250,0.3);">
+            <img src="/icon-512.png" style="width: 150px; height: 150px; opacity: 0.9;" />
+          </div>`,
+          size: { width: 250, height: 250 },
+          anchor: 'center center',
+          tooltip: 'GeoKurdistan',
+        },
+      ],
+    },
+  ],
+];
 
 // ---------------------------------------------------------------------------
 // Mapillary Token
@@ -149,6 +171,7 @@ export default function StreetViewPlayer({
           navbar={false}
           mousewheel={false}
           touchmoveTwoFingers={false}
+          plugins={CUSTOM_PLUGINS}
         />
       )}
 
