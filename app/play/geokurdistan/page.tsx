@@ -39,14 +39,14 @@ export interface MultiplayerGuess {
 type GameState = "WAITING" | "PLAYING" | "REVEALING" | "ROUND_END" | "GAME_OVER";
 
 function calculateScore(distanceKm: number): number {
-  if (distanceKm < 0.2) return 5000;
-  // Exponential decay: 5000 * e^(-distance / 150)
-  // 10km = 4678 pts
-  // 50km = 3582 pts
-  // 150km = 1839 pts
-  // 400km = 347 pts
-  // 1000km = 6 pts
-  return Math.max(0, Math.round(5000 * Math.exp(-distanceKm / 150)));
+  if (distanceKm < 0.2) return 100;
+  if (distanceKm > 199) return 0;
+  // Exponential decay: 100 * e^(-distance / 30)
+  // 10km = 72 pts
+  // 50km = 19 pts
+  // 100km = 4 pts
+  // 150km = 1 pt
+  return Math.max(0, Math.round(100 * Math.exp(-distanceKm / 30)));
 }
 
 function gradeDistance(km: number) {

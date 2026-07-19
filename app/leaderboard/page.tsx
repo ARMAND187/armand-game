@@ -10,13 +10,17 @@ export const metadata = {
 const MEDAL = ["🥇", "🥈", "🥉"];
 const RANK_COLOR: Record<number, string> = { 1: "#fbbf24", 2: "#94a3b8", 3: "#b45309" };
 
-export default async function LeaderboardPage() {
+import Link from "next/link";
+
+export default async function LeaderboardPage({ searchParams }: { searchParams: Promise<{ limit?: string }> }) {
+  const resolvedParams = await searchParams;
+  const limit = parseInt(resolvedParams.limit || "10", 10);
   const supabase = await createClient();
   const { data: profiles } = await supabase
     .from("profiles")
     .select("username, rp, wins, avatar_url")
     .order("rp", { ascending: false, nullsFirst: false })
-    .limit(50);
+    .limit(limit);
 
   const leaders = (profiles || []).map((p: any, i: number) => ({
     rank: i + 1,
@@ -31,6 +35,28 @@ export default async function LeaderboardPage() {
     <div className="page-shell">
       <h1 className="page-header">Leaderboard</h1>
       <p className="page-subtitle">GeoKurdistan — All Time</p>
+
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 32 }}>
+        {[10, 50, 100].map(val => (
+          <Link 
+            key={val}
+            href={`/leaderboard?limit=${val}`}
+            style={{
+              padding: "8px 20px",
+              borderRadius: 24,
+              fontSize: 14,
+              fontWeight: 700,
+              textDecoration: "none",
+              background: limit === val ? "var(--neon)" : "var(--bg-elevated)",
+              color: limit === val ? "#fff" : "var(--text-muted)",
+              border: `1px solid ${limit === val ? "var(--neon)" : "var(--border)"}`,
+              transition: "all 0.2s"
+            }}
+          >
+            Top {val}
+          </Link>
+        ))}
+      </div>
 
       {leaders.length === 0 ? (
         <div style={{ textAlign: "center", padding: "48px 0", color: "var(--text-muted)" }}>

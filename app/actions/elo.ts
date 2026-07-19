@@ -45,8 +45,8 @@ export async function updateLobbyRP(playerScores: Record<string, number>) {
     
     if (numPlayers === 1) {
       // Solo match: Small flat gain to encourage play, but capped.
-      if (player.score >= 15000) rpChange = 10;
-      else if (player.score >= 10000) rpChange = 5;
+      if (player.score >= 300) rpChange = 10;
+      else if (player.score >= 200) rpChange = 5;
       else rpChange = 0;
     } else {
       // Multiplayer Placement RP
