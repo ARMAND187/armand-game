@@ -6,6 +6,7 @@ import {
   UserPlus, Check, X, Search, Users, Bell, PhoneCall, Copy, Plus
 } from "lucide-react";
 import Link from "next/link";
+import { getRankFromRP } from "@/utils/RankSystem";
 
 import VoiceParty from "@/components/VoiceParty";
 
@@ -16,7 +17,7 @@ interface Friend {
   displayName: string;
   avatarUrl: string | null;
   online: boolean;
-  score: number;
+  rp: number;
   currentParty: string | null;
 }
 interface Request {
@@ -95,8 +96,8 @@ export default function FriendsPage() {
         id,
         user1_id,
         user2_id,
-        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url, current_party),
-        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url, current_party)
+        u1:profiles!friends_user1_id_fkey(id, username, rp, avatar_url, current_party),
+        u2:profiles!friends_user2_id_fkey(id, username, rp, avatar_url, current_party)
       `)
       .or(`user1_id.eq.${myUserId},user2_id.eq.${myUserId}`);
 
@@ -114,7 +115,7 @@ export default function FriendsPage() {
             displayName: other?.username || "Unknown",
             avatarUrl: other?.avatar_url || null,
             online: false,
-            score: other?.wins || 0,
+            rp: other?.rp || 0,
             currentParty: other?.current_party || null,
           };
         })
@@ -499,7 +500,12 @@ export default function FriendsPage() {
                     </div>
                     <div className="friend-info flex-1">
                       <div className="friend-name font-bold text-white text-base">@{friend.username}</div>
-                      <div className="friend-score text-zinc-400 text-xs">{friend.score.toLocaleString()} wins</div>
+                      <div className="friend-score text-zinc-400 text-xs flex items-center gap-1 mt-0.5">
+                        <span style={{ fontSize: 14 }}>{getRankFromRP(friend.rp).icon}</span>
+                        <span style={{ color: getRankFromRP(friend.rp).color, fontWeight: 700 }}>{getRankFromRP(friend.rp).tier}</span>
+                        <span className="text-zinc-500">•</span>
+                        <span>{friend.rp.toLocaleString()} RP</span>
+                      </div>
                     </div>
                     
                     {activeParty && friend.currentParty !== activeParty && (
