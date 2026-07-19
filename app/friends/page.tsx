@@ -499,7 +499,6 @@ export default function FriendsPage() {
                     </div>
                     <div className="friend-info flex-1">
                       <div className="friend-name font-bold text-white text-base">@{friend.username}</div>
-                      <div className="friend-score text-zinc-400 text-xs">{friend.score.toLocaleString()} wins</div>
                     </div>
                     
                     {activeParty && friend.currentParty !== activeParty && (
