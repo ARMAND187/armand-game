@@ -22,10 +22,10 @@ const CUSTOM_PLUGINS: any[] = [
         {
           id: 'nadir-patch',
           position: { pitch: -Math.PI / 2, yaw: 0 },
-          html: `<div style="width: 250px; height: 250px; background: rgba(0,0,0,0.85); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(0,0,0,0.9); border: 2px solid rgba(167,139,250,0.3);">
-            <img src="/icon-512.png" style="width: 150px; height: 150px; opacity: 0.9;" />
+          html: `<div style="width: 450px; height: 450px; background: rgba(0,0,0,0.85); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 40px rgba(0,0,0,0.9); border: 3px solid rgba(167,139,250,0.4);">
+            <img src="/icon-512.png" style="width: 280px; height: 280px; opacity: 0.95;" />
           </div>`,
-          size: { width: 250, height: 250 },
+          size: { width: 450, height: 450 },
           anchor: 'center center',
           tooltip: 'GeoKurdistan',
         },
