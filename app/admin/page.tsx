@@ -128,17 +128,17 @@ export default function AdminDashboard() {
     setNotifStatus("");
     const ext = file.name.split(".").pop();
     const filename = `broadcast_${Date.now()}.${ext}`;
-    console.log("[ImageUpload] Uploading", filename, "to 360photo/broadcasts/");
+    console.log("[ImageUpload] Uploading", filename, "to broadcast-images bucket");
     const { error } = await supabase.storage
-      .from("360photo")
-      .upload(`broadcasts/${filename}`, file, { upsert: true, contentType: file.type });
+      .from("broadcast-images")
+      .upload(filename, file, { upsert: true, contentType: file.type });
     if (error) {
       console.error("[ImageUpload] Error:", error);
       setNotifStatus("❌ Image upload failed: " + error.message);
       setUploadingImage(false);
       return;
     }
-    const { data: { publicUrl } } = supabase.storage.from("360photo").getPublicUrl(`broadcasts/${filename}`);
+    const { data: { publicUrl } } = supabase.storage.from("broadcast-images").getPublicUrl(filename);
     console.log("[ImageUpload] Success, public URL:", publicUrl);
     setNotifImageUrl(publicUrl);
     setNotifStatus("✅ Image uploaded!");
