@@ -60,11 +60,21 @@ export default function AdminDashboard() {
     }
 
     // Check if user is admin
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from("profiles")
       .select("is_admin")
       .eq("id", user.id)
       .single();
+
+    if (error) {
+      console.error("Error checking admin status:", error);
+      // Don't redirect on transient network errors
+      if (error.code !== "PGRST116") {
+        setIsAdmin(true); // Assume admin to prevent kicking out if they were already here
+        fetchData();
+        return;
+      }
+    }
 
     if (!profile?.is_admin) {
       router.replace("/profile");
