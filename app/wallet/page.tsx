@@ -2,9 +2,30 @@
 
 import { useWalletStore } from "@/store/useWalletStore";
 import { Wallet, TrendingUp, Clock, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 export default function WalletPage() {
   const armandBalance = useWalletStore((s) => s.armandBalance);
+  const setBalance = useWalletStore((s) => s.setBalance);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("balance")
+          .eq("id", user.id)
+          .single();
+        if (profile?.balance !== undefined) {
+          setBalance(profile.balance);
+        }
+      }
+    };
+    fetchBalance();
+  }, [setBalance]);
 
   const transactions: { label: string; amount: number; time: string; type: "in" | "out" }[] = [];
 

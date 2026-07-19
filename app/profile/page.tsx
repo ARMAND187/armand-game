@@ -66,7 +66,7 @@ export default function ProfilePage() {
         
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, avatar_url, is_verified, rp")
+          .select("is_admin, avatar_url, is_verified, rp, balance")
           .eq("id", user.id)
           .single();
           
@@ -81,6 +81,9 @@ export default function ProfilePage() {
         }
         if (profile?.rp) {
           setRp(profile.rp);
+        }
+        if (profile?.balance !== undefined) {
+          useWalletStore.getState().setBalance(profile.balance);
         }
         setIsProfileLoading(false);
       } else {
