@@ -34,8 +34,10 @@ export const viewport: Viewport = {
 };
 
 import GlobalToaster from "@/components/GlobalToaster";
+import { Suspense } from "react";
 import UpdateNotification from "@/components/UpdateNotification";
 import AuthProvider from "@/components/AuthProvider";
+import PathTracker from "@/components/PathTracker";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 
@@ -48,6 +50,9 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
+          <Suspense fallback={null}>
+            <PathTracker />
+          </Suspense>
           <AuthProvider />
           <UpdateNotification />
           <GlobalToaster />
