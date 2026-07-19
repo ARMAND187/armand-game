@@ -24,6 +24,7 @@ const menuItems = [
 export default function ProfilePage() {
   const router = useRouter();
   const armandBalance = useWalletStore((s) => s.armandBalance);
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("Loading...");
   const [isEditing, setIsEditing] = useState(false);
   const [editUsername, setEditUsername] = useState("");
@@ -56,6 +57,9 @@ export default function ProfilePage() {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        if (user.email) {
+          setEmail(user.email);
+        }
         if (user.user_metadata?.username) {
           setUsername(user.user_metadata.username);
           setEditUsername(user.user_metadata.username);
@@ -377,6 +381,13 @@ export default function ProfilePage() {
                     <Edit3 size={15} color="var(--neon)" />
                   </button>
                 )}
+              </div>
+
+              <div className="profile-field">
+                <span className="profile-field-label">Email</span>
+                <span className="profile-field-value" style={{ color: "var(--text-muted)" }}>
+                  {email || "Loading..."}
+                </span>
               </div>
 
               <div className="profile-field" style={{ borderBottom: "none" }}>
