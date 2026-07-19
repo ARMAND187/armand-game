@@ -41,6 +41,21 @@ import PathTracker from "@/components/PathTracker";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 
+const PWA_RESTORE_SCRIPT = `
+  try {
+    if (window.location.pathname === "/") {
+      var saved = localStorage.getItem("pwa_last_path");
+      if (saved) {
+        var data = JSON.parse(saved);
+        var NOW = Date.now();
+        if (NOW - data.time < 2 * 60 * 60 * 1000 && data.path !== "/") {
+          window.location.replace(data.path);
+        }
+      }
+    }
+  } catch(e) {}
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,6 +63,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: PWA_RESTORE_SCRIPT }} />
+      </head>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
           <Suspense fallback={null}>
