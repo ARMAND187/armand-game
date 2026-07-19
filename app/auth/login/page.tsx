@@ -50,9 +50,9 @@ function LoginForm() {
       if (error) throw error;
 
       // refresh() FIRST — invalidates stale Server Component cache so the
-      // destination page sees the newly-set Supabase auth cookie immediately.
-      router.refresh();
-      router.push("/");
+      // Use window.location.href instead of router.push to force a hard reload
+      // This completely obliterates the "sometimes need refresh to login" bug
+      window.location.href = "/";
 
       clearTimeout(t1);
       clearTimeout(t2);

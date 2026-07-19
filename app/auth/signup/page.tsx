@@ -68,9 +68,8 @@ export default function SignupPage() {
       }
 
       // Email verification disabled — instant login
-      // refresh() FIRST — invalidates stale Server Component cache.
-      router.refresh();
-      router.push("/");
+      // Force a hard reload to completely obliterate routing cache bugs
+      window.location.href = "/";
     } catch (err: any) {
       setErrorMsg(mapSignupError(err?.message || "An unexpected error occurred."));
       setLoading(false);
