@@ -26,6 +26,8 @@ export default function NewsCarousel() {
   const [slides, setSlides] = useState<Broadcast[]>([]);
   const [active, setActive] = useState(0);
   const [loading, setLoading] = useState(true);
+  // Track which image URLs have 404'd or failed to load
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
   const supabase = createClient();
 
   useEffect(() => {
@@ -55,6 +57,16 @@ export default function NewsCarousel() {
     return () => clearInterval(id);
   }, [advance, slides.length]);
 
+  // Mark an image URL as broken so we fall back to gradient
+  const handleImageError = (url: string) => {
+    setBrokenImages((prev) => new Set(prev).add(url));
+  };
+
+  // Returns true if image_url exists AND hasn't 404'd
+  const hasValidImage = (url: string | null | undefined): url is string => {
+    return !!url && !brokenImages.has(url);
+  };
+
   /* ── Loading ── */
   if (loading) {
     return (
@@ -80,6 +92,24 @@ export default function NewsCarousel() {
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
 
+      {/*
+        Hidden preload images for ALL slides — this is how we detect broken URLs.
+        When an image 404s, onError fires and we add its URL to brokenImages.
+        The actual background div then checks hasValidImage() and falls back to gradient.
+      */}
+      <div style={{ display: "none" }}>
+        {slides.map((s) =>
+          s.image_url ? (
+            <img
+              key={s.id}
+              src={s.image_url}
+              alt=""
+              onError={() => handleImageError(s.image_url!)}
+            />
+          ) : null
+        )}
+      </div>
+
       {/* ── Slide Card ── */}
       <div
         style={{
@@ -94,9 +124,16 @@ export default function NewsCarousel() {
         }}
         onClick={() => slides.length > 1 && advance()}
       >
-        {/* Background */}
-        {slide.image_url ? (
-          <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${slide.image_url})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        {/* Background — gracefully falls back to gradient if image is deleted/broken */}
+        {hasValidImage(slide.image_url) ? (
+          <div
+            style={{
+              position: "absolute", inset: 0,
+              backgroundImage: `url(${slide.image_url})`,
+              backgroundSize: "cover", backgroundPosition: "center",
+              transition: "opacity 0.4s ease",
+            }}
+          />
         ) : (
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#1e1040 0%,#0f0a2e 55%,#09090b 100%)" }} />
         )}
@@ -104,7 +141,7 @@ export default function NewsCarousel() {
         {/* Purple shimmer overlay */}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(167,139,250,0.12) 0%,transparent 55%)", pointerEvents: "none" }} />
 
-        {/* Bottom fade for text */}
+        {/* Bottom fade for text readability */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "80%", background: "linear-gradient(to top,rgba(9,9,11,0.97) 0%,rgba(9,9,11,0.7) 45%,transparent 100%)", pointerEvents: "none" }} />
 
         {/* Slide counter */}
@@ -114,10 +151,10 @@ export default function NewsCarousel() {
           </div>
         )}
 
-        {/* Content — padded well away from edges */}
+        {/* Content — safely padded from edges */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 20px 20px 20px" }}>
 
-          {/* Badge — full purple */}
+          {/* Badge */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(139,92,246,0.35)", border: "1px solid rgba(167,139,250,0.6)", borderRadius: 8, padding: "4px 10px", marginBottom: 10 }}>
             <Wifi size={10} color="#a78bfa" />
             <span style={{ fontSize: 10, fontWeight: 800, color: "#c4b5fd", textTransform: "uppercase", letterSpacing: "0.15em" }}>Broadcast</span>
