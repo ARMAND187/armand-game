@@ -1,7 +1,8 @@
 "use client";
 
-import { Users, Activity } from "lucide-react";
+import { Users, Activity, MapPin } from "lucide-react";
 import { usePresenceStore } from "@/store/usePresenceStore";
+import { kurdistanLocations } from "@/data/locations";
 
 export default function AdminDashboardStats({ totalRegistered }: { totalRegistered: number }) {
   const onlineCount = usePresenceStore((state) => state.onlineCount);
@@ -42,6 +43,21 @@ export default function AdminDashboardStats({ totalRegistered }: { totalRegister
         </div>
         <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(74, 222, 128, 0.2)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 10 }}>
           <Activity size={32} color="#4ade80" />
+        </div>
+      </div>
+
+      {/* Total Map Locations Card */}
+      <div className="settings-card" style={{ padding: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <h3 style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, margin: "0 0 8px 0" }}>
+            Total Map Locations
+          </h3>
+          <p style={{ fontSize: 36, fontWeight: 800, color: "white", margin: 0 }}>
+            {kurdistanLocations.length}
+          </p>
+        </div>
+        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(56, 189, 248, 0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <MapPin size={32} color="#38bdf8" />
         </div>
       </div>
     </div>

@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2 } from "lucide-react";
+import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { getRankFromRP } from "@/utils/RankSystem";
 
 const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardStats"), {
   ssr: false,
@@ -19,6 +20,7 @@ interface Profile {
   is_admin: boolean;
   is_verified: boolean;
   created_at: string;
+  rp: number;
 }
 
 export default function AdminDashboard() {
@@ -27,6 +29,7 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [userLimit, setUserLimit] = useState<number | "All">("All");
 
   // Notification states
   const [notifTitle, setNotifTitle] = useState("");
@@ -68,7 +71,7 @@ export default function AdminDashboard() {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("rp", { ascending: false });
     
     if (data) {
       setProfiles(data as Profile[]);
@@ -178,29 +181,74 @@ export default function AdminDashboard() {
       <div className="settings-card" style={{ padding: 20, overflowX: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Registered Users</h2>
-          <input
-            className="search-input"
-            placeholder="Search username..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ background: "var(--bg-base)", width: "100%", maxWidth: 300, margin: 0 }}
-          />
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", background: "var(--bg-base)", padding: 4, borderRadius: 8, gap: 4 }}>
+              {(["Top 10", "Top 20", "All"] as const).map(opt => {
+                const limitVal = opt === "All" ? "All" : parseInt(opt.replace("Top ", ""));
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setUserLimit(limitVal)}
+                    style={{
+                      background: userLimit === limitVal ? "rgba(167, 139, 250, 0.2)" : "transparent",
+                      color: userLimit === limitVal ? "var(--neon)" : "var(--text-muted)",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    {opt}
+                  </button>
+                )
+              })}
+            </div>
+            <input
+              className="search-input"
+              placeholder="Search username..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ background: "var(--bg-base)", width: "100%", maxWidth: 200, margin: 0 }}
+            />
+          </div>
         </div>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textAlign: "left" }}>
               <th style={{ paddingBottom: 12 }}>Username</th>
-              <th style={{ paddingBottom: 12 }}>Wins</th>
+              <th style={{ paddingBottom: 12 }}>Rank / RP</th>
               <th style={{ paddingBottom: 12 }}>Status</th>
               <th style={{ paddingBottom: 12 }}>Role</th>
               <th style={{ paddingBottom: 12 }}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {profiles.filter(p => p.username.toLowerCase().includes(searchQuery.toLowerCase())).map(p => (
-              <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                <td style={{ padding: "12px 0", color: "white", fontWeight: 600 }}>@{p.username}</td>
-                <td style={{ padding: "12px 0", color: "var(--text-muted)" }}>{p.wins}</td>
+            {profiles
+              .filter(p => p.username.toLowerCase().includes(searchQuery.toLowerCase()))
+              .slice(0, userLimit === "All" ? undefined : userLimit)
+              .map(p => {
+                const rankInfo = getRankFromRP(p.rp);
+                return (
+                  <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td style={{ padding: "12px 0", color: "white", fontWeight: 600 }}>@{p.username}</td>
+                    <td style={{ padding: "12px 0" }}>
+                      <span style={{ 
+                        fontSize: 12, 
+                        fontWeight: 800, 
+                        color: rankInfo.color, 
+                        background: rankInfo.glow, 
+                        padding: "4px 8px", 
+                        borderRadius: 6,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6
+                      }}>
+                        {rankInfo.icon} {p.rp.toLocaleString()} RP
+                      </span>
+                    </td>
                 <td style={{ padding: "12px 0" }}>
                   <span style={{ 
                     background: p.is_verified ? "rgba(74, 222, 128, 0.15)" : "rgba(255, 255, 255, 0.05)",
@@ -229,7 +277,7 @@ export default function AdminDashboard() {
                   </button>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>
