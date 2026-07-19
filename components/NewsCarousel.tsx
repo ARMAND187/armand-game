@@ -152,14 +152,8 @@ export default function NewsCarousel() {
           </div>
         )}
 
-        {/* Content — safely padded from edges */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 20px 20px 20px" }}>
-
-          {/* Badge */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(139,92,246,0.35)", border: "1px solid rgba(167,139,250,0.6)", borderRadius: 8, padding: "4px 10px", marginBottom: 10 }}>
-            <Wifi size={10} color="#a78bfa" />
-            <span style={{ fontSize: 10, fontWeight: 800, color: "#c4b5fd", textTransform: "uppercase", letterSpacing: "0.15em" }}>Broadcast</span>
-          </div>
+        {/* Content — safely padded from edges and bottom dots */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 20px 40px 20px" }}>
 
           {/* Title */}
           <h3 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#ffffff", lineHeight: 1.25, marginBottom: 8, textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}>
@@ -176,20 +170,25 @@ export default function NewsCarousel() {
             {formatTime(slide.created_at)}
           </div>
         </div>
-      </div>
-
-      {/* ── Indicator Dots ── */}
-      {slides.length > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 14 }}>
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              style={{ width: i === active ? 24 : 8, height: 8, borderRadius: 4, background: i === active ? "var(--neon)" : "rgba(167,139,250,0.25)", border: "none", cursor: "pointer", padding: 0, transition: "width 0.3s ease, background 0.3s ease", boxShadow: i === active ? "0 0 8px var(--neon-glow)" : "none" }}
-            />
-          ))}
+        {/* Badge (Top Left) */}
+        <div style={{ position: "absolute", top: 14, left: 14, display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(139,92,246,0.55)", border: "1px solid rgba(167,139,250,0.8)", borderRadius: 8, padding: "4px 10px", backdropFilter: "blur(4px)" }}>
+          <Wifi size={10} color="#ffffff" />
+          <span style={{ fontSize: 10, fontWeight: 800, color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.15em" }}>Broadcast</span>
         </div>
-      )}
+
+        {/* ── Indicator Dots ── */}
+        {slides.length > 1 && (
+          <div style={{ position: "absolute", bottom: 14, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 8 }}>
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setActive(i); }}
+                style={{ width: i === active ? 24 : 8, height: 8, borderRadius: 4, background: i === active ? "var(--neon)" : "rgba(167,139,250,0.4)", border: "none", cursor: "pointer", padding: 0, transition: "width 0.3s ease, background 0.3s ease", boxShadow: i === active ? "0 0 8px var(--neon-glow)" : "none" }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

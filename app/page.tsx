@@ -237,7 +237,7 @@ export default async function HomePage() {
         </div>
 
         {/* ── Right Column: News Carousel ── */}
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col isolate relative" style={{ height: 420, minHeight: 420 }}>
+        <div className="w-full flex flex-col isolate relative" style={{ height: "100%", minHeight: 450 }}>
           <NewsCarousel />
         </div>
 
