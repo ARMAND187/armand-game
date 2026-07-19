@@ -72,6 +72,12 @@ export async function updateLobbyRP(playerScores: Record<string, number>, totalR
     }
 
     const currentRP = player.profile?.rp || 0;
+    
+    // The -5 RP penalty for low scores in solo mode should ONLY apply to Diamond players (RP >= 3600)
+    if (numPlayers === 1 && rpChange === -5 && currentRP < 3600) {
+      rpChange = 0;
+    }
+
     const newRP = Math.max(0, currentRP + rpChange);
 
     return {
