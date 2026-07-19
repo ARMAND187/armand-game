@@ -3,7 +3,7 @@
 import { useWalletStore } from "@/store/useWalletStore";
 import { useEffect, useState } from "react";
 import {
-  Settings, Bell, Gift, ChevronRight,
+  Settings, Bell, Gift, ChevronRight, Smartphone,
   Shield, Edit3, RefreshCw, Loader2, Mail, AlertCircle, ArrowLeft
 } from "lucide-react";
 import { getRankFromRP } from "@/utils/RankSystem";
@@ -454,8 +454,22 @@ export default function ProfilePage() {
           </Link>
         )}
         
-        <InstallAppButton />
-
+        <Link
+          href="/settings"
+          className="settings-menu-item"
+          style={{ borderBottom: "1px solid var(--border)" }}
+        >
+          <div className="settings-menu-left">
+            <div className="profile-menu-icon" style={{ background: "rgba(168, 85, 247, 0.1)", color: "#c084fc", border: "1px solid rgba(168, 85, 247, 0.2)" }}>
+              <Smartphone size={17} />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Add Armand to Home screen</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>Install the app for the full experience</div>
+            </div>
+          </div>
+          <ChevronRight size={16} color="var(--text-muted)" />
+        </Link>
         {menuItems.map(({ icon: Icon, label, sub, href }, i) => (
           <Link
             key={label}
