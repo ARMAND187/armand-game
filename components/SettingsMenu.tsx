@@ -45,14 +45,17 @@ export default function SettingsMenu() {
         </div>
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <p className="section-title">Security & Account</p>
-        <SecuritySettings />
-      </div>
-
       {sections.map((section) => (
-        <div key={section.heading} style={{ marginBottom: 24 }}>
-          <p className="section-title">{section.heading}</p>
+        <div key={section.heading}>
+          {section.heading === "Account" && (
+            <div style={{ marginBottom: 24 }}>
+              <p className="section-title">Security</p>
+              <SecuritySettings />
+            </div>
+          )}
+
+          <div style={{ marginBottom: 24 }}>
+            <p className="section-title">{section.heading}</p>
           <div className="settings-card">
             {section.items.map(({ icon: Icon, label, sub, href, danger, onClickId }, i) => {
               
@@ -119,6 +122,7 @@ export default function SettingsMenu() {
               <SignOutButton />
             )}
           </div>
+        </div>
         </div>
       ))}
 
