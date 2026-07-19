@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered } from "lucide-react";
+import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getRankFromRP } from "@/utils/RankSystem";
@@ -29,6 +29,7 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [totalLocations, setTotalLocations] = useState(0);
   const [userLimit, setUserLimit] = useState<number | "All">("All");
 
   // Notification states
@@ -36,6 +37,10 @@ export default function AdminDashboard() {
   const [notifBody, setNotifBody] = useState("");
   const [sendingNotif, setSendingNotif] = useState(false);
   const [notifStatus, setNotifStatus] = useState("");
+
+  const [bulkJson, setBulkJson] = useState("");
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadingLocations, setUploadingLocations] = useState(false);
 
   const supabase = createClient();
   const router = useRouter();
@@ -68,14 +73,17 @@ export default function AdminDashboard() {
   };
 
   const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("rp", { ascending: false });
+    const [{ data: pData }, { count: locCount }] = await Promise.all([
+      supabase.from("profiles").select("*").order("rp", { ascending: false }),
+      supabase.from("locations").select("*", { count: "exact", head: true })
+    ]);
     
-    if (data) {
-      setProfiles(data as Profile[]);
-      setTotalUsers(data.length);
+    if (pData) {
+      setProfiles(pData as Profile[]);
+      setTotalUsers(pData.length);
+    }
+    if (locCount !== null) {
+      setTotalLocations(locCount);
     }
     setLoading(false);
   };
@@ -102,13 +110,45 @@ export default function AdminDashboard() {
     if (error) {
       setNotifStatus("Failed to send notification.");
     } else {
-      setNotifStatus(`Successfully sent to ${inserts.length} users!`);
+      setNotifStatus("Broadcast sent!");
       setNotifTitle("");
       setNotifBody("");
     }
     setSendingNotif(false);
     
     setTimeout(() => setNotifStatus(""), 3000);
+  };
+
+  const handleBulkUpload = async () => {
+    setUploadStatus("");
+    try {
+      const parsed = JSON.parse(bulkJson);
+      if (!Array.isArray(parsed)) throw new Error("JSON must be an array of locations.");
+      
+      for (const loc of parsed) {
+        if (!loc.name || !loc.city || !loc.lat || !loc.lng || !loc.source_type) {
+          throw new Error(`Missing required fields in location: ${loc.name || JSON.stringify(loc)}`);
+        }
+        if (loc.source_type === "mapillary" && !loc.image_id) {
+          throw new Error(`Mapillary location '${loc.name}' requires an image_id.`);
+        }
+        if (loc.source_type === "custom" && !loc.image_url) {
+          throw new Error(`Custom location '${loc.name}' requires an image_url.`);
+        }
+      }
+
+      setUploadingLocations(true);
+      const { error } = await supabase.from("locations").insert(parsed);
+      if (error) throw error;
+      
+      setUploadStatus(`Successfully imported ${parsed.length} locations!`);
+      setBulkJson("");
+      fetchData(); // Refresh the counts
+    } catch (err: any) {
+      setUploadStatus(err.message || "Failed to parse or upload locations.");
+    } finally {
+      setUploadingLocations(false);
+    }
   };
 
   const toggleAdmin = async (id: string, currentStatus: boolean) => {
@@ -143,7 +183,36 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <AdminDashboardStats totalRegistered={totalUsers} />
+      <AdminDashboardStats totalRegistered={totalUsers} totalLocations={totalLocations} />
+
+      {/* Location Bulk Uploader */}
+      <div className="settings-card" style={{ padding: 20, marginBottom: 24 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+          <UploadCloud size={18} color="var(--neon)" /> Location Bulk-Uploader
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+            Paste a JSON array of hybrid locations here. Must include <code style={{ color: "var(--neon)" }}>source_type</code> ('mapillary' or 'custom'). 
+            Mapillary locations require <code style={{ color: "var(--neon)" }}>image_id</code>, while custom locations require <code style={{ color: "var(--neon)" }}>image_url</code>.
+          </p>
+          <textarea 
+            className="search-input" 
+            placeholder={'[\n  {\n    "name": "Erbil Citadel",\n    "city": "Erbil",\n    "lat": 36.1911,\n    "lng": 44.0091,\n    "source_type": "mapillary",\n    "image_id": "12345"\n  }\n]'} 
+            value={bulkJson}
+            onChange={e => setBulkJson(e.target.value)}
+            style={{ background: "var(--bg-base)", minHeight: 140, resize: "vertical", fontFamily: "monospace", fontSize: 12 }}
+          />
+          <button 
+            className="btn-lobby-play" 
+            onClick={handleBulkUpload}
+            disabled={uploadingLocations || !bulkJson.trim()}
+            style={{ justifyContent: "center" }}
+          >
+            {uploadingLocations ? <Loader2 className="mly-spinner" size={18} /> : "Upload Locations"}
+          </button>
+          {uploadStatus && <div style={{ fontSize: 12, color: uploadStatus.includes("Failed") || uploadStatus.includes("Missing") || uploadStatus.includes("requires") ? "#ef4444" : "#4ade80", textAlign: "center" }}>{uploadStatus}</div>}
+        </div>
+      </div>
 
       {/* Global Notifications */}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24 }}>

@@ -2,9 +2,7 @@
 
 import { Users, Activity, MapPin } from "lucide-react";
 import { usePresenceStore } from "@/store/usePresenceStore";
-import { kurdistanLocations } from "@/data/locations";
-
-export default function AdminDashboardStats({ totalRegistered }: { totalRegistered: number }) {
+export default function AdminDashboardStats({ totalRegistered, totalLocations }: { totalRegistered: number, totalLocations: number }) {
   const onlineCount = usePresenceStore((state) => state.onlineCount);
 
   return (
@@ -53,7 +51,7 @@ export default function AdminDashboardStats({ totalRegistered }: { totalRegister
             Total Map Locations
           </h3>
           <p style={{ fontSize: 36, fontWeight: 800, color: "white", margin: 0 }}>
-            {kurdistanLocations.length}
+            {totalLocations}
           </p>
         </div>
         <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(56, 189, 248, 0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>

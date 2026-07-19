@@ -6,11 +6,11 @@ import Link from "next/link";
 import { ArrowLeft, MapPin, Trophy, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { kurdistanLocations, KurdistanLocation } from "@/data/locations";
+// Removed static kurdistanLocations, fetching dynamically now
 import { calculateHaversineDistance } from "@/utils/haversine";
 import { updateLobbyRP } from "@/app/actions/elo";
 
-const MapillaryViewer = dynamic(() => import("@/components/MapillaryViewer"), {
+const StreetViewPlayer = dynamic(() => import("@/components/StreetViewPlayer"), {
   ssr: false,
   loading: () => (
     <div className="flex h-full items-center justify-center bg-[#0a0a14] text-[#a1a1aa] text-[13px] gap-2">
@@ -86,13 +86,28 @@ function GeoKurdistanInner() {
   const [totalRounds, setTotalRounds] = useState(() => parseInt(searchParams.get("rounds") || "5", 10));
   const regionQuery = searchParams.get("region") || "All Kurdistan";
   
-  // Filter locations by region and ensure they have a valid Mapillary image
+  const [allLocations, setAllLocations] = useState<any[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+
+  useEffect(() => {
+    async function fetchLocs() {
+      const { data } = await supabase.from('locations').select('*');
+      if (data && data.length > 0) {
+        setAllLocations(data);
+      }
+      setLoadingLocations(false);
+    }
+    fetchLocs();
+  }, [supabase]);
+
+  // Filter locations by region
   const availableLocations = React.useMemo(() => {
-    let filtered = kurdistanLocations.filter(loc => !!loc.imageId);
+    if (!allLocations.length) return [];
+    let filtered = allLocations.filter(loc => loc.source_type === 'custom' || !!loc.image_id);
     if (regionQuery === "Erbil Only") filtered = filtered.filter(loc => loc.city === "Erbil");
     if (regionQuery === "Sulaymaniyah Only") filtered = filtered.filter(loc => loc.city === "Sulaymaniyah" || loc.city === "Slemani");
-    return filtered.length > 0 ? filtered : kurdistanLocations.filter(loc => !!loc.imageId);
-  }, [regionQuery]);
+    return filtered.length > 0 ? filtered : allLocations;
+  }, [regionQuery, allLocations]);
   const [locationIndices, setLocationIndices] = useState<number[]>([0, 1, 2, 3, 4]);
   const [timer, setTimer] = useState(30);
   
@@ -484,8 +499,16 @@ function GeoKurdistanInner() {
     }
   }, [gameState, isHost, isPublic, handleNextRound, roomId]);
 
-  if (gameState === "WAITING") {
+  if (loadingLocations) {
     return (
+      <div className="page-shell" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Loader2 className="mly-spinner" size={48} color="var(--neon)" />
+      </div>
+    );
+  }
+
+  if (gameState === "WAITING" && (!isHost && !roomId)) {
+      return (
       <div className="flex h-screen w-full items-center justify-center bg-[#0d0d1a] text-white flex-col gap-4">
         <Loader2 className="animate-spin" size={48} color="var(--neon)" />
         <h2 className="text-xl font-bold">Waiting for host to start the game...</h2>
@@ -493,7 +516,7 @@ function GeoKurdistanInner() {
     );
   }
 
-  const location = availableLocations[locationIndices[round - 1]] || availableLocations[0] || kurdistanLocations[0];
+  const location = availableLocations[locationIndices[round - 1]] || availableLocations[0];
   const myCurrentGuess = roundGuesses.find(g => g.username === myUsername);
   
   return (
@@ -526,11 +549,13 @@ function GeoKurdistanInner() {
         <div className="geo-split">
           <div className="geo-streetview">
             {location && (
-              <MapillaryViewer 
+              <StreetViewPlayer 
                 lat={location.lat} 
                 lng={location.lng} 
                 locationName={location.name}
-                imageId={location.imageId}
+                sourceType={location.source_type}
+                imageId={location.image_id}
+                imageUrl={location.image_url}
                 onSkip={() => handleTimeUp()} 
               />
             )}

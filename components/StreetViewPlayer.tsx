@@ -1,30 +1,23 @@
 "use client";
 
 /**
- * MapillaryViewer — client-only component
+ * StreetViewPlayer — client-only component
  *
- * Wraps the mapillary-js Viewer. Steps:
- *  1. On mount / location change, query Mapillary Graph API for the
- *     nearest image to the given lat/lng (expanding the bbox if needed).
- *  2. Initialise (or navigate) the Viewer to that imageId.
- *  3. Clean up on unmount to prevent duplicate viewer instances.
+ * A hybrid router that wraps either the mapillary-js Viewer or ReactPhotoSphereViewer.
  */
 
 import { useEffect, useRef, useState } from "react";
-import { Viewer } from "mapillary-js";
+import { Viewer as MapillaryViewerInstance } from "mapillary-js";
 import "mapillary-js/dist/mapillary.css";
-import { Eye, WifiOff } from "lucide-react";
+import { Eye, WifiOff, Camera } from "lucide-react";
+import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
 
 // ---------------------------------------------------------------------------
-// Token — replace with your real Mapillary access token
+// Mapillary Token
 // ---------------------------------------------------------------------------
 export const MAPILLARY_TOKEN =
   "MLY|27954160734202280|be514215d6940ba81f5f40159f8368b2";
 
-// ---------------------------------------------------------------------------
-// Fetch the nearest Mapillary imageId to a given lat/lng
-// Uses progressively wider bounding boxes to maximise coverage
-// ---------------------------------------------------------------------------
 async function findNearestImageId(
   lat: number,
   lng: number
@@ -47,92 +40,87 @@ async function findNearestImageId(
         return json.data[0].id as string;
       }
     } catch {
-      // network error — try wider bbox next iteration
+      // network error
     }
   }
-
-  return null; // no imagery found at any scale
+  return null;
 }
 
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
-interface MapillaryViewerProps {
+interface StreetViewPlayerProps {
   lat: number;
   lng: number;
   locationName: string;
+  sourceType: "mapillary" | "custom";
   imageId?: string;
+  imageUrl?: string;
   onSkip?: () => void;
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-export default function MapillaryViewer({
+export default function StreetViewPlayer({
   lat,
   lng,
   locationName,
+  sourceType,
   imageId,
+  imageUrl,
   onSkip,
-}: MapillaryViewerProps) {
+}: StreetViewPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const viewerRef    = useRef<Viewer | null>(null);
+  const viewerRef = useRef<MapillaryViewerInstance | null>(null);
 
-  const [status, setStatus] = useState<"loading" | "ready" | "no-imagery">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "ready" | "no-imagery">("loading");
 
   useEffect(() => {
     let cancelled = false;
 
-    async function init() {
+    async function initMapillary() {
       setStatus("loading");
-
-      // --- 1. Lookup nearest image ---
       const finalImageId = imageId || await findNearestImageId(lat, lng);
 
-      if (cancelled) return; // component unmounted while fetching
+      if (cancelled) return;
 
       if (!finalImageId) {
         setStatus("no-imagery");
         return;
       }
 
-      // --- 2. Initialise or navigate ---
       if (viewerRef.current) {
-        // Viewer already exists — just navigate to new image
         try {
           await viewerRef.current.moveTo(finalImageId);
           if (!cancelled) setStatus("ready");
-        } catch {
-          // moveTo can throw if the viewer was disposed
-        }
+        } catch {}
         return;
       }
 
       if (!containerRef.current) return;
 
-      const viewer = new Viewer({
+      const viewer = new MapillaryViewerInstance({
         accessToken: MAPILLARY_TOKEN,
-        container: containerRef.current, // the div#mly element
+        container: containerRef.current,
         imageId: finalImageId,
         component: {
-          cover: false,        // skip the splash/cover screen
-          attribution: true,   // keep Mapillary attribution
+          cover: false,
+          attribution: true,
         },
       });
 
       viewerRef.current = viewer;
-
-      // Listen for the first image loaded event
       viewer.on("image", () => {
         if (!cancelled) setStatus("ready");
       });
     }
 
-    init();
+    if (sourceType === "mapillary") {
+      initMapillary();
+    } else {
+      // Custom spherical photos don't need to load an API image
+      if (imageUrl) {
+        setStatus("ready");
+      } else {
+        setStatus("no-imagery");
+      }
+    }
 
-    // --- 3. Cleanup ---
     return () => {
       cancelled = true;
       if (viewerRef.current) {
@@ -140,33 +128,41 @@ export default function MapillaryViewer({
         viewerRef.current = null;
       }
     };
-  }, [lat, lng, imageId]); // re-run whenever the round location changes
+  }, [lat, lng, imageId, imageUrl, sourceType]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      {/* ── Mapillary container — id="mly" as required ── */}
-      <div
-        ref={containerRef}
-        id="mly"
-        style={{ width: "100%", height: "100%", background: "#0a0a14" }}
-      />
+      {sourceType === "mapillary" && (
+        <div
+          ref={containerRef}
+          id="mly"
+          style={{ width: "100%", height: "100%", background: "#0a0a14" }}
+        />
+      )}
 
-      {/* ── Loading overlay ── */}
+      {sourceType === "custom" && status === "ready" && imageUrl && (
+        <ReactPhotoSphereViewer
+          src={imageUrl}
+          height={"100%"}
+          width={"100%"}
+          defaultZoomLvl={0}
+          navbar={false}
+          mousewheel={false}
+          touchmoveTwoFingers={false}
+        />
+      )}
+
       {status === "loading" && (
         <div className="mly-overlay">
           <div className="mly-spinner" />
-          <span className="mly-overlay-text">Finding imagery…</span>
+          <span className="mly-overlay-text">Loading view...</span>
         </div>
       )}
 
-      {/* ── No imagery fallback ── */}
       {status === "no-imagery" && (
         <div className="mly-overlay" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0a14", padding: "24px" }}>
           <WifiOff size={32} color="#a78bfa" style={{ marginBottom: 12 }} />
-          <span className="mly-overlay-text" style={{ marginBottom: 20 }}>No street-level imagery found for this location.</span>
-          <span className="mly-overlay-subtext" style={{ marginBottom: 20 }}>
-            Use the map below to guess the location anyway, or skip to the next round.
-          </span>
+          <span className="mly-overlay-text" style={{ marginBottom: 20 }}>No imagery found for this location.</span>
           {onSkip && (
             <button
               onClick={onSkip}
@@ -187,11 +183,13 @@ export default function MapillaryViewer({
         </div>
       )}
 
-      {/* ── "Mapillary" badge (shown when ready) ── */}
       {status === "ready" && (
         <div className="geo-streetview-overlay">
-          <Eye size={10} style={{ display: "inline", marginRight: 4 }} />
-          Mapillary
+          {sourceType === "mapillary" ? (
+            <><Eye size={10} style={{ display: "inline", marginRight: 4 }} /> Mapillary</>
+          ) : (
+            <><Camera size={10} style={{ display: "inline", marginRight: 4 }} /> Custom 360 View</>
+          )}
         </div>
       )}
     </div>
