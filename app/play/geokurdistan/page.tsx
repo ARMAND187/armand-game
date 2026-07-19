@@ -196,6 +196,8 @@ function GeoKurdistanInner() {
 
   // Initialise Multiplayer Connection
   useEffect(() => {
+    if (availableLocations.length === 0) return;
+
     if (!roomId) {
       // Single player fallback if no room ID provided
       setTimeout(() => {
@@ -362,7 +364,7 @@ function GeoKurdistanInner() {
     return () => {
       if (channelRef.current) supabase.removeChannel(channelRef.current);
     };
-  }, [roomId, myUsername, supabase]);
+  }, [roomId, myUsername, supabase, availableLocations.length]);
 
   // Timer logic
   useEffect(() => {
