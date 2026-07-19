@@ -392,7 +392,7 @@ function GeoKurdistanInner() {
         
         // Distribute RP if there are scores
         if (stateRef.current.totalScores && Object.keys(stateRef.current.totalScores).length > 0) {
-          updateLobbyRP(stateRef.current.totalScores).catch(console.error);
+          updateLobbyRP(stateRef.current.totalScores, totalRounds).catch(console.error);
         }
       }
       

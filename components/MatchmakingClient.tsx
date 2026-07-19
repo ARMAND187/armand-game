@@ -370,7 +370,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 16 }}>
         <div style={{ display: "flex", gap: 8, justifyContent: "center", width: "100%" }}>
           <Link href={`${playRoute}?rounds=${totalRounds}&region=${encodeURIComponent(region)}`} className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0" }}>
-            <Play size={16} fill="currentColor" /> Offline
+            <Play size={16} fill="currentColor" /> Solo
           </Link>
         <button className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0", background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }} onClick={joinPublicGame}>
           <Globe size={16} /> Public

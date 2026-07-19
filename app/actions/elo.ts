@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-export async function updateLobbyRP(playerScores: Record<string, number>) {
+export async function updateLobbyRP(playerScores: Record<string, number>, totalRounds: number = 5) {
   if (!supabaseServiceKey) {
     console.error("SUPABASE_SERVICE_ROLE_KEY is missing. Cannot update RP.");
     return { success: false, error: "Server missing Service Role Key" };
@@ -38,15 +38,16 @@ export async function updateLobbyRP(playerScores: Record<string, number>) {
   })).sort((a, b) => b.score - a.score);
 
   const numPlayers = sortedPlayers.length;
+  const maxPossibleScore = totalRounds * 100;
   
   // Calculate updates
   const updates = sortedPlayers.map((player, index) => {
     let rpChange = 0;
     
     if (numPlayers === 1) {
-      // Solo match: Small flat gain to encourage play, but capped.
-      if (player.score >= 300) rpChange = 10;
-      else if (player.score >= 200) rpChange = 5;
+      // Solo match: RP gain based on percentage of max score
+      if (player.score >= maxPossibleScore * 0.6) rpChange = 10; // e.g., 300/500, 600/1000
+      else if (player.score >= maxPossibleScore * 0.4) rpChange = 5; // e.g., 200/500, 400/1000
       else rpChange = 0;
     } else {
       // Multiplayer Placement RP
