@@ -22,6 +22,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [players, setPlayers] = useState<string[]>([]);
   const [myUsername, setMyUsername] = useState<string>("Player");
+  const [isUsernameLoaded, setIsUsernameLoaded] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [displayCode, setDisplayCode] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
@@ -132,11 +133,12 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       if (data.user?.user_metadata?.username) {
         setMyUsername(data.user.user_metadata.username);
       }
+      setIsUsernameLoaded(true);
     });
   }, [supabase]);
 
   useEffect(() => {
-    if (!roomId || matchState !== "waiting") return;
+    if (!roomId || matchState !== "waiting" || !isUsernameLoaded) return;
 
     const channel = supabase.channel(`room:${roomId}`, {
       config: { presence: { key: myUsername } }

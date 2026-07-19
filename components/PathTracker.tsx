@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 // Track the last time the user physically touched or clicked the app.
@@ -18,9 +18,7 @@ export default function PathTracker() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-  useIsomorphicLayoutEffect(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       if (pathname.startsWith("/auth")) return;
 
