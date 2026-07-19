@@ -40,13 +40,13 @@ type GameState = "WAITING" | "PLAYING" | "REVEALING" | "ROUND_END" | "GAME_OVER"
 
 function calculateScore(distanceKm: number): number {
   if (distanceKm < 0.2) return 100;
-  if (distanceKm > 199) return 0;
-  // Exponential decay: 100 * e^(-distance / 30)
-  // 10km = 72 pts
-  // 50km = 19 pts
-  // 100km = 4 pts
-  // 150km = 1 pt
-  return Math.max(0, Math.round(100 * Math.exp(-distanceKm / 30)));
+  if (distanceKm > 160) return 0;
+  // Exponential decay: 100 * e^(-distance / 25)
+  // 10km = 67 pts
+  // 50km = 13 pts
+  // 100km = 2 pts
+  // 150km = 0 pts
+  return Math.max(0, Math.round(100 * Math.exp(-distanceKm / 25)));
 }
 
 function gradeDistance(km: number) {
