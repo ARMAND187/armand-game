@@ -124,18 +124,19 @@ export default function NewsCarousel() {
         }}
         onClick={() => slides.length > 1 && advance()}
       >
-        {/* Background — gracefully falls back to gradient if image is deleted/broken */}
-        {hasValidImage(slide.image_url) ? (
+        {/* Base Gradient (always visible behind the image) */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#1e1040 0%,#0f0a2e 55%,#09090b 100%)" }} />
+
+        {/* Background Image — uses contain on mobile to prevent cropping, cover on large screens */}
+        {hasValidImage(slide.image_url) && (
           <div
+            className="bg-contain sm:bg-cover bg-top sm:bg-center bg-no-repeat"
             style={{
               position: "absolute", inset: 0,
               backgroundImage: `url(${slide.image_url})`,
-              backgroundSize: "cover", backgroundPosition: "center",
               transition: "opacity 0.4s ease",
             }}
           />
-        ) : (
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#1e1040 0%,#0f0a2e 55%,#09090b 100%)" }} />
         )}
 
         {/* Purple shimmer overlay */}
