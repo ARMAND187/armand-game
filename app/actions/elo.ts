@@ -45,10 +45,24 @@ export async function updateLobbyRP(playerScores: Record<string, number>, totalR
     let rpChange = 0;
     
     if (numPlayers === 1) {
-      // Solo match: RP gain based on percentage of max score
-      if (player.score >= maxPossibleScore * 0.6) rpChange = 10; // e.g., 300/500, 600/1000
-      else if (player.score >= maxPossibleScore * 0.4) rpChange = 5; // e.g., 200/500, 400/1000
-      else rpChange = 0;
+      if (totalRounds === 5) {
+        if (player.score >= 300) rpChange = 10;
+        else if (player.score >= 290) rpChange = 0;
+        else rpChange = -5;
+      } else if (totalRounds === 10) {
+        if (player.score >= 600) rpChange = 10;
+        else if (player.score >= 499) rpChange = 0;
+        else rpChange = -5;
+      } else if (totalRounds === 25) {
+        if (player.score >= 1500) rpChange = 10;
+        else if (player.score >= 1100) rpChange = 0;
+        else rpChange = -5;
+      } else {
+        // Fallback for custom rounds
+        if (player.score >= maxPossibleScore * 0.6) rpChange = 10;
+        else if (player.score >= maxPossibleScore * 0.5) rpChange = 0;
+        else rpChange = -5;
+      }
     } else {
       // Multiplayer Placement RP
       if (index === 0) rpChange = 50; // 1st Place
