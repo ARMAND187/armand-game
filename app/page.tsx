@@ -84,8 +84,8 @@ export default async function HomePage() {
 
         {/* ── Left Column: Pro Player Identity Card ── */}
         <div
-          className="bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col shadow-2xl relative overflow-hidden"
-          style={{ padding: "24px" }}
+          className="bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col shadow-2xl relative overflow-hidden isolate"
+          style={{ padding: "24px", minHeight: 450 }}
         >
           {/* Rank-coloured background glow */}
           <div
@@ -237,7 +237,7 @@ export default async function HomePage() {
         </div>
 
         {/* ── Right Column: News Carousel ── */}
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col" style={{ minHeight: 420 }}>
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col isolate relative" style={{ height: 420, minHeight: 420 }}>
           <NewsCarousel />
         </div>
 
