@@ -48,7 +48,7 @@ export default async function HomePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mb-12" style={{ minHeight: "450px" }}>
         
         {/* Left Column (Player Hub) */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col justify-between shadow-2xl relative overflow-hidden" style={{ padding: "28px 28px 24px 28px" }}>
           {/* Subtle background glow based on Rank */}
           <div 
             className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none"
@@ -57,15 +57,15 @@ export default async function HomePage() {
             }}
           />
 
-          <div className="relative z-10">
+          <div className="relative z-10 min-w-0">
             <h2 className="text-zinc-400 text-sm font-bold uppercase tracking-widest mb-6">Player Hub</h2>
             
-            <div className="flex items-end gap-4 mb-2">
-              <span className="text-6xl drop-shadow-lg">{rankInfo.icon}</span>
-              <div className="flex flex-col">
+            <div className="flex items-end gap-3 mb-2 min-w-0">
+              <span className="text-5xl drop-shadow-lg shrink-0">{rankInfo.icon}</span>
+              <div className="flex flex-col min-w-0">
                 <span className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Current Rank</span>
                 <span 
-                  className="text-4xl font-black uppercase tracking-wider"
+                  className="text-3xl font-black uppercase tracking-wider truncate"
                   style={{ color: rankInfo.color, textShadow: `0 0 20px ${rankInfo.glow}` }}
                 >
                   {rankInfo.tier}
@@ -73,7 +73,7 @@ export default async function HomePage() {
               </div>
             </div>
             
-            <div className="text-zinc-300 font-mono text-2xl mb-8 flex items-center gap-2">
+            <div className="text-zinc-300 font-mono text-2xl mb-6 flex items-center gap-2">
               {rp.toLocaleString()} <span className="text-zinc-500 text-sm font-sans uppercase font-bold mt-1">RP</span>
             </div>
           </div>
