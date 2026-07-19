@@ -6,6 +6,7 @@ import {
   Settings, Bell, Gift, ChevronRight,
   Shield, Edit3, RefreshCw, Loader2, Mail, AlertCircle, ArrowLeft
 } from "lucide-react";
+import { getRankFromRP } from "@/utils/RankSystem";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import InstallAppButton from "@/components/InstallAppButton";
@@ -39,6 +40,7 @@ export default function ProfilePage() {
   const [verificationStage, setVerificationStage] = useState<"idle" | "sending" | "verifying">("idle");
   const [otp, setOtp] = useState("");
   const [isVerified, setIsVerified] = useState(false);
+  const [rp, setRp] = useState(0);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState("");
 
@@ -64,7 +66,7 @@ export default function ProfilePage() {
         
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, avatar_url, is_verified")
+          .select("is_admin, avatar_url, is_verified, rp")
           .eq("id", user.id)
           .single();
           
@@ -76,6 +78,9 @@ export default function ProfilePage() {
         }
         if (profile?.is_verified) {
           setIsVerified(true);
+        }
+        if (profile?.rp) {
+          setRp(profile.rp);
         }
         setIsProfileLoading(false);
       } else {
@@ -414,7 +419,10 @@ export default function ProfilePage() {
       <div className="stat-row" style={{ marginBottom: 20 }}>
         <div className="stat-chip">
           <span className="stat-chip-label">Rank</span>
-          <span className="stat-chip-value" style={{ fontSize: 18 }}>—</span>
+          <span className="stat-chip-value" style={{ fontSize: 16, display: "flex", alignItems: "center", gap: 8, color: getRankFromRP(rp).color }}>
+            {getRankFromRP(rp).icon} {getRankFromRP(rp).tier}
+            <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginLeft: 4 }}>({rp} RP)</span>
+          </span>
         </div>
       </div>
 
