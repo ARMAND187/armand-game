@@ -3,6 +3,10 @@
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
+// Module-level variable persists across client-side navigations
+// but completely resets on a hard browser reload or PWA cold boot.
+let isInitialLoad = true;
+
 export default function PathTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -14,11 +18,8 @@ export default function PathTracker() {
 
       const currentPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
       
-      // We use sessionStorage to flag if this specific tab/app session has booted
-      const hasBooted = sessionStorage.getItem("pwa_booted");
-      
-      if (!hasBooted && pathname === "/") {
-        // App just cold-booted to the home page (e.g. from PWA icon or iOS Safari resuming)
+      if (isInitialLoad && pathname === "/") {
+        // App just cold-booted (or was forced to start_url by iOS)
         const saved = localStorage.getItem("pwa_last_path");
         if (saved) {
           try {
@@ -27,7 +28,7 @@ export default function PathTracker() {
             
             // If the saved path is from the last 2 hours, and it's not the home page
             if (NOW - time < 2 * 60 * 60 * 1000 && path !== "/") {
-              sessionStorage.setItem("pwa_booted", "true");
+              isInitialLoad = false;
               window.location.href = path; // Hard redirect to restore state
               return;
             }
@@ -38,7 +39,7 @@ export default function PathTracker() {
       }
 
       // Mark as booted so we don't infinitely redirect if they manually click the Home button
-      sessionStorage.setItem("pwa_booted", "true");
+      isInitialLoad = false;
       
       // Save current path for next time iOS suspends the app
       localStorage.setItem("pwa_last_path", JSON.stringify({ path: currentPath, time: Date.now() }));
