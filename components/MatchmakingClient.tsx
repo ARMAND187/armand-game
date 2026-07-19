@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import { Users, Globe, Loader2, Play, UserPlus, X, Check } from "lucide-react";
+import { Users, Globe, Loader2, Play, UserPlus, X, Check, Share } from "lucide-react";
 
 type MatchState = "idle" | "searching" | "waiting" | "friends";
 
@@ -294,6 +294,22 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     }
   };
 
+  const handleShareCode = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join my game!',
+          text: `Join my private game room! Code: ${displayCode}`,
+        });
+      } catch (err) {
+        console.log("User cancelled share");
+      }
+    } else {
+      navigator.clipboard.writeText(displayCode || "");
+      alert("Room code copied to clipboard!");
+    }
+  };
+
   useEffect(() => {
     if (joinParam && myUsername !== "Player" && !hasAutoJoined) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -389,7 +405,12 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             Waiting for players... ({players.length}/4)
             {displayCode && (
               <>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all" }}>Room Code: <span style={{ color: "#fff", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, fontSize: 16 }}>{displayCode}</span></div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  Room Code: <span style={{ color: "#fff", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, fontSize: 16 }}>{displayCode}</span>
+                  <button onClick={handleShareCode} style={{ background: "var(--neon)", border: "none", color: "#fff", padding: "6px 12px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                    <Share size={12} /> Share
+                  </button>
+                </div>
                 <div style={{ fontSize: 12, color: timeLeft <= 60 ? "#ef4444" : "var(--text-muted)", marginTop: 8, fontWeight: 500 }}>
                   Invite expires in: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
                 </div>

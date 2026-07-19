@@ -42,6 +42,14 @@ export default function ProfilePage() {
   const [verifyError, setVerifyError] = useState("");
 
   useEffect(() => {
+    // Restore verifying state if Safari reloads the app after backgrounding
+    if (typeof window !== "undefined") {
+      const savedStage = localStorage.getItem("verificationStage");
+      if (savedStage === "verifying") {
+        setVerificationStage("verifying");
+      }
+    }
+
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -173,6 +181,7 @@ export default function ProfilePage() {
       }
 
       setVerificationStage("verifying");
+      localStorage.setItem("verificationStage", "verifying");
     } catch (err: any) {
       setVerifyError(err.message || "Failed to start verification");
       setVerificationStage("idle");
@@ -194,6 +203,7 @@ export default function ProfilePage() {
 
       setIsVerified(true);
       setVerificationStage("idle");
+      localStorage.removeItem("verificationStage");
       router.refresh();
     } catch (err: any) {
       setVerifyError(err.message || "Verification failed");
@@ -275,7 +285,7 @@ export default function ProfilePage() {
 
             <button
               type="button"
-              onClick={() => { setVerificationStage("idle"); setOtp(""); setVerifyError(""); }}
+              onClick={() => { setVerificationStage("idle"); setOtp(""); setVerifyError(""); localStorage.removeItem("verificationStage"); }}
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 background: "none", border: "none", color: "var(--text-muted)",
