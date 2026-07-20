@@ -44,13 +44,13 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
   };
 
   const days = [
-    { day: 1, reward: 50 },
-    { day: 2, reward: 100 },
-    { day: 3, reward: 150 },
-    { day: 4, reward: 200 },
-    { day: 5, reward: 300 },
-    { day: 6, reward: 400 },
-    { day: 7, reward: 500 },
+    { day: 1, type: "title", reward: "Navigator" },
+    { day: 2, type: "coins", reward: 50 },
+    { day: 3, type: "empty", reward: "?" },
+    { day: 4, type: "empty", reward: "?" },
+    { day: 5, type: "empty", reward: "?" },
+    { day: 6, type: "empty", reward: "?" },
+    { day: 7, type: "empty", reward: "?" },
   ];
 
   return (
@@ -89,7 +89,15 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
                   className={isNext ? "animate-pulse" : ""}
                 />
               </div>
-              <span style={{ fontSize: 11, fontWeight: 800, color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b") }}>+{d.reward}</span>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, height: 28, justifyContent: "center" }}>
+                {d.type === "coins" ? (
+                  <span style={{ fontSize: 11, fontWeight: 800, color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b") }}>+{d.reward}</span>
+                ) : d.type === "title" ? (
+                  <span style={{ fontSize: 8, fontWeight: 800, color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b"), textTransform: "uppercase" }}>{d.reward}</span>
+                ) : (
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#52525b" }}>?</span>
+                )}
+              </div>
               <span className="text-[9px] font-bold text-zinc-500 uppercase mt-0.5">Day {d.day}</span>
             </div>
           );
