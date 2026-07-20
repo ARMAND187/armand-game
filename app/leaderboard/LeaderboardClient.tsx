@@ -1,11 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy } from "lucide-react";
+import { Trophy, Crown, Star, Gem } from "lucide-react";
 import { getRankFromRP } from "@/utils/RankSystem";
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 const RANK_COLOR: Record<number, string> = { 1: "#fbbf24", 2: "#94a3b8", 3: "#b45309" };
+
+function PlayerNameFlair({ username, flair }: { username: string; flair?: string | null }) {
+  if (flair === "Gold Crown") {
+    return (
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#2b271d", border: "2px solid #f59e0b", padding: "2px 10px", borderRadius: 9999 }}>
+        <Crown size={12} fill="#f59e0b" color="#f59e0b" />
+        <span style={{ color: "#f59e0b", fontWeight: 800, fontSize: 12 }}>{username}</span>
+      </div>
+    );
+  }
+  if (flair === "Verified Star") {
+    return (
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#2a1a24", border: "2px solid #ec4899", padding: "2px 10px", borderRadius: 9999 }}>
+        <Star size={12} fill="#ec4899" color="#ec4899" />
+        <span style={{ color: "#ec4899", fontWeight: 800, fontSize: 12 }}>{username}</span>
+      </div>
+    );
+  }
+  if (flair === "Diamond") {
+    return (
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#1a2530", border: "2px solid #38bdf8", padding: "2px 10px", borderRadius: 9999 }}>
+        <Gem size={12} fill="#38bdf8" color="#38bdf8" />
+        <span style={{ color: "#38bdf8", fontWeight: 800, fontSize: 12 }}>{username}</span>
+      </div>
+    );
+  }
+
+  return <span>@{username}</span>;
+}
 
 export default function LeaderboardClient({ initialData }: { initialData: any[] }) {
   const [limit, setLimit] = useState(10);
@@ -72,8 +101,8 @@ export default function LeaderboardClient({ initialData }: { initialData: any[] 
                         style={{ width: "100%", height: "100%", objectFit: "cover", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "50%" }}
                       />
                     </div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textAlign: "center", marginTop: 6, width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        @{p.username}
+                      <div style={{ display: "flex", justifyContent: "center", marginTop: 6, width: "100%", overflow: "hidden" }}>
+                        <PlayerNameFlair username={p.username} flair={p.equippedFlair} />
                       </div>
                       <div style={{ fontSize: 10, color: "var(--neon)", fontWeight: 700, marginTop: 2 }}>
                         {p.rp} RP
@@ -122,8 +151,8 @@ export default function LeaderboardClient({ initialData }: { initialData: any[] 
                 />
               </div>
               <div className="lb-info" style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-                <div className="lb-name" style={{ textTransform: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  @{player.username}
+                <div className="lb-name" style={{ textTransform: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center" }}>
+                  <PlayerNameFlair username={player.username} flair={player.equippedFlair} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <span style={{ 

@@ -250,6 +250,7 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
 function LockerScreen({ onClose }: { onClose: () => void }) {
   const [ownedItems, setOwnedItems] = useState<ShopItem[]>([]);
   const [equippedPinUrl, setEquippedPinUrl] = useState<string | null>(null);
+  const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [equipping, setEquipping] = useState<string | null>(null);
   const supabase = createClient();
@@ -265,12 +266,13 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
     // Fetch Profile for equipped items
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("equipped_pin_url")
+      .select("equipped_pin_url, equipped_flair")
       .eq("id", user.id)
       .single();
 
     if (profileData) {
       setEquippedPinUrl(profileData.equipped_pin_url);
+      setEquippedFlair(profileData.equipped_flair);
     }
 
     // Fetch User Inventory Joined with Shop Items
@@ -303,6 +305,8 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
     } else {
       if (item.type === 'Map Pin' && item.image_url) {
         setEquippedPinUrl(item.image_url);
+      } else if (item.type === 'Name Flair') {
+        setEquippedFlair(item.name);
       }
     }
     
@@ -346,6 +350,8 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
             let isEquipped = false;
             if (item.type === 'Map Pin' && item.image_url === equippedPinUrl) {
               isEquipped = true;
+            } else if (item.type === 'Name Flair' && item.name === equippedFlair) {
+              isEquipped = true;
             }
 
             const isEquipping = equipping === item.id;
@@ -382,7 +388,7 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.type}</div>
                 </div>
                 
-                {item.type === 'Map Pin' ? (
+                {item.type === 'Map Pin' || item.type === 'Name Flair' ? (
                   <button
                     onClick={() => equipItem(item)}
                     disabled={isEquipped || isEquipping}
