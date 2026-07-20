@@ -413,11 +413,11 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             type="text"
             placeholder="Room ID"
             className="search-input"
-            style={{ flex: 1, background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", textTransform: "uppercase" }}
+            style={{ flex: 1, minWidth: 0, background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", textTransform: "uppercase" }}
             value={roomCodeInput}
             onChange={(e) => setRoomCodeInput(e.target.value)}
           />
-          <button className="btn-lobby-play" style={{ borderRadius: 10, padding: "10px 20px" }} onClick={() => joinPrivateGame()}>
+          <button className="btn-lobby-play" style={{ borderRadius: 10, padding: "10px 20px", flexShrink: 0 }} onClick={() => joinPrivateGame()}>
             Join
           </button>
         </div>
