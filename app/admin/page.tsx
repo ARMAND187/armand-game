@@ -219,6 +219,11 @@ export default function AdminDashboard() {
     fetchData();
   };
 
+  const toggleVerify = async (id: string, currentStatus: boolean) => {
+    await supabase.from("profiles").update({ is_verified: !currentStatus }).eq("id", id);
+    fetchData();
+  };
+
   if (isAdmin === null || loading) {
     return (
       <div className="page-shell" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -458,12 +463,20 @@ export default function AdminDashboard() {
                   </span>
                 </td>
                 <td style={{ padding: "12px 0" }}>
-                  <button 
-                    onClick={() => toggleAdmin(p.id, p.is_admin)}
-                    style={{ background: "none", border: "none", color: p.is_admin ? "#ef4444" : "var(--neon)", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
-                  >
-                    {p.is_admin ? "Revoke Admin" : "Make Admin"}
-                  </button>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <button 
+                      onClick={() => toggleVerify(p.id, p.is_verified)}
+                      style={{ background: "none", border: "none", color: p.is_verified ? "#f59e0b" : "#4ade80", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
+                    >
+                      {p.is_verified ? "Revoke Verify" : "Verify User"}
+                    </button>
+                    <button 
+                      onClick={() => toggleAdmin(p.id, p.is_admin)}
+                      style={{ background: "none", border: "none", color: p.is_admin ? "#ef4444" : "var(--neon)", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
+                    >
+                      {p.is_admin ? "Revoke Admin" : "Make Admin"}
+                    </button>
+                  </div>
                 </td>
               </tr>
             )})}
