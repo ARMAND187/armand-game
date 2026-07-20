@@ -465,7 +465,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             )}
           </div>
           
-          <div style={{ display: "grid", gridTemplateColumns: displayCode ? "repeat(5, 1fr)" : "1fr 1fr", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: displayCode ? "repeat(auto-fit, minmax(120px, 1fr))" : "1fr 1fr", gap: 10 }}>
             {Array.from({ length: displayCode ? 10 : 4 }).map((_, slotIndex) => {
               const player = players[slotIndex];
               return (
@@ -488,8 +488,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                 >
                   {player ? (
                     <>
-                      <div className="lb-avatar" style={{ width: 24, height: 24, fontSize: 10 }}>{player[0]}</div>
-                      {player}
+                      <div className="lb-avatar" style={{ width: 24, height: 24, fontSize: 10, flexShrink: 0 }}>{player[0]}</div>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{player}</span>
                     </>
                   ) : (
                     "Waiting..."
