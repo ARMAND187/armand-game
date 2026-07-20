@@ -378,7 +378,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
     // Fetch Profile for equipped items
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, pin_color")
+      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, pin_color, challenge_rising_star, challenge_sniper, challenge_high_roller, challenge_speedrunner")
       .eq("id", user.id)
       .single();
 
@@ -403,9 +403,27 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
       .eq("user_id", user.id);
 
     if (invData) {
-      const items = invData.map((i: any) => i.shop_items as ShopItem).filter(Boolean);
-      setOwnedItems(items);
+      const dbItems = invData.map((i: any) => i.shop_items as ShopItem).filter(Boolean);
+      items = [...dbItems];
     }
+    
+    // Inject Challenge Titles into Locker Inventory if completed
+    if (profileData) {
+      if (profileData.challenge_rising_star >= 5) {
+        items.push({ id: 'chal_risingstar', name: 'Rising Star', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Star', price: 0 } as any);
+      }
+      if (profileData.challenge_sniper >= 10) {
+        items.push({ id: 'chal_sniper', name: 'Sniper', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Crosshair', price: 0 } as any);
+      }
+      if (profileData.challenge_high_roller >= 5) {
+        items.push({ id: 'chal_highroller', name: 'Geographer', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Target', price: 0 } as any);
+      }
+      if (profileData.challenge_speedrunner >= 5) {
+        items.push({ id: 'chal_speedrunner', name: 'Speedster', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Zap', price: 0 } as any);
+      }
+    }
+
+    setOwnedItems(items);
     
     setLoading(false);
   };
