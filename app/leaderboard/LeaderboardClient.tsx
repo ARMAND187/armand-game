@@ -64,7 +64,7 @@ export default function LeaderboardClient({ initialData }: { initialData: any[] 
                         height: i === 1 ? 52 : 42,
                         boxShadow: i === 1 ? "0 0 0 3px #09090b, 0 0 0 5px #fbbf24, 0 0 20px rgba(251,191,36,0.4)" : "none",
                         overflow: "hidden",
-                        border: "none",
+                        border: `2px solid ${getRankFromRP(p.rp).color}66`,
                         background: "none"
                       }}
                     >
@@ -74,10 +74,27 @@ export default function LeaderboardClient({ initialData }: { initialData: any[] 
                         style={{ width: "100%", height: "100%", objectFit: "cover", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "50%" }}
                       />
                     </div>
-                      <div style={{ display: "flex", justifyContent: "center", marginTop: 6, width: "100%", overflow: "hidden" }}>
+                      <div style={{ display: "flex", justifyContent: "center", marginTop: 6, width: "100%", overflow: "hidden", flexDirection: "column", alignItems: "center" }}>
                         <PlayerNameFlair username={p.username} flair={p.equippedFlair} />
+                        {p.equippedTitle && (
+                          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", marginTop: 2 }}>
+                            {p.equippedTitle}
+                          </div>
+                        )}
                       </div>
-                      <div style={{ fontSize: 10, color: "var(--neon)", fontWeight: 700, marginTop: 2 }}>
+                      <div style={{ marginTop: 4, display: "flex", alignItems: "center" }}>
+                        <span style={{ 
+                          fontSize: 10, 
+                          fontWeight: 800, 
+                          color: getRankFromRP(p.rp).color, 
+                          background: getRankFromRP(p.rp).glow, 
+                          padding: "2px 6px", 
+                          borderRadius: 6 
+                        }}>
+                          {getRankFromRP(p.rp).icon} {getRankFromRP(p.rp).tier}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 10, color: "var(--neon)", fontWeight: 700, marginTop: 4 }}>
                         {p.rp} RP
                       </div>
                       <div
@@ -116,7 +133,7 @@ export default function LeaderboardClient({ initialData }: { initialData: any[] 
               >
                 {MEDAL[player.rank - 1] ?? `#${player.rank}`}
               </span>
-              <div className="lb-avatar" style={{ width: 36, height: 36, overflow: "hidden", border: "none", background: "none" }}>
+              <div className="lb-avatar" style={{ width: 36, height: 36, overflow: "hidden", border: `2px solid ${rankInfo.color}66`, background: "none" }}>
                 <img 
                   src={player.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${player.username}`} 
                   alt="Avatar" 

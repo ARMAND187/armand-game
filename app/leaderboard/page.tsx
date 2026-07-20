@@ -10,7 +10,7 @@ export default async function LeaderboardPage() {
   const supabase = await createClient();
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("username, rp, wins, avatar_url, equipped_flair")
+    .select("username, rp, wins, avatar_url, equipped_flair, equipped_title")
     .order("rp", { ascending: false, nullsFirst: false })
     .limit(100);
 
@@ -22,6 +22,7 @@ export default async function LeaderboardPage() {
     games: 0,
     avatarUrl: p.avatar_url,
     equippedFlair: p.equipped_flair || null,
+    equippedTitle: p.equipped_title || null,
   }));
 
   return <LeaderboardClient initialData={leaders} />;

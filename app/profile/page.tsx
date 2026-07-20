@@ -33,6 +33,7 @@ export default function ProfilePage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
+  const [equippedTitle, setEquippedTitle] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -72,7 +73,7 @@ export default function ProfilePage() {
         
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, avatar_url, is_verified, rp, balance, equipped_flair")
+          .select("is_admin, avatar_url, is_verified, rp, balance, equipped_flair, equipped_title")
           .eq("id", user.id)
           .single();
           
@@ -87,6 +88,9 @@ export default function ProfilePage() {
         }
         if (profile?.equipped_flair) {
           setEquippedFlair(profile.equipped_flair);
+        }
+        if (profile?.equipped_title) {
+          setEquippedTitle(profile.equipped_title);
         }
         if (profile?.rp) {
           setRp(profile.rp);
@@ -233,10 +237,25 @@ export default function ProfilePage() {
     }
   };
 
+  const rankInfo = getRankFromRP(rp);
+
   return (
     <div className="page-shell">
+      {/* ── Banner ── */}
+      <div 
+        style={{ 
+          height: 120, 
+          width: "100%", 
+          background: `linear-gradient(to bottom, ${rankInfo.color}44, transparent)`,
+          borderBottom: `1px solid ${rankInfo.color}33`,
+          marginBottom: -60,
+          maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)"
+        }} 
+      />
+
       {/* ── Profile card ── */}
-      <div className="profile-card">
+      <div className="profile-card" style={{ position: "relative", zIndex: 10 }}>
         {verificationStage === "verifying" ? (
           <form onSubmit={handleVerifyOtp} style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%" }}>
             <div style={{
@@ -322,7 +341,7 @@ export default function ProfilePage() {
               <img 
                 src={avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${username}`} 
                 alt="Avatar" 
-                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)", border: "2px solid var(--neon)" }} 
+                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)", border: `3px solid ${rankInfo.color}` }} 
               />
             </div>
             <button 
@@ -331,8 +350,25 @@ export default function ProfilePage() {
             >
               <RefreshCw size={12} /> Randomize Avatar
             </button>
-            <div className="profile-username" style={{ textTransform: "none", marginTop: "16px", display: "flex", justifyContent: "center" }}>
+            <div className="profile-username" style={{ textTransform: "none", marginTop: "16px", display: "flex", flexDirection: "column", alignItems: "center" }}>
               <PlayerNameFlair username={username} flair={equippedFlair} />
+              {equippedTitle && (
+                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 4 }}>
+                  {equippedTitle}
+                </div>
+              )}
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center" }}>
+                <span style={{ 
+                  fontSize: 12, 
+                  fontWeight: 800, 
+                  color: rankInfo.color, 
+                  background: rankInfo.glow, 
+                  padding: "4px 10px", 
+                  borderRadius: 8 
+                }}>
+                  {rankInfo.icon} {rankInfo.tier}
+                </span>
+              </div>
             </div>
 
             {errorMsg && (
