@@ -10,6 +10,7 @@ import { getRankFromRP } from "@/utils/RankSystem";
 import ShopLockerButtons from "@/components/ShopLockerButtons";
 import PlayerNameFlair from "@/components/PlayerNameFlair";
 import ChallengesButton from "@/components/ChallengesButton";
+import DailyStreakTracker from "@/components/DailyStreakTracker";
 
 export const metadata = {
   title: "Home — Armand Games",
@@ -38,12 +39,14 @@ export default async function HomePage() {
   let equippedBanner: string | null = null;
   let equippedAvatarFrame: string | null = null;
   let userId: string | undefined = undefined;
+  let currentStreak = 0;
+  let lastStreakClaim: string | null = null;
 
   if (userData?.user) {
     userId = userData.user.id;
     const { data: profile } = await supabase
       .from("profiles")
-      .select("rp, wins, avatar_url, username, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame")
+      .select("rp, wins, avatar_url, username, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, current_streak, last_streak_claim")
       .eq("id", userData.user.id)
       .single();
     if (profile) {
@@ -57,6 +60,8 @@ export default async function HomePage() {
       equippedTitle = profile.equipped_title || null;
       equippedBanner = profile.equipped_banner || null;
       equippedAvatarFrame = profile.equipped_avatar_frame || null;
+      currentStreak = profile.current_streak || 0;
+      lastStreakClaim = profile.last_streak_claim || null;
     }
   }
 
@@ -267,6 +272,7 @@ export default async function HomePage() {
               <span>Find Match</span>
             </Link>
             <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} />
+            <DailyStreakTracker currentStreak={currentStreak} lastClaimDate={lastStreakClaim} />
           </div>
         </div>
 
