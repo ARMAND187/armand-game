@@ -56,7 +56,11 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          data: { username: username.toLowerCase().trim() },
+          data: { 
+            username: username.toLowerCase().trim(),
+            display_name: username.toLowerCase().trim(),
+            name: username.toLowerCase().trim()
+          },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
