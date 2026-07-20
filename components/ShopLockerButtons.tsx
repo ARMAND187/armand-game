@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap, CheckCircle2, Ban } from "lucide-react";
+import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap, CheckCircle2, Ban, Crown, Gem, Circle } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -67,6 +67,9 @@ function renderIcon(item: ShopItem) {
     case "Package": return <Package size={size} color={color} />;
     case "Tag": return <Tag size={size} color={color} />;
     case "Shirt": return <Shirt size={size} color={color} />;
+    case "Crown": return <Crown size={size} color={color} />;
+    case "Gem": return <Gem size={size} color={color} />;
+    case "Circle": return <Circle size={size} color={color} />;
     default: return <Star size={size} color={color} />;
   }
 }
@@ -257,33 +260,52 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                 />
                 <div
                   style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 14,
-                    background: "rgba(255,255,255,0.05)",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "center",
+                    gap: 10,
+                    textAlign: "center",
+                    paddingTop: 12,
+                    paddingBottom: 8,
+                    flex: 1
                   }}
                 >
-                  {renderIcon(item)}
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{item.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.type}</div>
-                </div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: item.rarity_color,
-                    background: `${item.rarity_color}22`,
-                    padding: "2px 8px",
-                    borderRadius: 6,
-                    width: "fit-content",
-                  }}
-                >
-                  {item.rarity}
+                  <div
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: "50%",
+                      background: `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 4,
+                      boxShadow: `0 0 20px ${item.rarity_color}11`
+                    }}
+                  >
+                    {renderIcon(item)}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>{item.name}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{item.type}</div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: item.rarity_color,
+                      background: `${item.rarity_color}15`,
+                      border: `1px solid ${item.rarity_color}33`,
+                      padding: "4px 10px",
+                      borderRadius: 12,
+                      width: "fit-content",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                      marginTop: 4,
+                    }}
+                  >
+                    {item.rarity}
+                  </div>
                 </div>
                 {item.expires_at && (
                   <div style={{ fontSize: 10, color: "#fca5a5", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
@@ -620,14 +642,15 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
               >
                 <div
                   style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 12,
-                    background: "rgba(255,255,255,0.05)",
+                    width: 54,
+                    height: 54,
+                    borderRadius: 14,
+                    background: `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
+                    boxShadow: `0 0 15px ${item.rarity_color}11`
                   }}
                 >
                   {renderIcon(item)}
