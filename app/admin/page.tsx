@@ -340,19 +340,23 @@ export default function AdminDashboard() {
 
       {/* Challenge Items Management */}
       {showSpecialItems && <AdminSpecialItemsPanel onClose={() => setShowSpecialItems(false)} />}
-      <button
-        onClick={() => setShowSpecialItems(true)}
-        className="p-6 rounded-2xl flex flex-col gap-3 transition-transform hover:-translate-y-1"
-        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", marginBottom: 24, width: "100%" }}
-      >
-        <div style={{ padding: 12, borderRadius: 12, background: "rgba(245, 158, 11, 0.1)", width: "fit-content" }}>
-          <Trophy size={24} color="#f59e0b" />
+      <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ padding: 12, borderRadius: 12, background: "rgba(245, 158, 11, 0.1)" }}>
+            <Trophy size={24} color="#f59e0b" />
+          </div>
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Challenge & Streak Items</h2>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage rewards for challenges and daily streaks.</p>
+          </div>
         </div>
-        <div style={{ textAlign: "left" }}>
-          <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#fff" }}>Challenge & Streak Items</h3>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage rewards for challenges and daily streaks</p>
-        </div>
-      </button>
+        <button
+          onClick={() => setShowSpecialItems(true)}
+          style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 16px", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+        >
+          Open Manager
+        </button>
+      </div>
 
       {/* Challenge Management Button */}
       {showChallengeModal && <AdminChallengePanel onClose={() => setShowChallengeModal(false)} />}

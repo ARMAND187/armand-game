@@ -46,38 +46,17 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
   };
 
   const handleCreateItem = async () => {
-    const { error } = await supabase.from("shop_items").insert([{
+    const newItem = {
       name: "New Item",
+      description: "Description here...",
+      price: 100,
       type: "Map Pin",
-      price: 0,
-      rarity: "Common",
-      rarity_color: "#ffffff",
       is_active: false
-    }]);
+    };
     
-    if (error) {
-      alert("Failed to create item: " + error.message);
-    } else {
-      fetchItems();
-    }
-  };
-
-  const handleSeedSpecialItems = async () => {
-    const itemsToSeed = [
-      { name: 'Rising Star', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Star', is_active: false },
-      { name: 'Sniper', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Crosshair', is_active: false },
-      { name: 'High Roller', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Target', is_active: false },
-      { name: 'Speedster', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Zap', is_active: false },
-      { name: 'Navigator', type: 'Streak Title', price: 0, rarity: 'Legendary', rarity_color: '#fbbf24', icon_name: 'Compass', is_active: false }
-    ];
-    for (const item of itemsToSeed) {
-      const { data } = await supabase.from("shop_items").select("id").eq("name", item.name).eq("type", item.type);
-      if (!data || data.length === 0) {
-        await supabase.from("shop_items").insert([item]);
-      }
-    }
-    fetchItems();
-    alert("Special items seeded!");
+    const { error } = await supabase.from("shop_items").insert([newItem]);
+    if (error) alert("Error creating item: " + error.message);
+    else fetchItems();
   };
 
   const handleSave = async (id: string) => {
@@ -174,9 +153,8 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
   const now = new Date();
   
   const filteredItems = items.filter(item => {
-    // Filter by type
-    if (filter === "challenge" && item.type !== "Challenge Title") return false;
-    if (filter === "streak" && item.type !== "Streak Title") return false;
+    // Exclude special items as they have their own manager now
+    if (item.type === "Challenge Title" || item.type === "Streak Title") return false;
     
     // Filter by tab
     const isActive = (item as any).is_active;
@@ -232,28 +210,6 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
         >
           All Items
         </button>
-        <button
-          onClick={() => setFilter("challenge")}
-          style={{
-            padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
-            background: filter === "challenge" ? "var(--text-primary)" : "var(--bg-card)",
-            color: filter === "challenge" ? "#000" : "var(--text-muted)",
-            border: "none"
-          }}
-        >
-          Challenge Items
-        </button>
-        <button
-          onClick={() => setFilter("streak")}
-          style={{
-            padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
-            background: filter === "streak" ? "var(--text-primary)" : "var(--bg-card)",
-            color: filter === "streak" ? "#000" : "var(--text-muted)",
-            border: "none"
-          }}
-        >
-          Daily Streak
-        </button>
         <div style={{ flex: 1 }} />
         <button
           onClick={handleCreateItem}
@@ -263,15 +219,6 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
           }}
         >
           <Plus size={16} /> Create Item
-        </button>
-        <button
-          onClick={handleSeedSpecialItems}
-          style={{
-            padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
-            background: "rgba(255,255,255,0.1)", color: "#fff", border: "none", display: "flex", alignItems: "center", gap: 6
-          }}
-        >
-          Seed Specials
         </button>
       </div>
 
@@ -307,8 +254,6 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
                         <option value="Map Pin">Map Pin</option>
                         <option value="Name Flair">Name Flair</option>
                         <option value="Title">Title</option>
-                        <option value="Challenge Title">Challenge Title</option>
-                        <option value="Streak Title">Streak Title</option>
                         <option value="Banner">Banner</option>
                         <option value="Avatar Frame">Avatar Frame</option>
                       </select>
