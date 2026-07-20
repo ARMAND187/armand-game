@@ -54,42 +54,18 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
   ];
 
   return (
-    <div className="w-full relative overflow-hidden py-4 px-6">
-      <div className="flex items-center justify-between mb-5 relative z-10 px-1">
-        <div className="flex items-center gap-2">
-          <Flame color={currentStreak > 0 ? "#ef4444" : "var(--text-muted)"} fill={currentStreak > 0 ? "#ef4444" : "none"} size={20} />
-          <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
-        </div>
-        {!alreadyClaimedToday ? (
-          <button 
-            onClick={handleClaim}
-            disabled={claiming}
-            style={{ 
-              background: "rgba(74, 222, 128, 0.15)", 
-              color: "#4ade80", 
-              border: "1px solid rgba(74, 222, 128, 0.4)",
-              padding: "4px 12px", 
-              borderRadius: "100px", 
-              fontSize: "11px", 
-              fontWeight: 800, 
-              cursor: claiming ? "wait" : "pointer",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em"
-            }}
-          >
-            {claiming ? "Wait..." : "Claim"}
-          </button>
-        ) : (
-          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Come back tomorrow</span>
-        )}
+    <div className="w-full relative py-6 px-4 sm:px-8">
+      <div className="flex items-center gap-2 mb-6 relative z-10 pl-2">
+        <Flame color={currentStreak > 0 ? "#ef4444" : "var(--text-muted)"} fill={currentStreak > 0 ? "#ef4444" : "none"} size={20} />
+        <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
       </div>
 
-      <div className="flex justify-between items-center relative z-10 px-1">
+      <div className="flex justify-between items-center relative z-10 px-2 sm:px-4">
         {/* Connection line behind the circles */}
-        <div className="absolute left-6 right-6 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
+        <div className="absolute left-8 right-8 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
         <div 
-          className="absolute left-6 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
-          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 48px)` }}
+          className="absolute left-8 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
+          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 64px)` }}
         />
 
         {days.map((d, i) => {
@@ -113,10 +89,39 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
                   <span style={{ fontSize: 11, fontWeight: 800, color: isNext ? "#4ade80" : "#52525b" }}>+{d.reward}</span>
                 )}
               </div>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase">Day {d.day}</span>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase mt-2">Day {d.day}</span>
             </div>
           );
         })}
+      </div>
+
+      <div className="flex justify-center mt-8 relative z-10">
+        {!alreadyClaimedToday ? (
+          <button 
+            onClick={handleClaim}
+            disabled={claiming}
+            className="w-full sm:w-auto hover:brightness-125 transition-all duration-300"
+            style={{ 
+              background: "linear-gradient(90deg, rgba(74, 222, 128, 0.15), rgba(74, 222, 128, 0.05))", 
+              color: "#4ade80", 
+              border: "1px solid rgba(74, 222, 128, 0.4)",
+              boxShadow: "inset 0 0 12px rgba(74, 222, 128, 0.1)",
+              padding: "12px 32px", 
+              borderRadius: "100px", 
+              fontSize: "14px", 
+              fontWeight: 800, 
+              cursor: claiming ? "wait" : "pointer",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em"
+            }}
+          >
+            {claiming ? "Processing..." : "Claim Daily Reward"}
+          </button>
+        ) : (
+          <div className="py-3 px-6 rounded-full border border-zinc-800 bg-zinc-900/50">
+            <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">Come back tomorrow for Day {Math.min(currentStreak + 1, 7)}</span>
+          </div>
+        )}
       </div>
     </div>
   );
