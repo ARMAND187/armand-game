@@ -103,62 +103,55 @@ export default async function HomePage() {
           />
 
           {/* ── 1. Player Identity Header ── */}
-          <div className="relative z-10 flex items-center mb-8">
-            <div 
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 16,
-                background: "rgba(255,255,255,0.03)", 
-                border: `2px solid ${rankInfo.color}`, 
-                borderRadius: 9999,
-                padding: "8px 24px 8px 8px",
-                boxShadow: `0 0 16px ${rankInfo.color}33`
-              }}
-            >
-              {/* Avatar with online dot */}
-              <div className="relative shrink-0">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt={username}
-                    style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.1)" }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: 56, height: 56, borderRadius: "50%",
-                      background: `linear-gradient(135deg, ${rankInfo.color}55, #1e1040)`,
-                      border: "2px solid rgba(255,255,255,0.1)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 22, fontWeight: 900, color: rankInfo.color,
-                    }}
-                  >
-                    {username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span
-                  style={{
-                    position: "absolute", bottom: 2, right: 2,
-                    width: 12, height: 12, borderRadius: "50%",
-                    background: "#4ade80", border: "2px solid #09090b",
-                    boxShadow: "0 0 6px #4ade80",
-                  }}
+          <div className="relative z-10 flex items-center" style={{ gap: "16px", marginBottom: "36px" }}>
+            {/* Avatar with online dot */}
+            <div className="relative shrink-0">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={username}
+                  style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: `2px solid ${rankInfo.color}66` }}
                 />
-              </div>
-
-              {/* Username + Title */}
-              <div className="flex flex-col min-w-0" style={{ paddingRight: 8 }}>
-                <h1
-                  className="truncate"
-                  style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", display: "flex", alignItems: "center" }}
+              ) : (
+                <div
+                  style={{
+                    width: 56, height: 56, borderRadius: "50%",
+                    background: `linear-gradient(135deg, ${rankInfo.color}55, #1e1040)`,
+                    border: `2px solid ${rankInfo.color}66`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 22, fontWeight: 900, color: rankInfo.color,
+                  }}
                 >
-                  <PlayerNameFlair username={username} flair={equippedFlair} />
-                </h1>
-                {equippedTitle && (
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 2 }}>
-                    {equippedTitle}
-                  </p>
-                )}
-              </div>
+                  {username.charAt(0).toUpperCase()}
+                </div>
+              )}
+              {/* Online dot */}
+              <span
+                style={{
+                  position: "absolute", bottom: 2, right: 2,
+                  width: 12, height: 12, borderRadius: "50%",
+                  background: "#4ade80", border: "2px solid #09090b",
+                  boxShadow: "0 0 6px #4ade80",
+                }}
+              />
+            </div>
+
+            {/* Username + hub label + title */}
+            <div className="min-w-0">
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(167,139,250,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2 }}>
+                Player Hub
+              </p>
+              <h1
+                className="truncate"
+                style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", display: "flex", alignItems: "center" }}
+              >
+                <PlayerNameFlair username={username} flair={equippedFlair} />
+              </h1>
+              {equippedTitle && (
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 2 }}>
+                  {equippedTitle}
+                </p>
+              )}
             </div>
           </div>
 
