@@ -97,7 +97,18 @@ export default function AdminShopPanel() {
                   />
                   <div style={{ display: "flex", gap: 10 }}>
                     <input className="search-input" type="number" value={editForm.price || 0} onChange={e => setEditForm({...editForm, price: Number(e.target.value)})} placeholder="Price" style={{ flex: 1 }} />
-                    <input className="search-input" value={editForm.type || ""} onChange={e => setEditForm({...editForm, type: e.target.value})} placeholder="Type (e.g. Map Pin)" style={{ flex: 1 }} />
+                    <select 
+                      className="search-input" 
+                      value={editForm.type || "Map Pin"} 
+                      onChange={e => setEditForm({...editForm, type: e.target.value})} 
+                      style={{ flex: 1, appearance: "none" }}
+                    >
+                      <option value="Map Pin">Map Pin</option>
+                      <option value="Name Flair">Name Flair</option>
+                      <option value="Title">Title</option>
+                      <option value="Banner">Banner</option>
+                      <option value="Avatar Frame">Avatar Frame</option>
+                    </select>
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
                     <input className="search-input" value={editForm.rarity || ""} onChange={e => setEditForm({...editForm, rarity: e.target.value})} placeholder="Rarity" style={{ flex: 1 }} />

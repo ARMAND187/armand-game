@@ -88,7 +88,10 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
   const supabase = createClient();
+  
+  const categories = ["All", "Map Pin", "Name Flair", "Title", "Banner", "Avatar Frame"];
 
   useEffect(() => {
     fetchData();
@@ -139,15 +142,38 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
 
   return (
     <FullScreenOverlay title="🛒 Shop" onClose={onClose}>
-      <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 24, marginTop: 0 }}>
+      <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 16, marginTop: 0 }}>
         Spend your coins to unlock exclusive cosmetics and map pins.
       </p>
+
+      {/* Categories */}
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, marginBottom: 12, scrollbarWidth: "none" }}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            style={{
+              background: activeCategory === cat ? "rgba(167,139,250,0.2)" : "rgba(255,255,255,0.05)",
+              border: `1px solid ${activeCategory === cat ? "rgba(167,139,250,0.5)" : "transparent"}`,
+              color: activeCategory === cat ? "#a78bfa" : "var(--text-muted)",
+              padding: "6px 14px",
+              borderRadius: 20,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
       {loading ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading shop...</div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-          {items.map((item) => {
+          {items.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             const isOwned = ownedIds.has(item.id);
             const isPurchasing = purchasing === item.id;
             
@@ -251,8 +277,13 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
   const [ownedItems, setOwnedItems] = useState<ShopItem[]>([]);
   const [equippedPinUrl, setEquippedPinUrl] = useState<string | null>(null);
   const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
+  const [equippedTitle, setEquippedTitle] = useState<string | null>(null);
+  const [equippedBanner, setEquippedBanner] = useState<string | null>(null);
+  const [equippedAvatarFrame, setEquippedAvatarFrame] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [equipping, setEquipping] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const categories = ["All", "Map Pin", "Name Flair", "Title", "Banner", "Avatar Frame"];
   const supabase = createClient();
 
   useEffect(() => {
@@ -266,13 +297,16 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
     // Fetch Profile for equipped items
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("equipped_pin_url, equipped_flair")
+      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame")
       .eq("id", user.id)
       .single();
 
     if (profileData) {
       setEquippedPinUrl(profileData.equipped_pin_url);
       setEquippedFlair(profileData.equipped_flair);
+      setEquippedTitle(profileData.equipped_title);
+      setEquippedBanner(profileData.equipped_banner);
+      setEquippedAvatarFrame(profileData.equipped_avatar_frame);
     }
 
     // Fetch User Inventory Joined with Shop Items
@@ -307,6 +341,12 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
         setEquippedPinUrl(item.image_url);
       } else if (item.type === 'Name Flair') {
         setEquippedFlair(item.name);
+      } else if (item.type === 'Title') {
+        setEquippedTitle(item.name);
+      } else if (item.type === 'Banner' && item.image_url) {
+        setEquippedBanner(item.image_url);
+      } else if (item.type === 'Avatar Frame' && item.image_url) {
+        setEquippedAvatarFrame(item.image_url);
       }
     }
     
@@ -315,9 +355,32 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
 
   return (
     <FullScreenOverlay title="🎒 Locker" onClose={onClose}>
-      <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 24, marginTop: 0 }}>
+      <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 16, marginTop: 0 }}>
         Manage your owned cosmetics and equip your favorites.
       </p>
+
+      {/* Categories */}
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, marginBottom: 12, scrollbarWidth: "none" }}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            style={{
+              background: activeCategory === cat ? "rgba(167,139,250,0.2)" : "rgba(255,255,255,0.05)",
+              border: `1px solid ${activeCategory === cat ? "rgba(167,139,250,0.5)" : "transparent"}`,
+              color: activeCategory === cat ? "#a78bfa" : "var(--text-muted)",
+              padding: "6px 14px",
+              borderRadius: 20,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
       {loading ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading locker...</div>
@@ -345,12 +408,18 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Owned Items
           </div>
-          {ownedItems.map((item) => {
+          {ownedItems.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             // Determine if equipped
             let isEquipped = false;
             if (item.type === 'Map Pin' && item.image_url === equippedPinUrl) {
               isEquipped = true;
             } else if (item.type === 'Name Flair' && item.name === equippedFlair) {
+              isEquipped = true;
+            } else if (item.type === 'Title' && item.name === equippedTitle) {
+              isEquipped = true;
+            } else if (item.type === 'Banner' && item.image_url === equippedBanner) {
+              isEquipped = true;
+            } else if (item.type === 'Avatar Frame' && item.image_url === equippedAvatarFrame) {
               isEquipped = true;
             }
 
@@ -388,7 +457,7 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.type}</div>
                 </div>
                 
-                {item.type === 'Map Pin' || item.type === 'Name Flair' ? (
+                {['Map Pin', 'Name Flair', 'Title', 'Banner', 'Avatar Frame'].includes(item.type) ? (
                   <button
                     onClick={() => equipItem(item)}
                     disabled={isEquipped || isEquipping}
