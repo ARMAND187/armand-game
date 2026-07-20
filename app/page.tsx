@@ -114,7 +114,7 @@ export default async function HomePage() {
 
         {/* ── Left Column: Pro Player Identity Card ── */}
         <div
-          className="bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col shadow-2xl relative overflow-hidden isolate"
+          className="glass-panel flex flex-col isolate"
           style={{ padding: "24px", minHeight: 450 }}
         >
           {/* Rank-coloured background glow */}
@@ -216,8 +216,8 @@ export default async function HomePage() {
 
           {/* ── 2. Rank & Progress Tracker ── */}
           <div
-            className="relative z-10 rounded-2xl mb-5"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px" }}
+            className="glass-panel relative z-10 mb-5"
+            style={{ padding: "14px 16px" }}
           >
             {/* Rank row */}
             <div className="flex items-center gap-3 mb-3">
@@ -272,20 +272,16 @@ export default async function HomePage() {
           <div className="relative z-10 mt-auto flex flex-col gap-3">
             <Link
               href="/lobby/geokurdistan"
-              className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-xl tracking-widest uppercase transition-all duration-300 relative overflow-hidden group"
-              style={{
-                background: "linear-gradient(135deg, var(--neon), #8b5cf6)",
-                boxShadow: "0 0 28px var(--neon-glow)",
-                color: "white",
-              }}
+              className="btn-play w-full py-5 flex items-center justify-center gap-3 font-black text-xl tracking-widest uppercase relative overflow-hidden group"
+              style={{ borderRadius: "20px" }}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-              <Play className="fill-white shrink-0" size={22} />
+              <Play className="fill-white shrink-0" size={24} />
               <span>Find Match</span>
             </Link>
             
             {/* ── Combined Challenges & Streaks Card ── */}
-            <div className="w-full rounded-2xl flex flex-col overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="glass-panel w-full flex flex-col">
               <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} challenges={challenges} />
               <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "0 16px" }} />
               <DailyStreakTracker currentStreak={currentStreak} lastClaimDate={lastStreakClaim} />
