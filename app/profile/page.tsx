@@ -241,19 +241,6 @@ export default function ProfilePage() {
 
   return (
     <div className="page-shell">
-      {/* ── Banner ── */}
-      <div 
-        style={{ 
-          height: 120, 
-          width: "100%", 
-          background: `linear-gradient(to bottom, ${rankInfo.color}44, transparent)`,
-          borderBottom: `1px solid ${rankInfo.color}33`,
-          marginBottom: -60,
-          maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)"
-        }} 
-      />
-
       {/* ── Profile card ── */}
       <div className="profile-card" style={{ position: "relative", zIndex: 10 }}>
         {verificationStage === "verifying" ? (
