@@ -42,6 +42,7 @@ import VerifyOverlay from "@/components/VerifyOverlay";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { PartyProvider } from "@/context/PartyContext";
 import PartyHUDLoader from "@/components/PartyHUDLoader";
+import PartyInviteToasts from "@/components/PartyInviteToasts";
 
 const PWA_RESTORE_SCRIPT = `
   try {
@@ -82,6 +83,7 @@ export default function RootLayout({
             <main className="app-shell">{children}</main>
             <BottomNav />
             <PartyHUDLoader />
+            <PartyInviteToasts />
           </PartyProvider>
         </ThemeProvider>
       </body>

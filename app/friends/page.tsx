@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import VoiceParty from "@/components/VoiceParty";
 import { usePartyContext } from "@/context/PartyContext";
 
 interface Friend {
@@ -30,14 +29,6 @@ interface Request {
 
 type Tab = "friends" | "requests";
 
-interface IncomingInvite {
-  id: string;
-  sender_id: string;
-  party_code: string;
-  sender_username?: string;
-  sender_avatarUrl?: string | null;
-}
-
 
 export default function FriendsPage() {
   const [tab, setTab]             = useState<Tab>("friends");
@@ -48,12 +39,12 @@ export default function FriendsPage() {
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
-  
-  const [incomingInvites, setIncomingInvites] = useState<IncomingInvite[]>([]);
 
   // Voice Party — from global context (connection lives in layout)
-  const { activeParty, myUsername: ctxUsername, joinParty, leaveParty: ctxLeaveParty } = usePartyContext();
+  const { activeParty, myUsername: ctxUsername, joinParty, leaveParty: ctxLeaveParty, sendInvite } = usePartyContext();
   const [partyCodeInput, setPartyCodeInput] = useState("");
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [sentInvites, setSentInvites] = useState<Set<string>>(new Set());
   
   const supabase = createClient();
 
@@ -138,45 +129,6 @@ export default function FriendsPage() {
     }
   }, [myUserId, loadData]);
 
-
-  // Real-time listener for invites
-  useEffect(() => {
-    if (!myUserId) return;
-
-    const channel = supabase
-      .channel('party_invites_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'party_invites',
-          filter: `receiver_id=eq.${myUserId}`,
-        },
-        (payload) => {
-          const newInvite = payload.new as IncomingInvite;
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setFriends(currentFriends => {
-            const sender = currentFriends.find(f => f.profile_id === newInvite.sender_id);
-            setIncomingInvites(prev => [
-              ...prev,
-              {
-                ...newInvite,
-                sender_username: sender?.username || "Someone",
-                sender_avatarUrl: sender?.avatarUrl || null,
-              }
-            ]);
-            return currentFriends;
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [myUserId, supabase]);
-
   const activeFriends = friends.filter(f => f.currentParty !== null && f.currentParty !== activeParty);
 
   const handleCreateParty = async () => {
@@ -202,24 +154,6 @@ export default function FriendsPage() {
     ctxLeaveParty();
     await supabase.from("profiles").update({ current_party: null }).eq("id", myUserId);
     loadData();
-  };
-
-  const handleSendInvite = async (friendId: string) => {
-    if (!myUserId || !activeParty) return;
-    await supabase.from("party_invites").insert({
-      sender_id: myUserId,
-      receiver_id: friendId,
-      party_code: activeParty,
-    });
-  };
-
-  const acceptInvite = (invite: IncomingInvite) => {
-    handleJoinParty(invite.party_code);
-    dismissInvite(invite.id);
-  };
-
-  const dismissInvite = (id: string) => {
-    setIncomingInvites(prev => prev.filter(inv => inv.id !== id));
   };
 
   const filtered = friends.filter(
@@ -329,31 +263,6 @@ export default function FriendsPage() {
     <div className="w-full flex justify-center">
       <div className="w-full max-w-6xl flex flex-col gap-6 mt-8 px-4 md:px-8 pb-32">
 
-      {/* ── Incoming Invites Toasts ── */}
-      <div className="fixed top-24 right-4 z-50 flex flex-col gap-2">
-        {incomingInvites.map(inv => (
-          <div key={inv.id} className="bg-zinc-900 border border-purple-500/50 p-4 rounded-xl shadow-2xl flex items-center gap-4 w-80 animate-in slide-in-from-right-8">
-            <img 
-              src={inv.sender_avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${inv.sender_username}`} 
-              alt="Avatar" 
-              className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800"
-            />
-            <div className="flex-1">
-              <p className="text-sm text-white font-bold">@{inv.sender_username}</p>
-              <p className="text-xs text-zinc-400">Invited you to party!</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => acceptInvite(inv)} className="bg-purple-600 hover:bg-purple-500 text-white p-2 rounded-lg">
-                <Check size={16} />
-              </button>
-              <button onClick={() => dismissInvite(inv.id)} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 p-2 rounded-lg">
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
       <div>
         <h1 className="page-header mb-1">Friends</h1>
         <p className="page-subtitle mb-0">Connect and compete</p>
@@ -401,101 +310,133 @@ export default function FriendsPage() {
       </div>
 
       {/* ── Section 2: Party Lounge ── */}
-      <div className="border border-purple-500/50 rounded-2xl p-6 w-full bg-zinc-900/50 flex flex-col min-h-[140px]">
-        <h2 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
-          🎉 Party Lounge
-        </h2>
-        
+      <div style={{
+        background: "linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(9,9,11,0) 100%)",
+        border: "1px solid rgba(167,139,250,0.35)",
+        borderRadius: 20,
+        padding: "20px",
+        width: "100%",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+            🎉 Party Lounge
+          </h2>
+          {activeParty && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
+              <span style={{ fontSize: 11, color: "#4ade80", fontWeight: 700 }}>LIVE</span>
+            </div>
+          )}
+        </div>
+
         {activeParty ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "8px 0" }}>
-            {/* Active party banner */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Code + Copy row */}
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
-              background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.3)",
-              borderRadius: 12, padding: "10px 14px",
+              background: "rgba(0,0,0,0.3)", border: "1px solid rgba(167,139,250,0.2)",
+              borderRadius: 14, padding: "12px 16px",
             }}>
-              <div style={{
-                width: 10, height: 10, borderRadius: "50%", background: "#4ade80",
-                boxShadow: "0 0 8px #4ade80", flexShrink: 0,
-                animation: "pulse-green 1.5s ease-in-out infinite",
-              }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>Party Active</div>
-                <div style={{ fontSize: 11, color: "#a1a1aa" }}>Code: <span style={{ color: "#a78bfa", fontWeight: 800, letterSpacing: "0.1em" }}>{activeParty}</span></div>
+                <div style={{ fontSize: 10, color: "#71717a", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Party Code</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#a78bfa", letterSpacing: "0.15em" }}>{activeParty}</div>
               </div>
+              <button
+                onClick={() => navigator.clipboard?.writeText(activeParty)}
+                style={{
+                  background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.25)",
+                  borderRadius: 10, padding: "8px 12px", color: "#a78bfa",
+                  fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+                }}
+                title="Copy code"
+              >
+                <Copy size={13} /> Copy
+              </button>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: 10 }}>
+              {/* Invite button → opens modal */}
+              <button
+                onClick={() => setShowInviteModal(true)}
+                style={{
+                  flex: 1,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                  background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
+                  border: "none", borderRadius: 12, padding: "12px 0",
+                  color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                  boxShadow: "0 4px 18px rgba(167,139,250,0.35)",
+                  transition: "transform 0.15s, box-shadow 0.15s",
+                }}
+                onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"; }}
+                onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+              >
+                <Users size={15} /> Invite Friends
+              </button>
               <button
                 onClick={handleLeaveParty}
                 style={{
-                  background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)",
-                  borderRadius: 8, padding: "5px 10px", color: "#ef4444",
-                  fontSize: 11, fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)",
+                  borderRadius: 12, padding: "12px 18px",
+                  color: "#ef4444", fontSize: 13, fontWeight: 700, cursor: "pointer",
                 }}
               >
                 Leave
               </button>
             </div>
-            {/* Invite friends */}
-            <div style={{ fontSize: 12, color: "#a1a1aa", display: "flex", alignItems: "center", gap: 6 }}>
-              <PhoneCall size={12} />
-              Voice controls available in the floating party panel (bottom-left)
+
+            <div style={{ fontSize: 11, color: "#52525b", display: "flex", alignItems: "center", gap: 5 }}>
+              <PhoneCall size={11} /> Voice controls in the floating panel (bottom-left)
             </div>
-            {/* Send invites to friends */}
-            {friends.length > 0 && (
-              <div>
-                <p style={{ fontSize: 11, color: "#a1a1aa", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Invite Friends</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {friends.map(f => (
-                    <button
-                      key={f.id}
-                      onClick={() => handleSendInvite(f.profile_id)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: 20, padding: "5px 12px", color: "#e4e4e7",
-                        fontSize: 12, fontWeight: 600, cursor: "pointer",
-                      }}
-                    >
-                      <img
-                        src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`}
-                        alt="" style={{ width: 20, height: 20, borderRadius: "50%" }}
-                      />
-                      @{f.username}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+
             <style>{`
-              @keyframes pulse-green {
-                0%, 100% { opacity: 1; transform: scale(1); }
-                50% { opacity: 0.4; transform: scale(0.8); }
-              }
+              @keyframes pulse-green { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
             `}</style>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "12px 0" }}>
-            <button 
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <button
               onClick={handleCreateParty}
-              className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-3 rounded-full border border-zinc-700 flex items-center gap-2 font-medium transition-colors shadow-md"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
+                border: "none", borderRadius: 14, padding: "14px",
+                color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(167,139,250,0.3)",
+                transition: "transform 0.15s",
+              }}
+              onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"; }}
+              onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
             >
               <Plus size={18} /> Create Party
             </button>
-            <div style={{ display: "flex", gap: 8, width: "100%", maxWidth: 300 }}>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+              <span style={{ fontSize: 11, color: "#52525b", fontWeight: 600 }}>or join with code</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
               <input
                 className="search-input"
-                placeholder="Enter party code..."
+                placeholder="ENTER CODE..."
                 value={partyCodeInput}
                 onChange={e => setPartyCodeInput(e.target.value.toUpperCase())}
-                style={{ flex: 1, background: "var(--bg-base)", letterSpacing: "0.1em", fontWeight: 700, textTransform: "uppercase" }}
+                style={{ flex: 1, background: "rgba(0,0,0,0.3)", letterSpacing: "0.12em", fontWeight: 800, textTransform: "uppercase", fontSize: 13 }}
                 onKeyDown={e => e.key === "Enter" && handleJoinParty()}
               />
               <button
                 onClick={() => handleJoinParty()}
                 disabled={!partyCodeInput.trim()}
                 style={{
-                  background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)",
-                  borderRadius: 10, padding: "8px 14px", color: "#a78bfa",
-                  fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+                  background: partyCodeInput.trim() ? "rgba(167,139,250,0.2)" : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${partyCodeInput.trim() ? "rgba(167,139,250,0.4)" : "rgba(255,255,255,0.08)"}`,
+                  borderRadius: 10, padding: "10px 16px",
+                  color: partyCodeInput.trim() ? "#a78bfa" : "#52525b",
+                  fontSize: 13, fontWeight: 800, cursor: partyCodeInput.trim() ? "pointer" : "default",
+                  transition: "all 0.2s",
                 }}
               >
                 Join
@@ -503,8 +444,129 @@ export default function FriendsPage() {
             </div>
           </div>
         )}
-
       </div>
+
+      {/* ── Invite Friends Modal ── */}
+      {showInviteModal && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 9998,
+            background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)",
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+            padding: "0 0 env(safe-area-inset-bottom, 0)",
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setShowInviteModal(false); }}
+        >
+          <div style={{
+            background: "#111113",
+            border: "1px solid rgba(167,139,250,0.3)",
+            borderRadius: "24px 24px 0 0",
+            width: "100%",
+            maxWidth: 480,
+            maxHeight: "75vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            animation: "sheet-up 0.3s cubic-bezier(0.34,1.2,0.64,1)",
+          }}>
+            {/* Modal header */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "18px 20px 14px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Invite to Party</div>
+                <div style={{ fontSize: 12, color: "#71717a", marginTop: 2 }}>
+                  Code: <span style={{ color: "#a78bfa", fontWeight: 700 }}>{activeParty}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInviteModal(false)}
+                style={{
+                  width: 34, height: 34, borderRadius: "50%",
+                  background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", color: "#a1a1aa",
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Friend list */}
+            <div style={{ overflowY: "auto", flex: 1, padding: "12px 16px 20px" }}>
+              {friends.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "32px 0", color: "#52525b" }}>
+                  <Users size={32} style={{ margin: "0 auto 10px", opacity: 0.4 }} />
+                  <p style={{ fontSize: 13 }}>No friends to invite yet</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {friends.map(f => {
+                    const alreadyInParty = f.currentParty === activeParty;
+                    return (
+                      <div
+                        key={f.id}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 12,
+                          background: "rgba(255,255,255,0.03)",
+                          border: `1px solid ${alreadyInParty ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.06)"}`,
+                          borderRadius: 14, padding: "12px 14px",
+                        }}
+                      >
+                        <img
+                          src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`}
+                          alt={f.username}
+                          style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", flexShrink: 0 }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>@{f.username}</div>
+                          {alreadyInParty && <div style={{ fontSize: 11, color: "#4ade80" }}>Already in party</div>}
+                        </div>
+                        {alreadyInParty ? (
+                          <div style={{
+                            background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.25)",
+                            borderRadius: 10, padding: "6px 12px", color: "#4ade80", fontSize: 11, fontWeight: 700,
+                          }}>
+                            In Party ✓
+                          </div>
+                        ) : (
+                          <button
+                            onClick={async () => {
+                              await sendInvite(f.profile_id);
+                              setSentInvites(s => new Set([...s, f.profile_id]));
+                            }}
+                            disabled={sentInvites.has(f.profile_id)}
+                            style={{
+                              background: sentInvites.has(f.profile_id) ? "rgba(74,222,128,0.12)" : "linear-gradient(135deg, #a78bfa, #7c3aed)",
+                              border: sentInvites.has(f.profile_id) ? "1px solid rgba(74,222,128,0.25)" : "none",
+                              borderRadius: 10, padding: "7px 14px",
+                              color: sentInvites.has(f.profile_id) ? "#4ade80" : "#fff",
+                              fontSize: 12, fontWeight: 700,
+                              cursor: sentInvites.has(f.profile_id) ? "default" : "pointer",
+                              transition: "all 0.2s",
+                            }}
+                          >
+                            {sentInvites.has(f.profile_id) ? "Sent ✓" : "Invite"}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          <style>{`
+            @keyframes sheet-up {
+              from { transform: translateY(100%); opacity: 0.5; }
+              to   { transform: translateY(0); opacity: 1; }
+            }
+          `}</style>
+        </div>
+      )}
+
 
       {/* ── Section 3: Active Parties ── */}
       {activeFriends.length > 0 && (
@@ -585,8 +647,8 @@ export default function FriendsPage() {
                     
                     {activeParty && friend.currentParty !== activeParty && (
                       <button 
-                        onClick={(e) => { e.preventDefault(); handleSendInvite(friend.profile_id); }}
-                        className="ml-auto bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700 flex items-center gap-1 transition-colors"
+                        onClick={(e) => { e.preventDefault(); sendInvite(friend.profile_id); }}
+                        className="ml-auto bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700 flex items-center gap-1.5 transition-colors"
                       >
                         <PhoneCall size={12} /> Invite
                       </button>
