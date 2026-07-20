@@ -1,0 +1,24 @@
+<svg width="400" height="90" viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="b2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0d0221"/>
+      <stop offset="50%" stop-color="#1a0b3d"/>
+      <stop offset="100%" stop-color="#2d0f5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="90" rx="10" fill="url(#b2)"/>
+  <g stroke="#b026ff" stroke-width="0.8" opacity="0.35">
+    <line x1="0" y1="20" x2="400" y2="20"/>
+    <line x1="0" y1="45" x2="400" y2="45"/>
+    <line x1="0" y1="70" x2="400" y2="70"/>
+    <line x1="100" y1="0" x2="100" y2="90"/>
+    <line x1="200" y1="0" x2="200" y2="90"/>
+    <line x1="300" y1="0" x2="300" y2="90"/>
+  </g>
+  <g stroke="#00f0ff" stroke-width="2.5" opacity="0.55" stroke-linecap="round">
+    <line x1="260" y1="90" x2="320" y2="0"/>
+    <line x1="300" y1="90" x2="360" y2="0"/>
+    <line x1="340" y1="90" x2="400" y2="0"/>
+  </g>
+  <rect x="0" y="0" width="400" height="90" rx="10" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0.7"/>
+</svg>
