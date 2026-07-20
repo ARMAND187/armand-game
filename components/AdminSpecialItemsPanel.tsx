@@ -150,6 +150,8 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
 
   const now = new Date();
   const filteredItems = items.filter(item => {
+    if (activeTab === "challenge") return true; // Show all challenges unconditionally
+    
     const isActive = item.is_active;
     const isAvailable = !item.available_from || new Date(item.available_from) <= now;
     const isExpired = item.expires_at && new Date(item.expires_at) <= now;
@@ -190,30 +192,34 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      {/* Storage vs Active View */}
+      {/* Storage vs Active View & Controls */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: 16 }}>
-        <button
-          onClick={() => setActiveView("active")}
-          style={{
-            padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer",
-            background: activeView === "active" ? "rgba(168, 85, 247, 0.2)" : "transparent",
-            color: activeView === "active" ? "var(--neon)" : "var(--text-muted)",
-            border: activeView === "active" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
-          }}
-        >
-          Active {activeTab === "challenge" ? "Challenges" : "Streaks"}
-        </button>
-        <button
-          onClick={() => setActiveView("storage")}
-          style={{
-            padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-            background: activeView === "storage" ? "rgba(168, 85, 247, 0.2)" : "transparent",
-            color: activeView === "storage" ? "var(--neon)" : "var(--text-muted)",
-            border: activeView === "storage" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
-          }}
-        >
-          <Package size={14} /> Storage Vault
-        </button>
+        {activeTab === "streak" && (
+          <>
+            <button
+              onClick={() => setActiveView("active")}
+              style={{
+                padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer",
+                background: activeView === "active" ? "rgba(168, 85, 247, 0.2)" : "transparent",
+                color: activeView === "active" ? "var(--neon)" : "var(--text-muted)",
+                border: activeView === "active" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
+              }}
+            >
+              Active Streaks
+            </button>
+            <button
+              onClick={() => setActiveView("storage")}
+              style={{
+                padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                background: activeView === "storage" ? "rgba(168, 85, 247, 0.2)" : "transparent",
+                color: activeView === "storage" ? "var(--neon)" : "var(--text-muted)",
+                border: activeView === "storage" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
+              }}
+            >
+              <Package size={14} /> Storage Vault
+            </button>
+          </>
+        )}
         <div style={{ flex: 1 }} />
         <button onClick={handleCreate} style={{
           background: "var(--neon)", color: "#000", border: "none", borderRadius: 20, padding: "8px 16px",
@@ -318,80 +324,84 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
                         <button onClick={() => handleDelete(item.id)} style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 8, padding: "8px", color: "#ef4444", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700 }}>
                           <Trash2 size={14} /> Delete
                         </button>
-                        {activeView === "active" ? (
-                          <button onClick={() => toggleStatus(item, false, null, null)} style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                            Vault Item
-                          </button>
-                        ) : (
-                          <button onClick={() => setAddingToShopId(item.id)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#4ade80", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                            Make Active
-                          </button>
+                        {activeTab === "streak" && (
+                          activeView === "active" ? (
+                            <button onClick={() => toggleStatus(item, false, null, null)} style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                              Vault Item
+                            </button>
+                          ) : (
+                            <button onClick={() => setAddingToShopId(item.id)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#4ade80", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                              Make Active
+                            </button>
+                          )
                         )}
                       </div>
                     </div>
 
                     {/* Stats / Info */}
-                    {activeView === "active" ? (
-                      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
-                        {item.available_from && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#a78bfa", fontWeight: 700 }}>
-                            <Calendar size={14} /> Active for {calculateDaysInShop(item.available_from)} days
-                          </div>
-                        )}
-                        {item.expires_at ? (
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#fbbf24", fontWeight: 700 }}>
-                            <Clock size={14} /> Expires in: {calculateTimeLeft(item.expires_at)}
-                          </div>
-                        ) : (
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#4ade80", fontWeight: 700 }}>
-                            <Check size={14} /> Permanent Item
-                          </div>
-                        )}
-                      </div>
-                    ) : addingToShopId === item.id ? (
-                      <div style={{ background: "rgba(0,0,0,0.3)", padding: 12, borderRadius: 8, marginTop: 12 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 12 }}>Activate Special Item</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                          <button onClick={() => handleQueueNextRefresh(item)} style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "10px", color: "#60a5fa", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-                            Queue for Next Midnight Refresh (24hr limit)
-                          </button>
-                          
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <div style={{ flex: 1, display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
-                              <input 
-                                type="number" 
-                                style={{ background: "transparent", border: "none", color: "#fff", padding: "10px", width: "100%", outline: "none", fontSize: 13, fontWeight: 700 }}
-                                value={timerHours} 
-                                onChange={e => setTimerHours(Number(e.target.value))}
-                              />
-                              <div style={{ padding: "10px", color: "var(--text-muted)", fontSize: 13, fontWeight: 700, background: "rgba(255,255,255,0.05)" }}>hours</div>
+                    {activeTab === "streak" && (
+                      activeView === "active" ? (
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
+                          {item.available_from && (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#a78bfa", fontWeight: 700 }}>
+                              <Calendar size={14} /> Active for {calculateDaysInShop(item.available_from)} days
                             </div>
-                            <button onClick={() => handleAddToShopNow(item)} style={{ background: "var(--neon)", border: "none", borderRadius: 8, padding: "10px 16px", color: "#000", cursor: "pointer", fontSize: 13, fontWeight: 800 }}>
-                              Activate Now
+                          )}
+                          {item.expires_at ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#fbbf24", fontWeight: 700 }}>
+                              <Clock size={14} /> Expires in: {calculateTimeLeft(item.expires_at)}
+                            </div>
+                          ) : (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#4ade80", fontWeight: 700 }}>
+                              <Check size={14} /> Permanent Item
+                            </div>
+                          )}
+                        </div>
+                      ) : addingToShopId === item.id ? (
+                        <div style={{ background: "rgba(0,0,0,0.3)", padding: 12, borderRadius: 8, marginTop: 12 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 12 }}>Activate Special Item</div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            <button onClick={() => handleQueueNextRefresh(item)} style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "10px", color: "#60a5fa", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                              Queue for Next Midnight Refresh (24hr limit)
+                            </button>
+                            
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <div style={{ flex: 1, display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
+                                <input 
+                                  type="number" 
+                                  style={{ background: "transparent", border: "none", color: "#fff", padding: "10px", width: "100%", outline: "none", fontSize: 13, fontWeight: 700 }}
+                                  value={timerHours} 
+                                  onChange={e => setTimerHours(Number(e.target.value))}
+                                />
+                                <div style={{ padding: "10px", color: "var(--text-muted)", fontSize: 13, fontWeight: 700, background: "rgba(255,255,255,0.05)" }}>hours</div>
+                              </div>
+                              <button onClick={() => handleAddToShopNow(item)} style={{ background: "var(--neon)", border: "none", borderRadius: 8, padding: "10px 16px", color: "#000", cursor: "pointer", fontSize: 13, fontWeight: 800 }}>
+                                Activate Now
+                              </button>
+                            </div>
+
+                            <button onClick={() => handlePermanentAdd(item)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "10px", color: "#4ade80", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                              Activate Permanently
+                            </button>
+
+                            <button onClick={() => setAddingToShopId(null)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, marginTop: 4 }}>
+                              Cancel
                             </button>
                           </div>
-
-                          <button onClick={() => handlePermanentAdd(item)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "10px", color: "#4ade80", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-                            Activate Permanently
-                          </button>
-
-                          <button onClick={() => setAddingToShopId(null)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, marginTop: 4 }}>
-                            Cancel
-                          </button>
                         </div>
-                      </div>
-                    ) : (
-                      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
-                        {item.available_from && new Date(item.available_from) > new Date() ? (
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#60a5fa", fontWeight: 700 }}>
-                            <Calendar size={14} /> Queued to return: {new Date(item.available_from).toLocaleString()}
-                          </div>
-                        ) : (
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>
-                            <Package size={14} /> Currently in Storage Vault
-                          </div>
-                        )}
-                      </div>
+                      ) : (
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
+                          {item.available_from && new Date(item.available_from) > new Date() ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#60a5fa", fontWeight: 700 }}>
+                              <Calendar size={14} /> Queued to return: {new Date(item.available_from).toLocaleString()}
+                            </div>
+                          ) : (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>
+                              <Package size={14} /> Currently in Storage Vault
+                            </div>
+                          )}
+                        </div>
+                      )
                     )}
 
                   </div>

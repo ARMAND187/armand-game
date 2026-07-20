@@ -67,18 +67,23 @@ export async function POST(request: Request) {
         });
 
         // Auto-grant reward if completed
-        if (isCompleted && !current?.completed && challenge.reward_id) {
-          // Check if item already owned
-          const { data: inv } = await supabase.from("user_inventory")
-            .select("id")
-            .eq("user_id", user.id)
-            .eq("shop_item_id", challenge.reward_id);
-            
-          if (!inv || inv.length === 0) {
-            await supabase.from("user_inventory").insert([{
-              user_id: user.id,
-              shop_item_id: challenge.reward_id
-            }]);
+        if (isCompleted && !current?.completed && challenge.reward_name) {
+          // Find the challenge item by name
+          const { data: cItems } = await supabase.from("challenge_items").select("id").eq("name", challenge.reward_name).limit(1);
+          if (cItems && cItems.length > 0) {
+            const cId = cItems[0].id;
+            // Check if item already owned
+            const { data: inv } = await supabase.from("user_inventory")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("challenge_item_id", cId);
+              
+            if (!inv || inv.length === 0) {
+              await supabase.from("user_inventory").insert([{
+                user_id: user.id,
+                challenge_item_id: cId
+              }]);
+            }
           }
         }
       }
