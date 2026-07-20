@@ -66,7 +66,7 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
     const itemsToSeed = [
       { name: 'Rising Star', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Star', is_active: false },
       { name: 'Sniper', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Crosshair', is_active: false },
-      { name: 'Geographer', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Target', is_active: false },
+      { name: 'High Roller', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Target', is_active: false },
       { name: 'Speedster', type: 'Challenge Title', price: 0, rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Zap', is_active: false },
       { name: 'Navigator', type: 'Streak Title', price: 0, rarity: 'Legendary', rarity_color: '#fbbf24', icon_name: 'Compass', is_active: false }
     ];
