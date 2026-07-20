@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Target, Flame, CheckCircle, Lock } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -22,8 +23,13 @@ export default function ChallengesModal({
   userId,
 }: ChallengesModalProps) {
   const [equipping, setEquipping] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const isRisingStarCompleted = wins >= 5;
 
@@ -36,7 +42,7 @@ export default function ChallengesModal({
     setEquipping(false);
   };
 
-  return (
+  return createPortal(
     <div className="modal-backdrop z-50">
       <div className="modal-sheet relative" style={{ maxWidth: 500, padding: 24 }}>
         <button
@@ -121,6 +127,7 @@ export default function ChallengesModal({
           
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -103,7 +103,7 @@ export default async function HomePage() {
           />
 
           {/* ── 1. Player Identity Header ── */}
-          <div className="relative z-10 flex items-center justify-center mb-8">
+          <div className="relative z-10 flex items-center mb-8">
             <div 
               style={{
                 display: "inline-flex", alignItems: "center", gap: 16,
