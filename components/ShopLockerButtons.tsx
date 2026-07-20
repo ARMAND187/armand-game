@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap, CheckCircle2 } from "lucide-react";
+import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap, CheckCircle2, Ban } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 function TimerCountdown({ expiresAt }: { expiresAt: string }) {
@@ -334,8 +334,10 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
   const [equippedTitle, setEquippedTitle] = useState<string | null>(null);
   const [equippedBanner, setEquippedBanner] = useState<string | null>(null);
   const [equippedAvatarFrame, setEquippedAvatarFrame] = useState<string | null>(null);
+  const [pinColor, setPinColor] = useState<string>("#a78bfa");
   const [loading, setLoading] = useState(true);
   const [equipping, setEquipping] = useState<string | null>(null);
+  const [equippingDefault, setEquippingDefault] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const categories = ["All", "Map Pin", "Name Flair", "Title", "Banner", "Avatar Frame"];
   const supabase = createClient();
@@ -351,7 +353,7 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
     // Fetch Profile for equipped items
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame")
+      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, pin_color")
       .eq("id", user.id)
       .single();
 
@@ -361,6 +363,7 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
       setEquippedTitle(profileData.equipped_title);
       setEquippedBanner(profileData.equipped_banner);
       setEquippedAvatarFrame(profileData.equipped_avatar_frame);
+      setPinColor(profileData.pin_color || "#a78bfa");
     }
 
     // Fetch User Inventory Joined with Shop Items
@@ -405,6 +408,37 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
     }
     
     setEquipping(null);
+  };
+
+  const unequipCategory = async (type: string) => {
+    if (equippingDefault) return;
+    setEquippingDefault(type);
+    
+    let col = "";
+    if (type === 'Map Pin') col = 'equipped_pin_url';
+    if (type === 'Name Flair') col = 'equipped_flair';
+    if (type === 'Title') col = 'equipped_title';
+    if (type === 'Banner') col = 'equipped_banner';
+    if (type === 'Avatar Frame') col = 'equipped_avatar_frame';
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && col) {
+      const updateData: any = { [col]: null };
+      // If saving map pin default, also save pin color
+      if (type === 'Map Pin') {
+        updateData.pin_color = pinColor;
+      }
+      
+      const { error } = await supabase.from("profiles").update(updateData).eq("id", user.id);
+      if (!error) {
+        if (type === 'Map Pin') setEquippedPinUrl(null);
+        if (type === 'Name Flair') setEquippedFlair(null);
+        if (type === 'Title') setEquippedTitle(null);
+        if (type === 'Banner') setEquippedBanner(null);
+        if (type === 'Avatar Frame') setEquippedAvatarFrame(null);
+      }
+    }
+    setEquippingDefault(null);
   };
 
   return (
@@ -460,6 +494,91 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Equipped & Default
+          </div>
+          
+          {/* Default Items */}
+          {categories.filter(c => c !== "All" && (activeCategory === "All" || activeCategory === c)).map(cat => {
+            let isEquipped = false;
+            if (cat === 'Map Pin' && !equippedPinUrl) isEquipped = true;
+            if (cat === 'Name Flair' && !equippedFlair) isEquipped = true;
+            if (cat === 'Title' && !equippedTitle) isEquipped = true;
+            if (cat === 'Banner' && !equippedBanner) isEquipped = true;
+            if (cat === 'Avatar Frame' && !equippedAvatarFrame) isEquipped = true;
+            
+            const isEquipping = equippingDefault === cat;
+            
+            return (
+              <div
+                key={`default-${cat}`}
+                style={{
+                  background: "var(--bg-card, #18181b)",
+                  border: `1px solid ${isEquipped ? "rgba(167,139,250,0.4)" : "var(--border, #27272a)"}`,
+                  borderRadius: 14,
+                  padding: "14px 16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                }}
+              >
+                <div
+                  style={{
+                    width: 46,
+                    height: 46,
+                    borderRadius: 12,
+                    background: cat === 'Map Pin' ? pinColor : "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <Ban size={20} color={cat === 'Map Pin' ? "#fff" : "currentColor"} />
+                </div>
+                
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#fff" }}>Default {cat}</h4>
+                    {isEquipped && <div style={{ background: "#4ade8022", color: "#4ade80", fontSize: 10, fontWeight: 800, padding: "2px 6px", borderRadius: 4 }}>EQUIPPED</div>}
+                  </div>
+                  {cat === 'Map Pin' ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Pin Color:</span>
+                      <input 
+                        type="color" 
+                        value={pinColor} 
+                        onChange={(e) => setPinColor(e.target.value)} 
+                        style={{ border: "none", width: 24, height: 24, padding: 0, cursor: "pointer", background: "none" }}
+                      />
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>Unequip current {cat.toLowerCase()}</p>
+                  )}
+                </div>
+                
+                <button
+                  onClick={() => unequipCategory(cat)}
+                  disabled={isEquipping || (isEquipped && cat !== 'Map Pin')}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 20,
+                    background: isEquipped ? "rgba(255,255,255,0.05)" : "var(--primary, #8b5cf6)",
+                    color: isEquipped ? "var(--text-muted)" : "#fff",
+                    border: "none",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: (isEquipping || (isEquipped && cat !== 'Map Pin')) ? "not-allowed" : "pointer",
+                    opacity: isEquipping ? 0.7 : 1,
+                  }}
+                >
+                  {isEquipping ? "..." : (isEquipped && cat === 'Map Pin' ? "Save Color" : (isEquipped ? "Equipped" : "Equip"))}
+                </button>
+              </div>
+            );
+          })}
+
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginTop: 10, marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Owned Items
           </div>
           {ownedItems.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {

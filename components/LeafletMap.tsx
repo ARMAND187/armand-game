@@ -30,8 +30,9 @@ interface LeafletMapProps {
   guessResult: GuessResult | null;
   roundGuesses?: any[]; // multiplayer guesses
   myUsername?: string;
-  locked: boolean;
+  locked?: boolean;
   customPinUrl?: string | null;
+  customPinColor?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -42,7 +43,7 @@ function MapClickHandler({
   locked,
 }: {
   onMapClick: (lat: number, lng: number) => void;
-  locked: boolean;
+  locked?: boolean;
 }) {
   useMapEvents({
     click(e) {
@@ -73,6 +74,7 @@ export default function LeafletMap({
   myUsername = "",
   locked,
   customPinUrl,
+  customPinColor,
 }: LeafletMapProps) {
   const [L, setL] = useState<any>(null);
 
@@ -140,7 +142,7 @@ export default function LeafletMap({
     });
   };
 
-  const myColor = myUsername ? generatePlayerColor(myUsername) : "#a78bfa";
+  const myColor = customPinColor || (myUsername ? generatePlayerColor(myUsername) : "#a78bfa");
   const localGuessIcon = createPlayerIcon(myColor, myUsername || "Player", customPinUrl);
 
   // Determine lines to draw
