@@ -8,6 +8,7 @@ import NewsCarousel from "@/components/NewsCarousel";
 import { createClient } from "@/utils/supabase/server";
 import { getRankFromRP } from "@/utils/RankSystem";
 import ShopLockerButtons from "@/components/ShopLockerButtons";
+import PlayerNameFlair from "@/components/PlayerNameFlair";
 
 export const metadata = {
   title: "Home — Armand Games",
@@ -31,11 +32,12 @@ export default async function HomePage() {
   let wins = 0;
   let avatarUrl: string | null = null;
   let username = "Player";
+  let equippedFlair: string | null = null;
 
   if (userData?.user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("rp, wins, avatar_url, username")
+      .select("rp, wins, avatar_url, username, equipped_flair")
       .eq("id", userData.user.id)
       .single();
     if (profile) {
@@ -45,6 +47,7 @@ export default async function HomePage() {
       username  = profile.username
         || userData.user.user_metadata?.username
         || "Player";
+      equippedFlair = profile.equipped_flair || null;
     }
   }
 
@@ -135,9 +138,9 @@ export default async function HomePage() {
               </p>
               <h1
                 className="truncate"
-                style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" }}
+                style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", display: "flex", alignItems: "center" }}
               >
-                {username}
+                <PlayerNameFlair username={username} flair={equippedFlair} />
               </h1>
             </div>
           </div>

@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Trophy, Loader2 } from "lucide-react";
+import PlayerNameFlair from "@/components/PlayerNameFlair";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 // Removed static kurdistanLocations, fetching dynamically now
@@ -34,6 +35,7 @@ export interface MultiplayerGuess {
   guessLng: number;
   distanceKm: number;
   score: number;
+  equippedFlair?: string | null;
 }
 
 type GameState = "WAITING" | "PLAYING" | "REVEALING" | "ROUND_END" | "GAME_OVER";
@@ -116,6 +118,8 @@ function GeoKurdistanInner() {
   const [isHost, setIsHost] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
   const [totalScores, setTotalScores] = useState<Record<string, number>>({});
+  const [playerFlairs, setPlayerFlairs] = useState<Record<string, string | null>>({});
+  const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
   
   const [guessMarker, setGuessMarker] = useState<{ lat: number; lng: number } | null>(null);
   const [hasGuessed, setHasGuessed] = useState(false);
@@ -160,6 +164,7 @@ function GeoKurdistanInner() {
       guessLng: marker?.lng || 0,
       distanceKm,
       score,
+      equippedFlair,
     };
 
     if (channelRef.current && roomId) {
@@ -171,10 +176,12 @@ function GeoKurdistanInner() {
     }
 
     setRoundGuesses(prev => {
-      if (prev.find(g => g.username === myUsername)) return prev;
-      return [...prev, myGuess];
+      const guess = myGuess;
+      if (prev.find(g => g.username === guess.username)) return prev;
+      return [...prev, guess];
     });
-  }, [locationIndices, round, myUsername, roomId]);
+    setPlayerFlairs(prev => ({ ...prev, [myUsername]: equippedFlair }));
+  }, [locationIndices, round, myUsername, roomId, equippedFlair]);
 
   const handleTimeUp = useCallback(() => {
     if (!hasGuessed) {
@@ -197,11 +204,15 @@ function GeoKurdistanInner() {
         // Fetch equipped pin url
         const { data: profile } = await supabase
           .from("profiles")
-          .select("equipped_pin_url")
+          .select("equipped_pin_url, equipped_flair")
           .eq("id", data.user.id)
           .single();
         if (profile?.equipped_pin_url) {
           setEquippedPinUrl(profile.equipped_pin_url);
+        }
+        if (profile?.equipped_flair) {
+          setEquippedFlair(profile.equipped_flair);
+          setPlayerFlairs(prev => ({ ...prev, [data.user.user_metadata?.username || "Player"]: profile.equipped_flair }));
         }
       }
     });
@@ -284,11 +295,13 @@ function GeoKurdistanInner() {
           setShowScoreboard(false);
         })
         .on("broadcast", { event: "PLAYER_GUESS" }, (payload) => {
+          const guess = payload.payload as MultiplayerGuess;
           setRoundGuesses((prev) => {
-            const exists = prev.find(g => g.username === payload.payload.username);
+            const exists = prev.find(g => g.username === guess.username);
             if (exists) return prev;
-            return [...prev, payload.payload as MultiplayerGuess];
+            return [...prev, guess];
           });
+          setPlayerFlairs(prev => ({ ...prev, [guess.username]: guess.equippedFlair || null }));
         })
         .on("broadcast", { event: "NEXT_ROUND" }, (payload) => {
           if (isPublicRoom) return; // Public transitions locally
@@ -556,8 +569,9 @@ function GeoKurdistanInner() {
               {timer}s
             </div>
           </div>
-          <div style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 700 }}>
-            {myUsername} <span style={{ color: "var(--neon)", marginLeft: 4 }}>{totalScores[myUsername] || 0} pts</span>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center" }}>
+            <PlayerNameFlair username={myUsername} flair={equippedFlair} />
+            <span style={{ color: "var(--neon)", marginLeft: 6 }}>{totalScores[myUsername] || 0} pts</span>
           </div>
         </div>
 
@@ -618,7 +632,9 @@ function GeoKurdistanInner() {
                   <div key={g.username} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: g.username === myUsername ? "rgba(167,139,250,0.1)" : "var(--bg-elevated)", padding: 12, borderRadius: 12, border: g.username === myUsername ? "1px solid rgba(167,139,250,0.3)" : "1px solid var(--border)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ fontSize: 16, fontWeight: 800, color: i === 0 ? "#fbbf24" : "var(--text-muted)" }}>#{i+1}</div>
-                      <div style={{ fontWeight: 700, color: g.username === myUsername ? "var(--neon)" : "var(--text-primary)" }}>{g.username}</div>
+                      <div style={{ fontWeight: 700, display: "flex", alignItems: "center", color: g.username === myUsername ? "var(--neon)" : "var(--text-primary)" }}>
+                        <PlayerNameFlair username={g.username} flair={playerFlairs[g.username]} />
+                      </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                       <div style={{ fontSize: 12, color: grade.color }}>{g.distanceKm > 9000 ? "Time's up" : `${g.distanceKm.toFixed(1)} km`}</div>
@@ -652,7 +668,9 @@ function GeoKurdistanInner() {
                   <div key={username} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: i === 0 ? "rgba(251,191,36,0.1)" : "var(--bg-elevated)", padding: 16, borderRadius: 12, border: i === 0 ? "1px solid rgba(251,191,36,0.3)" : "1px solid var(--border)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ fontSize: 20, fontWeight: 800, color: i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#b45309" : "var(--text-muted)" }}>#{i+1}</div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: username === myUsername ? "var(--neon)" : "var(--text-primary)" }}>{username}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, display: "flex", alignItems: "center", color: username === myUsername ? "var(--neon)" : "var(--text-primary)" }}>
+                        <PlayerNameFlair username={username} flair={playerFlairs[username]} />
+                      </div>
                     </div>
                     <div style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{score} <span style={{ fontSize: 14, color: "var(--text-muted)" }}>pts</span></div>
                   </div>
