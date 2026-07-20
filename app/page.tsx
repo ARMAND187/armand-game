@@ -98,7 +98,7 @@ export default async function HomePage() {
 
       {/* ── Header ── */}
       <header className="flex items-center justify-end w-full relative" style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)", marginBottom: "40px" }}>
-        <div className="flex items-center" style={{ gap: "10px" }}>
+        <div className="flex items-center justify-end flex-wrap max-w-full" style={{ gap: "10px" }}>
           <ShopLockerButtons />
           <NotificationBell />
           <WalletDisplay />

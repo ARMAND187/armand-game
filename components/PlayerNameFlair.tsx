@@ -26,5 +26,19 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
     );
   }
 
-  return <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block", maxWidth: "100%" }}>@{username}</span>;
+  const isLong = username.length > 10;
+  const scale = isLong ? Math.max(0.5, 10 / username.length) : 1;
+
+  return (
+    <span style={{ 
+      overflow: "hidden", 
+      textOverflow: "ellipsis", 
+      whiteSpace: "nowrap", 
+      display: "inline-block", 
+      maxWidth: "100%",
+      fontSize: isLong ? `${scale}em` : "inherit"
+    }}>
+      @{username}
+    </span>
+  );
 }
