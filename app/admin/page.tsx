@@ -7,6 +7,7 @@ import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, Up
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getRankFromRP } from "@/utils/RankSystem";
+import { adminToggleStatus } from "@/app/actions/admin";
 
 const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardStats"), {
   ssr: false,
@@ -173,30 +174,40 @@ export default function AdminDashboard() {
       let skippedCount = 0;
 
       for (const loc of parsed) {
-        if (!loc.name || !loc.city || !loc.lat || !loc.lng || !loc.source_type) {
-          throw new Error(`Missing required fields in location: ${loc.name || JSON.stringify(loc)}`);
+        if (!loc.name || !loc.lat || !loc.lng || !loc.source_type) {
+          throw new Error(`Location missing required fields: ${JSON.stringify(loc)}`);
         }
+        
         if (loc.source_type === "mapillary" && !loc.image_id) {
-          throw new Error(`Mapillary location '${loc.name}' requires an image_id.`);
+          throw new Error(`Mapillary location requires an image_id: ${loc.name}`);
         }
         if (loc.source_type === "custom" && !loc.image_url) {
-          throw new Error(`Custom location '${loc.name}' requires an image_url.`);
+          throw new Error(`Custom location requires an image_url: ${loc.name}`);
         }
 
-        const key = `${loc.lat},${loc.lng}`;
-        if (existingLocs.has(key) || existingNames.has(loc.name)) {
+        const isDupCoords = existingLocs.has(`${loc.lat},${loc.lng}`);
+        const isDupName = existingNames.has(loc.name);
+
+        if (isDupCoords || isDupName) {
           skippedCount++;
           continue;
         }
 
-        newLocations.push(loc);
-        existingLocs.add(key);
-        existingNames.add(loc.name);
+        newLocations.push({
+          name: loc.name,
+          city: loc.city || null,
+          country: loc.country || null,
+          lat: loc.lat,
+          lng: loc.lng,
+          image_id: loc.image_id || null,
+          image_url: loc.image_url || null,
+          source_type: loc.source_type,
+          created_at: new Date().toISOString()
+        });
       }
 
       if (newLocations.length === 0) {
-        setUploadStatus(`No new locations found. Skipped ${skippedCount} duplicates.`);
-        setBulkJson("");
+        setUploadStatus(`Skipped ${skippedCount} existing locations. Nothing new to add.`);
         setUploadingLocations(false);
         return;
       }
@@ -215,12 +226,20 @@ export default function AdminDashboard() {
   };
 
   const toggleAdmin = async (id: string, currentStatus: boolean) => {
-    await supabase.from("profiles").update({ is_admin: !currentStatus }).eq("id", id);
+    const res = await adminToggleStatus(id, "is_admin", !currentStatus);
+    if (!res.success) {
+      alert("Failed to toggle admin status: " + res.error);
+      return;
+    }
     fetchData();
   };
 
   const toggleVerify = async (id: string, currentStatus: boolean) => {
-    await supabase.from("profiles").update({ is_verified: !currentStatus }).eq("id", id);
+    const res = await adminToggleStatus(id, "is_verified", !currentStatus);
+    if (!res.success) {
+      alert("Failed to toggle verify status: " + res.error);
+      return;
+    }
     fetchData();
   };
 
