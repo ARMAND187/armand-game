@@ -402,6 +402,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
       `)
       .eq("user_id", user.id);
 
+    let items: ShopItem[] = [];
     if (invData) {
       const dbItems = invData.map((i: any) => i.shop_items as ShopItem).filter(Boolean);
       items = [...dbItems];
