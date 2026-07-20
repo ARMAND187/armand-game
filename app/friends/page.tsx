@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/utils/supabase/client";
 import {
   UserPlus, Check, X, Search, Users, Bell, PhoneCall, Copy, Plus
@@ -45,6 +46,11 @@ export default function FriendsPage() {
   const [partyCodeInput, setPartyCodeInput] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [sentInvites, setSentInvites] = useState<Set<string>>(new Set());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const supabase = createClient();
 
@@ -447,27 +453,28 @@ export default function FriendsPage() {
       </div>
 
       {/* ── Invite Friends Modal ── */}
-      {showInviteModal && (
+      {showInviteModal && mounted && createPortal(
         <div
           style={{
-            position: "fixed", inset: 0, zIndex: 9998,
+            position: "fixed", inset: 0, zIndex: 99999,
             background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)",
-            display: "flex", alignItems: "flex-end", justifyContent: "center",
-            padding: "0 0 env(safe-area-inset-bottom, 0)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px",
           }}
           onClick={e => { if (e.target === e.currentTarget) setShowInviteModal(false); }}
         >
           <div style={{
             background: "#111113",
             border: "1px solid rgba(167,139,250,0.3)",
-            borderRadius: "24px 24px 0 0",
+            borderRadius: "24px",
             width: "100%",
             maxWidth: 480,
-            maxHeight: "75vh",
+            maxHeight: "85vh",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            animation: "sheet-up 0.3s cubic-bezier(0.34,1.2,0.64,1)",
+            animation: "modal-pop 0.3s cubic-bezier(0.34,1.2,0.64,1)",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
           }}>
             {/* Modal header */}
             <div style={{
@@ -559,12 +566,13 @@ export default function FriendsPage() {
             </div>
           </div>
           <style>{`
-            @keyframes sheet-up {
-              from { transform: translateY(100%); opacity: 0.5; }
-              to   { transform: translateY(0); opacity: 1; }
+            @keyframes modal-pop {
+              from { transform: scale(0.95); opacity: 0; }
+              to   { transform: scale(1); opacity: 1; }
             }
           `}</style>
-        </div>
+        </div>,
+        document.body
       )}
 
 
