@@ -64,30 +64,29 @@ export async function claimDailyStreak() {
     
     const newStreak = currentStreak + 1;
 
-    // 2. Determine reward based on newStreak
-    // We will fetch from streak_items based on some logic, but the user specifically mentioned:
-    // Day 1: Navigator Title
-    // Day 2: 50 Balance
+    // 2. Fetch reward dynamically from streak_items table based on the Day
+    const { data: streakItems } = await supabaseAdmin
+      .from("streak_items")
+      .select("id, name, balance")
+      .eq("required_streak", newStreak)
+      .limit(1);
+      
     let rewardName = "";
     let rewardBalance = 0;
-    
-    if (newStreak === 1) {
-      rewardName = "Navigator";
-    } else if (newStreak === 2) {
-      rewardBalance = 50;
+    let itemId = "";
+
+    if (streakItems && streakItems.length > 0) {
+      rewardName = streakItems[0].name;
+      rewardBalance = streakItems[0].balance || 0;
+      itemId = streakItems[0].id;
+    } else {
+      // Fallback defaults if they don't configure anything
+      if (newStreak === 1) rewardName = "Navigator";
+      if (newStreak === 2) rewardBalance = 50;
     }
 
     // 3. Grant the reward
-    if (rewardName) {
-      // Find the item in streak_items using either title or name
-      const { data: streakItems } = await supabase
-        .from("streak_items")
-        .select("id")
-        .or(`title.ilike.%${rewardName}%,name.ilike.%${rewardName}%`)
-        .limit(1);
-        
-      if (streakItems && streakItems.length > 0) {
-        const itemId = streakItems[0].id;
+    if (itemId) {
         
         // Ensure user doesn't already have it
         const { data: inv } = await supabaseAdmin
@@ -103,7 +102,6 @@ export async function claimDailyStreak() {
           }]);
           if (insertErr) console.error("Error granting streak item:", insertErr);
         }
-      }
     }
     
     if (rewardBalance > 0) {
