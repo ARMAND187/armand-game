@@ -120,7 +120,7 @@ function FullScreenOverlay({ title, onClose, children }: { title: string; onClos
 }
 
 // ─── Shop Screen ──────────────────────────────────────────────────────────────
-function ShopScreen({ onClose }: { onClose: () => void }) {
+function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: () => void }) {
   const [items, setItems] = useState<ShopItem[]>([]);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -183,6 +183,7 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
     } else {
       // Success! Update local UI
       setOwnedIds(prev => new Set([...prev, item.id]));
+      onPurchase();
       alert(`Successfully purchased ${item.name}! Check your Locker.`);
     }
     
@@ -327,7 +328,7 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
 }
 
 // ─── Locker Screen ────────────────────────────────────────────────────────────
-function LockerScreen({ onClose }: { onClose: () => void }) {
+function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey: number }) {
   const [ownedItems, setOwnedItems] = useState<ShopItem[]>([]);
   const [equippedPinUrl, setEquippedPinUrl] = useState<string | null>(null);
   const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
@@ -344,7 +345,7 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     fetchLocker();
-  }, []);
+  }, [refreshKey]);
 
   const fetchLocker = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -384,6 +385,8 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
     
     setLoading(false);
   };
+
+
 
   const equipItem = async (item: ShopItem) => {
     if (equipping) return;
@@ -662,6 +665,7 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
 // ─── Main Export: Header Buttons ──────────────────────────────────────────────
 export default function ShopLockerButtons() {
   const [open, setOpen] = useState<"shop" | "locker" | null>(null);
+  const [refreshLocker, setRefreshLocker] = useState(0);
 
   return (
     <>
@@ -715,9 +719,13 @@ export default function ShopLockerButtons() {
         Locker
       </button>
 
-      {/* Full-Screen Overlays */}
-      {open === "shop" && <ShopScreen onClose={() => setOpen(null)} />}
-      {open === "locker" && <LockerScreen onClose={() => setOpen(null)} />}
+      {/* Full-Screen Overlays (Pre-mounted for instant load) */}
+      <div style={{ display: open === "shop" ? "block" : "none" }}>
+        <ShopScreen onClose={() => setOpen(null)} onPurchase={() => setRefreshLocker(r => r + 1)} />
+      </div>
+      <div style={{ display: open === "locker" ? "block" : "none" }}>
+        <LockerScreen onClose={() => setOpen(null)} refreshKey={refreshLocker} />
+      </div>
     </>
   );
 }
