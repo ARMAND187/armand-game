@@ -4,7 +4,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { Wallet } from "lucide-react";
 import { useEffect } from "react";
 
-export default function WalletDisplay() {
+export default function WalletDisplay({ className }: { className?: string }) {
   const armandBalance = useWalletStore((s) => s.armandBalance);
   const setBalance = useWalletStore((s) => s.setBalance);
 
@@ -28,7 +28,7 @@ export default function WalletDisplay() {
   }, [setBalance]);
 
   return (
-    <div className="wallet-pill">
+    <div className={`wallet-pill ${className || ""}`}>
       <Wallet size={15} className="wallet-icon" />
       <span className="wallet-text">
         <span className="hidden sm:inline">Balance = </span><strong>{armandBalance.toLocaleString()}</strong>

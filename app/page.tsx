@@ -97,11 +97,13 @@ export default async function HomePage() {
     <div style={{ background: "#09090b", minHeight: "100vh", padding: "16px", paddingBottom: "100px" }}>
 
       {/* ── Header ── */}
-      <header className="flex items-center justify-end w-full relative" style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)", marginBottom: "40px" }}>
-        <div className="flex items-center w-full overflow-x-auto hide-scrollbar justify-end" style={{ gap: "10px" }}>
+      <header className="flex flex-col sm:flex-row items-end sm:items-center justify-end w-full relative gap-3 sm:gap-2" style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)", marginBottom: "40px" }}>
+        <div className="flex items-center justify-end" style={{ gap: "10px" }}>
           <ShopLockerButtons />
           <NotificationBell />
-          <WalletDisplay />
+        </div>
+        <div className="w-full sm:w-auto mt-2 sm:mt-0 flex">
+          <WalletDisplay className="w-full justify-center" />
         </div>
       </header>
 
