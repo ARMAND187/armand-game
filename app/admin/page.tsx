@@ -3,20 +3,18 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, UploadCloud } from "lucide-react";
+import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, UploadCloud, Target } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getRankFromRP } from "@/utils/RankSystem";
 import { adminToggleStatus } from "@/app/actions/admin";
 import { OnlinePlayersModal } from "@/components/OnlinePlayersModal";
+import { ShopManagementModal } from "@/components/ShopManagementModal";
+import { AdminChallengePanel } from "@/components/AdminChallengePanel";
 
 const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardStats"), {
   ssr: false,
   loading: () => <div style={{ height: 110, width: "100%", background: "var(--bg-card)", borderRadius: 16, marginBottom: 24, display: "flex", justifyContent: "center", alignItems: "center" }}><Loader2 className="mly-spinner" color="var(--neon)" /></div>
-});
-
-const ShopManagementModal = dynamic(() => import("@/components/ShopManagementModal").then(mod => mod.ShopManagementModal), {
-  ssr: false,
 });
 
 interface Profile {
@@ -39,6 +37,7 @@ export default function AdminDashboard() {
   const [userLimit, setUserLimit] = useState<number | "All">("All");
   const [showOnlineModal, setShowOnlineModal] = useState(false);
   const [showShopModal, setShowShopModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   // Notification states
   const [notifTitle, setNotifTitle] = useState("");
@@ -334,6 +333,23 @@ export default function AdminDashboard() {
           style={{ background: "rgba(168, 85, 247, 0.15)", border: "1px solid rgba(168, 85, 247, 0.3)", borderRadius: 8, padding: "8px 16px", color: "var(--neon)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
         >
           Open Shop Manager
+        </button>
+      </div>
+
+      {/* Challenge Items Management */}
+      {showChallengeModal && <AdminChallengePanel onClose={() => setShowChallengeModal(false)} />}
+      
+      {/* Challenge Management Button */}
+      <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Challenge Management</h2>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage active dynamic challenges and rewards.</p>
+        </div>
+        <button 
+          onClick={() => setShowChallengeModal(true)}
+          style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "8px 16px", color: "#60a5fa", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+        >
+          Open Challenge Manager
         </button>
       </div>
 

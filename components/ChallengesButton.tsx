@@ -8,10 +8,9 @@ interface ChallengesButtonProps {
   wins: number;
   currentTitle: string | null;
   userId?: string;
-  challenges?: { risingStar: number, sniper: number, highRoller: number, speedrunner: number };
 }
 
-export default function ChallengesButton({ wins, currentTitle, userId, challenges }: ChallengesButtonProps) {
+export default function ChallengesButton({ wins, currentTitle, userId }: ChallengesButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [equippedTitle, setEquippedTitle] = useState(currentTitle);
 
@@ -33,8 +32,6 @@ export default function ChallengesButton({ wins, currentTitle, userId, challenge
       <ChallengesModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        wins={wins}
-        challenges={challenges || { risingStar: 0, sniper: 0, highRoller: 0, speedrunner: 0 }}
       />
     </>
   );

@@ -176,13 +176,18 @@ function GeoKurdistanInner() {
       pinColor,
     };
 
-    // Challenge Checks
-    if (distanceKm <= 5) {
-      setMatchSniperHits(prev => prev + 1);
-    }
-    if (timer >= 25 && score > 70) {
-      setMatchSpeedrunnerHits(prev => prev + 1);
-    }
+    // Challenge Checks are now handled by the backend
+    fetch("/api/game/evaluate-challenges", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        round_stats: [{
+          distance: distanceKm,
+          score: score,
+          time: 30 - timer
+        }]
+      })
+    }).catch(console.error);
 
     if (channelRef.current && roomId) {
       channelRef.current.send({
@@ -381,8 +386,6 @@ function GeoKurdistanInner() {
                setHasGuessed(false);
                setGuessMarker(null);
                setShowScoreboard(false);
-               setMatchSniperHits(0);
-               setMatchSpeedrunnerHits(0);
             } else {
                if (isRoomHost) {
                  setTimeout(async () => {
@@ -464,32 +467,31 @@ function GeoKurdistanInner() {
         updateLobbyRP(stateRef.current.totalScores, totalRounds).catch(console.error);
       }
       
-      // Evaluate Challenge progress for current player (all modes)
-      let risingStarInc = 0;
-      let highRollerInc = 0;
+      // Submit Challenge progress (Dynamic Engine)
       const myFinalScore = stateRef.current.totalScores[myUsername] || 0;
       
-      if (totalRounds === 5 && myFinalScore > 370) {
-        risingStarInc = 1;
-      }
-      if (myFinalScore / totalRounds >= 95) {
-        highRollerInc = 1;
-      }
+      const gameStats = {
+        total_score: myFinalScore,
+        total_rounds: totalRounds,
+        average_score: myFinalScore / totalRounds
+      };
 
-      // Submit Challenge progress
-      if (matchSniperHits > 0 || matchSpeedrunnerHits > 0 || risingStarInc > 0 || highRollerInc > 0) {
-        fetch("/api/game/challenges", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: myUsername,
-            sniperInc: matchSniperHits,
-            speedrunnerInc: matchSpeedrunnerHits,
-            risingStarInc,
-            highRollerInc
-          })
-        }).catch(console.error);
-      }
+      // Extract round stats for the current player from roundGuesses
+      // Assuming stateRef.current.roundGuesses isn't cumulative across the whole game (it's per round).
+      // Wait, we need the round history! Since we didn't save round history in state, 
+      // let's just let the backend handle cumulative or we should just pass the gameStats for now 
+      // and we will update round stats to be evaluated per-round.
+      
+      // Actually, we can evaluate gameStats at GAME_OVER. 
+      // For per-round stats, we should evaluate them at ROUND_END instead!
+      
+      fetch("/api/game/evaluate-challenges", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          game_stats: gameStats
+        })
+      }).catch(console.error);
 
       // Update wins
       if ((isHost || isPublic) && roomId) {

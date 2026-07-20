@@ -373,10 +373,6 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
         }
       };
 
-      pushSpecial('Rising Star', profileData.challenge_rising_star >= 5, 'chal_risingstar');
-      pushSpecial('Sniper', profileData.challenge_sniper >= 10, 'chal_sniper');
-      pushSpecial('Geographer', profileData.challenge_high_roller >= 5, 'chal_highroller');
-      pushSpecial('Speedster', profileData.challenge_speedrunner >= 5, 'chal_speedrunner');
       pushSpecial('Navigator', profileData.daily_streak >= 1, 'chal_navigator'); // Use chal_ prefix to bypass RPC for streak titles too!
     }
 

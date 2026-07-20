@@ -43,7 +43,6 @@ export default async function HomePage() {
   let userId: string | undefined = undefined;
   let currentStreak = 0;
   let lastStreakClaim: string | null = null;
-  let challenges = { risingStar: 0, sniper: 0, highRoller: 0, speedrunner: 0 };
 
   if (userData?.user) {
     userId = userData.user.id;
@@ -65,13 +64,6 @@ export default async function HomePage() {
       equippedAvatarFrame = profile.equipped_avatar_frame || null;
       currentStreak = profile.current_streak || 0;
       lastStreakClaim = profile.last_streak_claim || null;
-      
-      challenges = {
-        risingStar: profile.challenge_rising_star || 0,
-        sniper: profile.challenge_sniper || 0,
-        highRoller: profile.challenge_high_roller || 0,
-        speedrunner: profile.challenge_speedrunner || 0
-      };
     }
   }
 
@@ -282,7 +274,7 @@ export default async function HomePage() {
             
             {/* ── Combined Challenges & Streaks Card ── */}
             <div className="glass-panel w-full flex flex-col">
-              <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} challenges={challenges} />
+              <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} />
               <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "0 16px" }} />
               <DailyStreakTracker currentStreak={currentStreak} lastClaimDate={lastStreakClaim} />
             </div>
