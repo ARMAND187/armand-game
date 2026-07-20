@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap, CheckCircle2, Ban } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 function TimerCountdown({ expiresAt }: { expiresAt: string }) {
   const [timeLeft, setTimeLeft] = useState<string>("");
@@ -329,6 +330,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
 
 // ─── Locker Screen ────────────────────────────────────────────────────────────
 function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey: number }) {
+  const router = useRouter();
   const [ownedItems, setOwnedItems] = useState<ShopItem[]>([]);
   const [equippedPinUrl, setEquippedPinUrl] = useState<string | null>(null);
   const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
@@ -408,6 +410,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
       } else if (item.type === 'Avatar Frame' && item.image_url) {
         setEquippedAvatarFrame(item.image_url);
       }
+      router.refresh();
     }
     
     setEquipping(null);
@@ -439,6 +442,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
         if (type === 'Title') setEquippedTitle(null);
         if (type === 'Banner') setEquippedBanner(null);
         if (type === 'Avatar Frame') setEquippedAvatarFrame(null);
+        router.refresh();
       }
     }
     setEquippingDefault(null);
