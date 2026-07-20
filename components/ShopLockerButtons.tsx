@@ -372,6 +372,12 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
       });
     }
     
+    // Fetch user challenge progress to grant fallback legacy titles
+    const { data: progressData } = await supabase.from("user_challenge_progress").select("challenge_id, completed").eq("user_id", user.id).eq("completed", true);
+    
+    // Fetch dynamic challenges to know which reward_id corresponds to completed challenges
+    const { data: challengesData } = await supabase.from("dynamic_challenges").select("id, reward_id");
+    
     // Fetch special items from database to get their dynamic colors and icons
     const { data: specialData } = await supabase.from("shop_items").select("*").in("type", ["Challenge Title", "Streak Title"]);
     
@@ -382,11 +388,34 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
           const dbItem = specialData.find(i => i.name === name);
           if (dbItem) {
             items.push({ ...dbItem, type: "Title", id: prefixId } as ShopItem);
+          } else {
+            // Virtual item fallback if missing from DB
+            items.push({
+              id: prefixId,
+              name: name,
+              type: "Title",
+              description: "Special achievement title",
+              price: 0,
+              rarity: "Epic",
+              rarity_color: "#a78bfa"
+            } as ShopItem);
           }
         }
       };
 
-      pushSpecial('Navigator', profileData.current_streak >= 1, 'chal_navigator'); 
+      pushSpecial('Navigator', profileData.current_streak >= 1, 'strk_navigator'); 
+      
+      // Determine which challenges are completed based on user_challenge_progress
+      const completedChallengeIds = new Set(progressData?.map(p => p.challenge_id) || []);
+      const checkChallenge = (rewardId: string) => {
+        const chal = challengesData?.find(c => c.reward_id === rewardId);
+        return chal ? completedChallengeIds.has(chal.id) : false;
+      };
+
+      pushSpecial('Sniper', checkChallenge('chal_sniper') || profileData.challenge_sniper >= 1, 'chal_sniper');
+      pushSpecial('Speedrunner', checkChallenge('chal_speedrunner') || profileData.challenge_speedrunner >= 1, 'chal_speedrunner');
+      pushSpecial('High Roller', checkChallenge('chal_high_roller') || profileData.challenge_high_roller >= 1, 'chal_high_roller');
+      pushSpecial('Rising Star', checkChallenge('chal_rising_star') || profileData.challenge_rising_star >= 1, 'chal_rising_star');
     }
 
     setOwnedItems(items);

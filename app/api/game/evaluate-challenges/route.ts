@@ -67,9 +67,10 @@ export async function POST(request: Request) {
         });
 
         // Auto-grant reward if completed
-        if (isCompleted && !current?.completed && challenge.reward_name) {
+        if (isCompleted && !current?.completed && challenge.reward_id) {
           // Find the challenge item by name
-          const { data: cItems } = await supabase.from("challenge_items").select("id").eq("name", challenge.reward_name).limit(1);
+          const titleName = challenge.reward_id.replace("chal_", "");
+          const { data: cItems } = await supabase.from("challenge_items").select("id").ilike("name", `%${titleName}%`).limit(1);
           if (cItems && cItems.length > 0) {
             const cId = cItems[0].id;
             // Check if item already owned
