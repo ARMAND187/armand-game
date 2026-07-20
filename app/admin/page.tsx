@@ -88,7 +88,7 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     const [{ data: pData }, { count: locCount }] = await Promise.all([
-      supabase.from("profiles").select("*").order("rp", { ascending: false }),
+      supabase.from("profiles").select("*").order("is_verified", { ascending: false }).order("rp", { ascending: false }),
       supabase.from("locations").select("*", { count: "exact", head: true })
     ]);
     
