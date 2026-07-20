@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Trophy, Users } from "lucide-react";
 import { getRankFromRP } from "@/utils/RankSystem";
+import PlayerNameFlair from "@/components/PlayerNameFlair";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -13,7 +14,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   // Fetch the public profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, wins, rp")
+    .select("id, username, wins, rp, avatar_url, equipped_flair")
     .eq("username", decodedUsername)
     .maybeSingle();
 
@@ -29,8 +30,16 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       </Link>
 
       <div className="profile-card" style={{ marginBottom: "24px" }}>
-        <div className="profile-avatar-ring">{profile.username.charAt(0).toUpperCase()}</div>
-        <div className="profile-username" style={{ textTransform: "none" }}>@{profile.username}</div>
+        <div className="profile-avatar-ring" style={{ border: "none", background: "none", overflow: "visible" }}>
+          <img 
+            src={profile.avatar_url || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${profile.username}`} 
+            alt="Avatar" 
+            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)", border: "2px solid var(--neon)" }} 
+          />
+        </div>
+        <div className="profile-username" style={{ textTransform: "none", display: "flex", justifyContent: "center" }}>
+          <PlayerNameFlair username={profile.username} flair={profile.equipped_flair} />
+        </div>
         
         <div className="profile-fields" style={{ marginTop: 24, display: "flex", flexDirection: "column" }}>
           

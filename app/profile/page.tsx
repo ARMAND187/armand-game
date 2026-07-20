@@ -14,6 +14,7 @@ import { sendOtpEmail } from "@/app/actions/mailer";
 import { verifyCustomOTP } from "@/app/actions/verify";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
+import PlayerNameFlair from "@/components/PlayerNameFlair";
 
 const menuItems = [
   { icon: Gift,    label: "Redeem Code",    sub: "Enter a gift code",      href: "/redeem" },
@@ -31,6 +32,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -70,7 +72,7 @@ export default function ProfilePage() {
         
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, avatar_url, is_verified, rp, balance")
+          .select("is_admin, avatar_url, is_verified, rp, balance, equipped_flair")
           .eq("id", user.id)
           .single();
           
@@ -82,6 +84,9 @@ export default function ProfilePage() {
         }
         if (profile?.is_verified) {
           setIsVerified(true);
+        }
+        if (profile?.equipped_flair) {
+          setEquippedFlair(profile.equipped_flair);
         }
         if (profile?.rp) {
           setRp(profile.rp);
@@ -326,7 +331,9 @@ export default function ProfilePage() {
             >
               <RefreshCw size={12} /> Randomize Avatar
             </button>
-            <div className="profile-username" style={{ textTransform: "none", marginTop: "16px" }}>@{username}</div>
+            <div className="profile-username" style={{ textTransform: "none", marginTop: "16px", display: "flex", justifyContent: "center" }}>
+              <PlayerNameFlair username={username} flair={equippedFlair} />
+            </div>
 
             {errorMsg && (
               <div style={{ color: "#f87171", fontSize: 12, marginTop: 8, textAlign: "center" }}>

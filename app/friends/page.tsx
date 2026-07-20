@@ -7,6 +7,7 @@ import {
   UserPlus, Check, X, Search, Users, Bell, PhoneCall, Copy, Plus
 } from "lucide-react";
 import Link from "next/link";
+import PlayerNameFlair from "@/components/PlayerNameFlair";
 
 import { usePartyContext } from "@/context/PartyContext";
 
@@ -16,6 +17,7 @@ interface Friend {
   username: string;
   displayName: string;
   avatarUrl: string | null;
+  equippedFlair: string | null;
   online: boolean;
   score: number;
   currentParty: string | null;
@@ -26,6 +28,7 @@ interface Request {
   username: string;
   displayName: string;
   avatarUrl: string | null;
+  equippedFlair: string | null;
 }
 
 type Tab = "friends" | "requests";
@@ -64,7 +67,7 @@ export default function FriendsPage() {
         id,
         sender_id,
         profiles!friend_requests_sender_id_fkey (
-          username, wins, avatar_url
+          username, wins, avatar_url, equipped_flair
         )
       `)
       .eq("receiver_id", myUserId);
@@ -72,7 +75,7 @@ export default function FriendsPage() {
     if (reqData) {
       setRequests(
         reqData.map((r: unknown) => {
-          const req = r as { id: string; sender_id: string; profiles: { username: string; wins: number; avatar_url: string | null } | { username: string; wins: number; avatar_url: string | null }[] | null };
+          const req = r as { id: string; sender_id: string; profiles: { username: string; wins: number; avatar_url: string | null, equipped_flair: string | null } | { username: string; wins: number; avatar_url: string | null, equipped_flair: string | null }[] | null };
           const p = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
           return {
             id: req.id,
@@ -80,6 +83,7 @@ export default function FriendsPage() {
             username: p?.username || "unknown",
             displayName: p?.username || "Unknown",
             avatarUrl: p?.avatar_url || null,
+            equippedFlair: p?.equipped_flair || null,
           };
         })
       );
@@ -92,8 +96,8 @@ export default function FriendsPage() {
         id,
         user1_id,
         user2_id,
-        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url, current_party),
-        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url, current_party)
+        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url, current_party, equipped_flair),
+        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url, current_party, equipped_flair)
       `)
       .or(`user1_id.eq.${myUserId},user2_id.eq.${myUserId}`);
 
@@ -110,6 +114,7 @@ export default function FriendsPage() {
             username: other?.username || "unknown",
             displayName: other?.username || "Unknown",
             avatarUrl: other?.avatar_url || null,
+            equippedFlair: other?.equipped_flair || null,
             online: false,
             score: other?.wins || 0,
             currentParty: other?.current_party || null,
@@ -527,8 +532,10 @@ export default function FriendsPage() {
                           alt={f.username}
                           style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", flexShrink: 0 }}
                         />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>@{f.username}</div>
+                        <div className="flex flex-col flex-1 justify-center min-w-0">
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center" }}>
+                            <PlayerNameFlair username={f.username} flair={f.equippedFlair} />
+                          </div>
                           {alreadyInParty && <div style={{ fontSize: 11, color: "#4ade80" }}>Already in party</div>}
                         </div>
                         {alreadyInParty ? (
@@ -589,7 +596,11 @@ export default function FriendsPage() {
                     alt="Avatar" 
                     className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800"
                   />
-                  <div className="text-sm font-bold text-white">@{f.username}</div>
+                  <div className="flex-1 flex flex-col justify-center min-w-0 pl-1">
+                    <div className="text-sm font-bold text-white flex items-center">
+                      <PlayerNameFlair username={f.username} flair={f.equippedFlair} />
+                    </div>
+                  </div>
                 </div>
                 <button 
                   onClick={() => handleJoinParty(f.currentParty!)}
@@ -649,8 +660,10 @@ export default function FriendsPage() {
                     <div className="friend-avatar mr-4" style={{ border: "none", background: "none", padding: 0 }}>
                       <img src={friend.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${friend.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-800" />
                     </div>
-                    <div className="friend-info flex-1">
-                      <div className="friend-name font-bold text-white text-base">@{friend.username}</div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="friend-name font-bold text-white text-base flex items-center">
+                        <PlayerNameFlair username={friend.username} flair={friend.equippedFlair} />
+                      </div>
                     </div>
                     
                     {activeParty && friend.currentParty !== activeParty && (
@@ -683,8 +696,10 @@ export default function FriendsPage() {
                     <div className="friend-avatar mr-4" style={{ border: "none", background: "none", padding: 0 }}>
                       <img src={req.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${req.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-800" />
                     </div>
-                    <div className="friend-info flex-1">
-                      <div className="friend-name font-bold text-white text-base">@{req.username}</div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="friend-name font-bold text-white text-base flex items-center">
+                        <PlayerNameFlair username={req.username} flair={req.equippedFlair} />
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <button
