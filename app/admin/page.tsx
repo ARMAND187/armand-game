@@ -11,6 +11,7 @@ import { adminToggleStatus } from "@/app/actions/admin";
 import { OnlinePlayersModal } from "@/components/OnlinePlayersModal";
 import { ShopManagementModal } from "@/components/ShopManagementModal";
 import { AdminSpecialItemsPanel } from "@/components/AdminSpecialItemsPanel";
+import { AdminPlayerInventoryPanel } from "@/components/AdminPlayerInventoryPanel";
 import { AdminChallengePanel } from "@/components/AdminChallengePanel";
 
 const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardStats"), {
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
   const [showShopModal, setShowShopModal] = useState(false);
   const [showSpecialItems, setShowSpecialItems] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [showPlayerInventory, setShowPlayerInventory] = useState(false);
 
   // Notification states
   const [notifTitle, setNotifTitle] = useState("");
@@ -370,6 +372,21 @@ export default function AdminDashboard() {
           style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "8px 16px", color: "#60a5fa", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
         >
           Open Challenge Manager
+        </button>
+      </div>
+
+      {/* Player Inventory Management Button */}
+      {showPlayerInventory && <AdminPlayerInventoryPanel onClose={() => setShowPlayerInventory(false)} />}
+      <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Player Inventories</h2>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Search players and manage their locker items directly.</p>
+        </div>
+        <button 
+          onClick={() => setShowPlayerInventory(true)}
+          style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: 8, padding: "8px 16px", color: "#10b981", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+        >
+          Manage Lockers
         </button>
       </div>
 
