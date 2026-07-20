@@ -1,103 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap, CheckCircle2 } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
-// ─── Shop Items ──────────────────────────────────────────────────────────────
-const SHOP_ITEMS = [
-  {
-    id: 1,
-    name: "Neon Purple Frame",
-    type: "Avatar Frame",
-    price: 500,
-    rarity: "Rare",
-    rarityColor: "#a78bfa",
-    icon: <Star size={28} color="#a78bfa" />,
-    description: "A glowing neon purple border for your avatar.",
-  },
-  {
-    id: 2,
-    name: "Gold Champion Badge",
-    type: "Profile Badge",
-    price: 1200,
-    rarity: "Epic",
-    rarityColor: "#fbbf24",
-    icon: <Zap size={28} color="#fbbf24" />,
-    description: "Show off your elite status with this golden badge.",
-  },
-  {
-    id: 3,
-    name: "Shadow Theme",
-    type: "UI Theme",
-    price: 800,
-    rarity: "Rare",
-    rarityColor: "#a78bfa",
-    icon: <Sparkles size={28} color="#a78bfa" />,
-    description: "A deep shadow color palette for the entire app.",
-  },
-  {
-    id: 4,
-    name: "Fire Trail Effect",
-    type: "Cursor Effect",
-    price: 300,
-    rarity: "Common",
-    rarityColor: "#94a3b8",
-    icon: <Package size={28} color="#f97316" />,
-    description: "Leave a trail of fire as you move across the map.",
-  },
-  {
-    id: 5,
-    name: "Kurdistan Champion",
-    type: "Title",
-    price: 2000,
-    rarity: "Legendary",
-    rarityColor: "#f59e0b",
-    icon: <Tag size={28} color="#f59e0b" />,
-    description: "The most prestigious title in GeoKurdistan.",
-  },
-  {
-    id: 6,
-    name: "Emerald Frame",
-    type: "Avatar Frame",
-    price: 400,
-    rarity: "Common",
-    rarityColor: "#94a3b8",
-    icon: <Shirt size={28} color="#4ade80" />,
-    description: "A sleek emerald green border for your avatar.",
-  },
-  {
-    id: 7,
-    name: "Fire Map Pin",
-    type: "Map Pin",
-    price: 500,
-    rarity: "Epic",
-    rarityColor: "#fbbf24",
-    icon: <img src="/pins/fire-pin.png" alt="Fire Pin" style={{ width: 28, height: 28, objectFit: "contain" }} />,
-    description: "A blazing red map pin to mark your territory in GeoKurdistan.",
-  },
-];
+export interface ShopItem {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  rarity: string;
+  rarity_color: string;
+  icon_name?: string;
+  image_url?: string;
+  description?: string;
+}
 
-// ─── Locker Items ─────────────────────────────────────────────────────────────
-const LOCKER_ITEMS = [
-  {
-    id: 1,
-    name: "Default Frame",
-    type: "Avatar Frame",
-    equipped: true,
-    rarity: "Common",
-    rarityColor: "#94a3b8",
-    icon: <Star size={28} color="#94a3b8" />,
-  },
-  {
-    id: 2,
-    name: "Beta Tester Badge",
-    type: "Profile Badge",
-    equipped: false,
-    rarity: "Epic",
-    rarityColor: "#a78bfa",
-    icon: <Zap size={28} color="#a78bfa" />,
-  },
-];
+function renderIcon(item: ShopItem) {
+  const size = 28;
+  const color = item.rarity_color;
+  if (item.image_url) {
+    return <img src={item.image_url} alt={item.name} style={{ width: size, height: size, objectFit: "contain" }} />;
+  }
+  switch (item.icon_name) {
+    case "Star": return <Star size={size} color={color} />;
+    case "Zap": return <Zap size={size} color={color} />;
+    case "Sparkles": return <Sparkles size={size} color={color} />;
+    case "Package": return <Package size={size} color={color} />;
+    case "Tag": return <Tag size={size} color={color} />;
+    case "Shirt": return <Shirt size={size} color={color} />;
+    default: return <Star size={size} color={color} />;
+  }
+}
 
 // ─── Full-Screen Overlay ──────────────────────────────────────────────────────
 function FullScreenOverlay({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -112,7 +46,6 @@ function FullScreenOverlay({ title, onClose, children }: { title: string; onClos
         paddingBottom: "100px",
       }}
     >
-      {/* Header */}
       <div
         style={{
           position: "sticky",
@@ -144,8 +77,6 @@ function FullScreenOverlay({ title, onClose, children }: { title: string; onClos
           <X size={20} />
         </button>
       </div>
-
-      {/* Content */}
       <div style={{ padding: "8px 16px" }}>{children}</div>
     </div>
   );
@@ -153,158 +84,278 @@ function FullScreenOverlay({ title, onClose, children }: { title: string; onClos
 
 // ─── Shop Screen ──────────────────────────────────────────────────────────────
 function ShopScreen({ onClose }: { onClose: () => void }) {
+  const [items, setItems] = useState<ShopItem[]>([]);
+  const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Fetch Shop Items
+    const { data: shopData } = await supabase
+      .from("shop_items")
+      .select("*")
+      .eq("is_active", true)
+      .order("price", { ascending: true });
+
+    // Fetch Inventory
+    if (user) {
+      const { data: invData } = await supabase
+        .from("user_inventory")
+        .select("shop_item_id")
+        .eq("user_id", user.id);
+      
+      if (invData) {
+        setOwnedIds(new Set(invData.map(i => i.shop_item_id)));
+      }
+    }
+
+    if (shopData) setItems(shopData);
+    setLoading(false);
+  };
+
+  const buyItem = async (item: ShopItem) => {
+    if (ownedIds.has(item.id) || purchasing) return;
+    setPurchasing(item.id);
+    
+    const { data, error } = await supabase.rpc("purchase_shop_item", { p_item_id: item.id });
+    
+    if (error || !data?.success) {
+      alert(error?.message || data?.error || "Failed to purchase item.");
+    } else {
+      // Success! Update local UI
+      setOwnedIds(prev => new Set([...prev, item.id]));
+      alert(`Successfully purchased ${item.name}! Check your Locker.`);
+    }
+    
+    setPurchasing(null);
+  };
+
   return (
     <FullScreenOverlay title="🛒 Shop" onClose={onClose}>
       <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 24, marginTop: 0 }}>
-        Spend your coins to unlock exclusive cosmetics and titles.
+        Spend your coins to unlock exclusive cosmetics and map pins.
       </p>
 
-      {/* Coming Soon Banner */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, rgba(167,139,250,0.15), rgba(167,139,250,0.05))",
-          border: "1px solid rgba(167,139,250,0.3)",
-          borderRadius: 16,
-          padding: "14px 18px",
-          marginBottom: 20,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <Sparkles size={18} color="#a78bfa" />
-        <span style={{ fontSize: 13, color: "#a78bfa", fontWeight: 600 }}>
-          Shop launches soon — Preview items below!
-        </span>
-      </div>
-
-      {/* Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-        {SHOP_ITEMS.map((item) => (
-          <div
-            key={item.id}
-            style={{
-              background: "var(--bg-card, #18181b)",
-              border: "1px solid var(--border, #27272a)",
-              borderRadius: 16,
-              padding: 16,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Rarity glow */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                background: item.rarityColor,
-                opacity: 0.7,
-              }}
-            />
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 14,
-                background: "rgba(255,255,255,0.05)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {item.icon}
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{item.name}</div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.type}</div>
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: item.rarityColor,
-                background: `${item.rarityColor}22`,
-                padding: "2px 8px",
-                borderRadius: 6,
-                width: "fit-content",
-              }}
-            >
-              {item.rarity}
-            </div>
-            <button
-              disabled
-              style={{
-                marginTop: 4,
-                background: "rgba(167,139,250,0.1)",
-                border: "1px solid rgba(167,139,250,0.25)",
-                borderRadius: 10,
-                padding: "7px 0",
-                color: "#a78bfa",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "not-allowed",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 5,
-              }}
-            >
-              <Lock size={12} /> {item.price.toLocaleString()} Coins
-            </button>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading shop...</div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+          {items.map((item) => {
+            const isOwned = ownedIds.has(item.id);
+            const isPurchasing = purchasing === item.id;
+            
+            return (
+              <div
+                key={item.id}
+                style={{
+                  background: "var(--bg-card, #18181b)",
+                  border: "1px solid var(--border, #27272a)",
+                  borderRadius: 16,
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Rarity glow */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 2,
+                    background: item.rarity_color,
+                    opacity: 0.7,
+                  }}
+                />
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 14,
+                    background: "rgba(255,255,255,0.05)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {renderIcon(item)}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{item.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.type}</div>
+                </div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: item.rarity_color,
+                    background: `${item.rarity_color}22`,
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                    width: "fit-content",
+                  }}
+                >
+                  {item.rarity}
+                </div>
+                <button
+                  onClick={() => buyItem(item)}
+                  disabled={isOwned || isPurchasing}
+                  style={{
+                    marginTop: 4,
+                    background: isOwned ? "rgba(74, 222, 128, 0.1)" : "rgba(167,139,250,0.1)",
+                    border: `1px solid ${isOwned ? "rgba(74, 222, 128, 0.25)" : "rgba(167,139,250,0.25)"}`,
+                    borderRadius: 10,
+                    padding: "7px 0",
+                    color: isOwned ? "#4ade80" : "#a78bfa",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: isOwned ? "default" : (isPurchasing ? "wait" : "pointer"),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
+                >
+                  {isOwned ? (
+                    <>
+                      <CheckCircle2 size={14} /> Owned
+                    </>
+                  ) : (
+                    <>
+                      <Lock size={12} /> {isPurchasing ? "..." : item.price.toLocaleString()} Coins
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </FullScreenOverlay>
   );
 }
 
 // ─── Locker Screen ────────────────────────────────────────────────────────────
 function LockerScreen({ onClose }: { onClose: () => void }) {
+  const [ownedItems, setOwnedItems] = useState<ShopItem[]>([]);
+  const [equippedPinUrl, setEquippedPinUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [equipping, setEquipping] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchLocker();
+  }, []);
+
+  const fetchLocker = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Fetch Profile for equipped items
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("equipped_pin_url")
+      .eq("id", user.id)
+      .single();
+
+    if (profileData) {
+      setEquippedPinUrl(profileData.equipped_pin_url);
+    }
+
+    // Fetch User Inventory Joined with Shop Items
+    const { data: invData } = await supabase
+      .from("user_inventory")
+      .select(`
+        shop_item_id,
+        shop_items (
+          id, name, type, price, rarity, rarity_color, icon_name, image_url, description
+        )
+      `)
+      .eq("user_id", user.id);
+
+    if (invData) {
+      const items = invData.map((i: any) => i.shop_items as ShopItem).filter(Boolean);
+      setOwnedItems(items);
+    }
+    
+    setLoading(false);
+  };
+
+  const equipItem = async (item: ShopItem) => {
+    if (equipping) return;
+    setEquipping(item.id);
+
+    const { data, error } = await supabase.rpc("equip_shop_item", { p_item_id: item.id });
+    
+    if (error || !data?.success) {
+      alert(error?.message || data?.error || "Failed to equip item.");
+    } else {
+      if (item.type === 'Map Pin' && item.image_url) {
+        setEquippedPinUrl(item.image_url);
+      }
+    }
+    
+    setEquipping(null);
+  };
+
   return (
     <FullScreenOverlay title="🎒 Locker" onClose={onClose}>
       <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 24, marginTop: 0 }}>
         Manage your owned cosmetics and equip your favorites.
       </p>
 
-      {/* Empty state for most categories */}
-      <div
-        style={{
-          background: "var(--bg-card, #18181b)",
-          border: "1px solid var(--border, #27272a)",
-          borderRadius: 16,
-          padding: "32px 16px",
-          textAlign: "center",
-          marginBottom: 16,
-        }}
-      >
-        <Archive size={36} color="rgba(167,139,250,0.4)" style={{ margin: "0 auto 12px" }} />
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 6 }}>
-          Your locker is mostly empty
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading locker...</div>
+      ) : ownedItems.length === 0 ? (
+        <div
+          style={{
+            background: "var(--bg-card, #18181b)",
+            border: "1px solid var(--border, #27272a)",
+            borderRadius: 16,
+            padding: "32px 16px",
+            textAlign: "center",
+            marginBottom: 16,
+          }}
+        >
+          <Archive size={36} color="rgba(167,139,250,0.4)" style={{ margin: "0 auto 12px" }} />
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 6 }}>
+            Your locker is empty
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            Visit the Shop to unlock cosmetics!
+          </div>
         </div>
-        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-          Visit the Shop to unlock cosmetics!
-        </div>
-      </div>
-
-      {/* Show any unlocked items */}
-      {LOCKER_ITEMS.length > 0 && (
-        <>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Owned Items
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {LOCKER_ITEMS.map((item) => (
+          {ownedItems.map((item) => {
+            // Determine if equipped
+            let isEquipped = false;
+            if (item.type === 'Map Pin' && item.image_url === equippedPinUrl) {
+              isEquipped = true;
+            }
+
+            const isEquipping = equipping === item.id;
+
+            return (
               <div
                 key={item.id}
                 style={{
                   background: "var(--bg-card, #18181b)",
-                  border: `1px solid ${item.equipped ? "rgba(167,139,250,0.4)" : "var(--border, #27272a)"}`,
+                  border: `1px solid ${isEquipped ? "rgba(167,139,250,0.4)" : "var(--border, #27272a)"}`,
                   borderRadius: 14,
                   padding: "14px 16px",
                   display: "flex",
@@ -324,29 +375,37 @@ function LockerScreen({ onClose }: { onClose: () => void }) {
                     flexShrink: 0,
                   }}
                 >
-                  {item.icon}
+                  {renderIcon(item)}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{item.name}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.type}</div>
                 </div>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: item.equipped ? "#a78bfa" : "var(--text-muted)",
-                    background: item.equipped ? "rgba(167,139,250,0.15)" : "transparent",
-                    border: `1px solid ${item.equipped ? "rgba(167,139,250,0.3)" : "transparent"}`,
-                    padding: "4px 10px",
-                    borderRadius: 8,
-                  }}
-                >
-                  {item.equipped ? "Equipped" : "Equip"}
-                </span>
+                
+                {item.type === 'Map Pin' ? (
+                  <button
+                    onClick={() => equipItem(item)}
+                    disabled={isEquipped || isEquipping}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: isEquipped ? "#a78bfa" : "var(--text-primary)",
+                      background: isEquipped ? "rgba(167,139,250,0.15)" : "var(--bg-elevated)",
+                      border: `1px solid ${isEquipped ? "rgba(167,139,250,0.3)" : "var(--border)"}`,
+                      padding: "6px 12px",
+                      borderRadius: 8,
+                      cursor: isEquipped ? "default" : "pointer",
+                    }}
+                  >
+                    {isEquipping ? "..." : isEquipped ? "Equipped" : "Equip"}
+                  </button>
+                ) : (
+                  <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Non-equippable</span>
+                )}
               </div>
-            ))}
-          </div>
-        </>
+            );
+          })}
+        </div>
       )}
     </FullScreenOverlay>
   );

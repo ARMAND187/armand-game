@@ -14,6 +14,10 @@ const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardSta
   loading: () => <div style={{ height: 110, width: "100%", background: "var(--bg-card)", borderRadius: 16, marginBottom: 24, display: "flex", justifyContent: "center", alignItems: "center" }}><Loader2 className="mly-spinner" color="var(--neon)" /></div>
 });
 
+const AdminShopPanel = dynamic(() => import("@/components/AdminShopPanel"), {
+  ssr: false,
+});
+
 interface Profile {
   id: string;
   username: string;
@@ -300,6 +304,9 @@ export default function AdminDashboard() {
           {uploadStatus && <div style={{ fontSize: 12, color: uploadStatus.includes("Failed") || uploadStatus.includes("Missing") || uploadStatus.includes("requires") ? "#ef4444" : "#4ade80", textAlign: "center" }}>{uploadStatus}</div>}
         </div>
       </div>
+
+      {/* Shop Items Management */}
+      <AdminShopPanel />
 
       {/* Global Notifications */}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24 }}>

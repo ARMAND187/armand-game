@@ -112,6 +112,7 @@ function GeoKurdistanInner() {
   const [timer, setTimer] = useState(30);
   
   const [myUsername, setMyUsername] = useState("Player");
+  const [equippedPinUrl, setEquippedPinUrl] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
   const [totalScores, setTotalScores] = useState<Record<string, number>>({});
@@ -187,9 +188,21 @@ function GeoKurdistanInner() {
   }, [hasGuessed, submitGuess, updateTotalScores]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.user_metadata?.username) {
-        setMyUsername(data.user.user_metadata.username);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) {
+        if (data.user.user_metadata?.username) {
+          setMyUsername(data.user.user_metadata.username);
+        }
+        
+        // Fetch equipped pin url
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("equipped_pin_url")
+          .eq("id", data.user.id)
+          .single();
+        if (profile?.equipped_pin_url) {
+          setEquippedPinUrl(profile.equipped_pin_url);
+        }
       }
     });
   }, [supabase]);
@@ -572,6 +585,7 @@ function GeoKurdistanInner() {
               roundGuesses={roundGuesses}
               myUsername={myUsername}
               locked={hasGuessed || gameState !== "PLAYING"}
+              customPinUrl={equippedPinUrl}
             />
 
             {gameState === "PLAYING" && (

@@ -31,6 +31,7 @@ interface LeafletMapProps {
   roundGuesses?: any[]; // multiplayer guesses
   myUsername?: string;
   locked: boolean;
+  customPinUrl?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,6 +72,7 @@ export default function LeafletMap({
   roundGuesses = [],
   myUsername = "",
   locked,
+  customPinUrl,
 }: LeafletMapProps) {
   const [L, setL] = useState<any>(null);
 
@@ -112,20 +114,26 @@ export default function LeafletMap({
     iconAnchor: [18, 36],
   });
 
-  const createPlayerIcon = (color: string, label: string) => {
+  const createPlayerIcon = (color: string, label: string, pinUrl?: string | null) => {
+    let pinHtml = `<div style="
+          width:24px;height:24px;border-radius:50% 50% 50% 0;
+          background:${color};
+          border:2px solid #fff;
+          box-shadow:0 2px 8px rgba(0,0,0,0.5);
+          transform:rotate(-45deg);
+        "></div>`;
+
+    if (pinUrl) {
+      pinHtml = `<img src="${pinUrl}" style="width:36px; height:36px; object-fit:contain; filter:drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); transform:translateY(8px);" />`;
+    }
+
     return L.divIcon({
       className: "",
       html: `<div style="display:flex; flex-direction:column; align-items:center; transform:translateY(-100%);">
         <div style="background:rgba(0,0,0,0.6); padding:2px 6px; border-radius:4px; color:#fff; font-size:11px; font-weight:bold; margin-bottom:4px; white-space:nowrap;">
           ${label}
         </div>
-        <div style="
-          width:24px;height:24px;border-radius:50% 50% 50% 0;
-          background:${color};
-          border:2px solid #fff;
-          box-shadow:0 2px 8px rgba(0,0,0,0.5);
-          transform:rotate(-45deg);
-        "></div>
+        ${pinHtml}
       </div>`,
       iconSize: [0, 0],
       iconAnchor: [0, 0],
@@ -133,7 +141,7 @@ export default function LeafletMap({
   };
 
   const myColor = myUsername ? generatePlayerColor(myUsername) : "#a78bfa";
-  const localGuessIcon = createPlayerIcon(myColor, myUsername || "Player");
+  const localGuessIcon = createPlayerIcon(myColor, myUsername || "Player", customPinUrl);
 
   // Determine lines to draw
   // If round ended and we have multiplayer guesses, draw lines for everyone
