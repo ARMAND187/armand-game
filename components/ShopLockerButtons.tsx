@@ -65,6 +65,16 @@ const SHOP_ITEMS = [
     icon: <Shirt size={28} color="#4ade80" />,
     description: "A sleek emerald green border for your avatar.",
   },
+  {
+    id: 7,
+    name: "Fire Map Pin",
+    type: "Map Pin",
+    price: 500,
+    rarity: "Epic",
+    rarityColor: "#fbbf24",
+    icon: <img src="/pins/fire-pin.png" alt="Fire Pin" style={{ width: 28, height: 28, objectFit: "contain" }} />,
+    description: "A blazing red map pin to mark your territory in GeoKurdistan.",
+  },
 ];
 
 // ─── Locker Items ─────────────────────────────────────────────────────────────
