@@ -7,6 +7,7 @@ import UserAvatar from "@/components/UserAvatar";
 import NewsCarousel from "@/components/NewsCarousel";
 import { createClient } from "@/utils/supabase/server";
 import { getRankFromRP } from "@/utils/RankSystem";
+import ShopLockerButtons from "@/components/ShopLockerButtons";
 
 export const metadata = {
   title: "Home — Armand Games",
@@ -72,7 +73,8 @@ export default async function HomePage() {
 
       {/* ── Header ── */}
       <header className="flex items-center justify-end w-full relative" style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)", marginBottom: "40px" }}>
-        <div className="flex items-center" style={{ gap: "24px" }}>
+        <div className="flex items-center" style={{ gap: "10px" }}>
+          <ShopLockerButtons />
           <NotificationBell />
           <WalletDisplay />
         </div>
