@@ -15,7 +15,7 @@ const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardSta
   loading: () => <div style={{ height: 110, width: "100%", background: "var(--bg-card)", borderRadius: 16, marginBottom: 24, display: "flex", justifyContent: "center", alignItems: "center" }}><Loader2 className="mly-spinner" color="var(--neon)" /></div>
 });
 
-const AdminShopPanel = dynamic(() => import("@/components/AdminShopPanel"), {
+const ShopManagementModal = dynamic(() => import("@/components/ShopManagementModal").then(mod => mod.ShopManagementModal), {
   ssr: false,
 });
 
@@ -38,6 +38,7 @@ export default function AdminDashboard() {
   const [totalLocations, setTotalLocations] = useState(0);
   const [userLimit, setUserLimit] = useState<number | "All">("All");
   const [showOnlineModal, setShowOnlineModal] = useState(false);
+  const [showShopModal, setShowShopModal] = useState(false);
 
   // Notification states
   const [notifTitle, setNotifTitle] = useState("");
@@ -320,7 +321,21 @@ export default function AdminDashboard() {
       </div>
 
       {/* Shop Items Management */}
-      <AdminShopPanel />
+      {showShopModal && <ShopManagementModal onClose={() => setShowShopModal(false)} />}
+      
+      {/* Shop Management Button */}
+      <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Shop Management</h2>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage active shop items and storage.</p>
+        </div>
+        <button 
+          onClick={() => setShowShopModal(true)}
+          style={{ background: "rgba(168, 85, 247, 0.15)", border: "1px solid rgba(168, 85, 247, 0.3)", borderRadius: 8, padding: "8px 16px", color: "var(--neon)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+        >
+          Open Shop Manager
+        </button>
+      </div>
 
       {/* Global Notifications */}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24 }}>
