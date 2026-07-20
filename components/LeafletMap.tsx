@@ -184,13 +184,20 @@ export default function LeafletMap({
       )}
 
       {/* Round End: All multiplayer guesses */}
-      {realLocation && roundGuesses.map((g, i) => (
-        <Marker 
-          key={i} 
-          position={[g.guessLat, g.guessLng]} 
-          icon={createPlayerIcon(generatePlayerColor(g.username), g.username === myUsername ? `${g.username} (You)` : g.username)} 
-        />
-      ))}
+      {realLocation && roundGuesses.map((g, i) => {
+        const isMe = g.username === myUsername;
+        return (
+          <Marker 
+            key={i} 
+            position={[g.guessLat, g.guessLng]} 
+            icon={createPlayerIcon(
+              generatePlayerColor(g.username), 
+              isMe ? `${g.username} (You)` : g.username,
+              isMe ? customPinUrl : undefined
+            )} 
+          />
+        );
+      })}
 
       {/* Real location marker (Target Marker) */}
       {realLocation && (
