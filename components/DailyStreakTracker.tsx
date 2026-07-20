@@ -54,8 +54,8 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
   ];
 
   return (
-    <div className="w-full relative overflow-hidden py-4 px-2">
-      <div className="flex items-center justify-between mb-5 relative z-10 px-2">
+    <div className="w-full relative overflow-hidden py-4 px-6">
+      <div className="flex items-center justify-between mb-5 relative z-10 px-1">
         <div className="flex items-center gap-2">
           <Flame color={currentStreak > 0 ? "#ef4444" : "var(--text-muted)"} fill={currentStreak > 0 ? "#ef4444" : "none"} size={20} />
           <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
@@ -65,30 +65,30 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
             onClick={handleClaim}
             disabled={claiming}
             style={{ 
-              background: "#4ade80", 
-              color: "#000", 
-              padding: "6px 14px", 
-              borderRadius: "8px", 
-              fontSize: "12px", 
+              background: "rgba(74, 222, 128, 0.15)", 
+              color: "#4ade80", 
+              border: "1px solid rgba(74, 222, 128, 0.4)",
+              padding: "4px 12px", 
+              borderRadius: "100px", 
+              fontSize: "11px", 
               fontWeight: 800, 
               cursor: claiming ? "wait" : "pointer",
-              border: "none",
               textTransform: "uppercase",
               letterSpacing: "0.05em"
             }}
           >
-            {claiming ? "Claiming..." : "Claim Today"}
+            {claiming ? "Wait..." : "Claim"}
           </button>
         ) : (
           <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Come back tomorrow</span>
         )}
       </div>
 
-      <div className="flex justify-between items-center relative z-10 px-3">
+      <div className="flex justify-between items-center relative z-10 px-1">
         {/* Connection line behind the circles */}
-        <div className="absolute left-7 right-7 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
+        <div className="absolute left-6 right-6 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
         <div 
-          className="absolute left-7 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
+          className="absolute left-6 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
           style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 48px)` }}
         />
 
