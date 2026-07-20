@@ -54,18 +54,19 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
   ];
 
   return (
-    <div className="w-full relative py-6 px-4 sm:px-8">
-      <div className="flex items-center gap-2 mb-6 relative z-10 pl-2">
+    <div className="w-full relative flex flex-col">
+      <div className="pt-6 pb-8 px-10">
+        <div className="flex items-center gap-2 mb-6 relative z-10">
         <Flame color={currentStreak > 0 ? "#ef4444" : "var(--text-muted)"} fill={currentStreak > 0 ? "#ef4444" : "none"} size={20} />
         <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
       </div>
 
-      <div className="flex justify-between items-center relative z-10 px-2 sm:px-4">
+      <div className="flex justify-between items-center relative z-10">
         {/* Connection line behind the circles */}
-        <div className="absolute left-8 right-8 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
+        <div className="absolute left-6 right-6 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
         <div 
-          className="absolute left-8 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
-          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 64px)` }}
+          className="absolute left-6 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
+          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 48px)` }}
         />
 
         {days.map((d, i) => {
@@ -93,33 +94,29 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
             </div>
           );
         })}
+        </div>
       </div>
 
-      <div className="flex justify-center mt-8 relative z-10">
+      <div className="w-full border-t border-white/5">
         {!alreadyClaimedToday ? (
           <button 
             onClick={handleClaim}
             disabled={claiming}
-            className="w-full sm:w-auto hover:brightness-125 transition-all duration-300"
+            className="w-full py-4 flex items-center justify-center font-bold text-[15px] tracking-wide transition-all duration-300 hover:brightness-125"
             style={{ 
-              background: "linear-gradient(90deg, rgba(74, 222, 128, 0.15), rgba(74, 222, 128, 0.05))", 
+              background: "linear-gradient(90deg, rgba(74, 222, 128, 0.15), rgba(34, 197, 94, 0.1))", 
+              boxShadow: "inset 0 0 20px rgba(74, 222, 128, 0.1)",
               color: "#4ade80", 
-              border: "1px solid rgba(74, 222, 128, 0.4)",
-              boxShadow: "inset 0 0 12px rgba(74, 222, 128, 0.1)",
-              padding: "12px 32px", 
-              borderRadius: "100px", 
-              fontSize: "14px", 
-              fontWeight: 800, 
+              border: "none",
               cursor: claiming ? "wait" : "pointer",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em"
+              textTransform: "uppercase"
             }}
           >
             {claiming ? "Processing..." : "Claim Daily Reward"}
           </button>
         ) : (
-          <div className="py-3 px-6 rounded-full border border-zinc-800 bg-zinc-900/50">
-            <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">Come back tomorrow for Day {Math.min(currentStreak + 1, 7)}</span>
+          <div className="w-full py-4 flex items-center justify-center bg-black/20">
+            <span className="text-[13px] font-bold text-zinc-500 uppercase tracking-widest">Come back tomorrow for Day {Math.min(currentStreak + 1, 7)}</span>
           </div>
         )}
       </div>
