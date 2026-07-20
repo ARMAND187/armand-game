@@ -8,9 +8,10 @@ interface ChallengesButtonProps {
   wins: number;
   currentTitle: string | null;
   userId?: string;
+  challenges?: { risingStar: number, sniper: number, highRoller: number, speedrunner: number };
 }
 
-export default function ChallengesButton({ wins, currentTitle, userId }: ChallengesButtonProps) {
+export default function ChallengesButton({ wins, currentTitle, userId, challenges }: ChallengesButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [equippedTitle, setEquippedTitle] = useState(currentTitle);
 
@@ -35,6 +36,7 @@ export default function ChallengesButton({ wins, currentTitle, userId }: Challen
         wins={wins}
         currentTitle={equippedTitle}
         userId={userId}
+        challenges={challenges || { risingStar: 0, sniper: 0, highRoller: 0, speedrunner: 0 }}
         onTitleEquipped={(title) => {
           setEquippedTitle(title);
           // To reflect globally immediately without refresh, we might need router.refresh() 

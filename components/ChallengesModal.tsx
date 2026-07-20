@@ -12,6 +12,7 @@ interface ChallengesModalProps {
   currentTitle: string | null;
   onTitleEquipped: (title: string) => void;
   userId?: string;
+  challenges: { risingStar: number, sniper: number, highRoller: number, speedrunner: number };
 }
 
 export default function ChallengesModal({
@@ -21,6 +22,7 @@ export default function ChallengesModal({
   currentTitle,
   onTitleEquipped,
   userId,
+  challenges,
 }: ChallengesModalProps) {
   const [equipping, setEquipping] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -31,15 +33,17 @@ export default function ChallengesModal({
 
   if (!isOpen || !mounted) return null;
 
-  // We are visually tracking these based on generic metrics for now.
-  // In the future, this will be tied directly to game score history.
-  // "wins" can proxy for games played > 370 points for now.
-  const risingStarProgress = Math.min(wins, 5);
+  const risingStarProgress = Math.min(challenges.risingStar, 5);
   const isRisingStarCompleted = risingStarProgress >= 5;
 
-  // Let's pretend they have 3 bullseyes for the Sniper challenge as a placeholder
-  const sniperProgress = 3;
+  const sniperProgress = Math.min(challenges.sniper, 10);
   const isSniperCompleted = sniperProgress >= 10;
+  
+  const highRollerProgress = Math.min(challenges.highRoller, 5);
+  const isHighRollerCompleted = highRollerProgress >= 5;
+  
+  const speedrunnerProgress = Math.min(challenges.speedrunner, 5);
+  const isSpeedrunnerCompleted = speedrunnerProgress >= 5;
 
   const handleEquipTitle = async (title: string) => {
     if (!userId) return;
@@ -193,6 +197,116 @@ export default function ChallengesModal({
                 ) : (
                   <button
                     onClick={() => handleEquipTitle("Sniper")}
+                    disabled={equipping}
+                    style={{
+                      padding: "10px 20px", borderRadius: 10, background: "#4ade80", border: "none",
+                      color: "#000", fontSize: 13, fontWeight: 800, cursor: equipping ? "wait" : "pointer"
+                    }}
+                  >
+                    {equipping ? "Equipping..." : "Equip Title"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Challenge 3: High Roller */}
+          <div style={{
+            background: isHighRollerCompleted ? "rgba(74, 222, 128, 0.05)" : "rgba(255,255,255,0.03)",
+            border: isHighRollerCompleted ? "1px solid rgba(74, 222, 128, 0.2)" : "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 16, padding: 20, display: "flex", alignItems: "center", gap: 20
+          }}>
+            <div style={{ flexShrink: 0 }}>
+              {isHighRollerCompleted ? (
+                <CheckCircle color="#4ade80" size={40} />
+              ) : (
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Target size={24} color="#a855f7" />
+                </div>
+              )}
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: isHighRollerCompleted ? "#4ade80" : "#fff" }}>High Roller</h3>
+                <span style={{ fontSize: 10, background: "rgba(168, 85, 247, 0.2)", color: "#a855f7", padding: "2px 6px", borderRadius: 4, fontWeight: 800, textTransform: "uppercase" }}>New</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                Finish a game with an average score of 95+ points per round, 5 times.
+              </p>
+              <div style={{ marginTop: 12, height: 8, background: "rgba(0,0,0,0.5)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(highRollerProgress / 5) * 100}%`, background: isHighRollerCompleted ? "#4ade80" : "#a855f7", transition: "width 0.3s" }} />
+              </div>
+              <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", fontWeight: 700, display: "flex", justifyContent: "space-between" }}>
+                <span>Progress</span>
+                <span>{highRollerProgress} / 5</span>
+              </div>
+            </div>
+
+            {isHighRollerCompleted && (
+              <div style={{ flexShrink: 0, paddingLeft: 16 }}>
+                {currentTitle === "Geographer" ? (
+                  <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", fontSize: 13, fontWeight: 800 }}>
+                    Equipped
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleEquipTitle("Geographer")}
+                    disabled={equipping}
+                    style={{
+                      padding: "10px 20px", borderRadius: 10, background: "#4ade80", border: "none",
+                      color: "#000", fontSize: 13, fontWeight: 800, cursor: equipping ? "wait" : "pointer"
+                    }}
+                  >
+                    {equipping ? "Equipping..." : "Equip Title"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Challenge 4: Speedrunner */}
+          <div style={{
+            background: isSpeedrunnerCompleted ? "rgba(74, 222, 128, 0.05)" : "rgba(255,255,255,0.03)",
+            border: isSpeedrunnerCompleted ? "1px solid rgba(74, 222, 128, 0.2)" : "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 16, padding: 20, display: "flex", alignItems: "center", gap: 20
+          }}>
+            <div style={{ flexShrink: 0 }}>
+              {isSpeedrunnerCompleted ? (
+                <CheckCircle color="#4ade80" size={40} />
+              ) : (
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Flame size={24} color="#f97316" />
+                </div>
+              )}
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: isSpeedrunnerCompleted ? "#4ade80" : "#fff" }}>Speedrunner</h3>
+                <span style={{ fontSize: 10, background: "rgba(249, 115, 22, 0.2)", color: "#f97316", padding: "2px 6px", borderRadius: 4, fontWeight: 800, textTransform: "uppercase" }}>New</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                Lock in your guess in under 5 seconds and score {'>'} 70 points, 5 times.
+              </p>
+              <div style={{ marginTop: 12, height: 8, background: "rgba(0,0,0,0.5)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(speedrunnerProgress / 5) * 100}%`, background: isSpeedrunnerCompleted ? "#4ade80" : "#f97316", transition: "width 0.3s" }} />
+              </div>
+              <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", fontWeight: 700, display: "flex", justifyContent: "space-between" }}>
+                <span>Progress</span>
+                <span>{speedrunnerProgress} / 5</span>
+              </div>
+            </div>
+
+            {isSpeedrunnerCompleted && (
+              <div style={{ flexShrink: 0, paddingLeft: 16 }}>
+                {currentTitle === "Speedster" ? (
+                  <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", fontSize: 13, fontWeight: 800 }}>
+                    Equipped
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleEquipTitle("Speedster")}
                     disabled={equipping}
                     style={{
                       padding: "10px 20px", borderRadius: 10, background: "#4ade80", border: "none",

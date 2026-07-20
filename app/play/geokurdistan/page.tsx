@@ -121,6 +121,10 @@ function GeoKurdistanInner() {
   const [playerFlairs, setPlayerFlairs] = useState<Record<string, string | null>>({});
   const [equippedFlair, setEquippedFlair] = useState<string | null>(null);
   
+  // Challenge Tracking
+  const [matchSniperHits, setMatchSniperHits] = useState(0);
+  const [matchSpeedrunnerHits, setMatchSpeedrunnerHits] = useState(0);
+  
   const [guessMarker, setGuessMarker] = useState<{ lat: number; lng: number } | null>(null);
   const [hasGuessed, setHasGuessed] = useState(false);
   const [roundGuesses, setRoundGuesses] = useState<MultiplayerGuess[]>([]);
@@ -166,6 +170,14 @@ function GeoKurdistanInner() {
       score,
       equippedFlair,
     };
+
+    // Challenge Checks
+    if (distanceKm <= 5) {
+      setMatchSniperHits(prev => prev + 1);
+    }
+    if (timer >= 25 && score > 70) {
+      setMatchSpeedrunnerHits(prev => prev + 1);
+    }
 
     if (channelRef.current && roomId) {
       channelRef.current.send({
@@ -361,6 +373,8 @@ function GeoKurdistanInner() {
                setHasGuessed(false);
                setGuessMarker(null);
                setShowScoreboard(false);
+               setMatchSniperHits(0);
+               setMatchSpeedrunnerHits(0);
             } else {
                if (isRoomHost) {
                  setTimeout(async () => {
@@ -453,6 +467,33 @@ function GeoKurdistanInner() {
           }
         });
         
+        // Evaluate Challenge progress for current player
+        let risingStarInc = 0;
+        let highRollerInc = 0;
+        const myFinalScore = stateRef.current.totalScores[myUsername] || 0;
+        
+        if (totalRounds === 5 && myFinalScore > 370) {
+          risingStarInc = 1;
+        }
+        if (myFinalScore / totalRounds >= 95) {
+          highRollerInc = 1;
+        }
+
+        // Submit Challenge progress
+        if (matchSniperHits > 0 || matchSpeedrunnerHits > 0 || risingStarInc > 0 || highRollerInc > 0) {
+          fetch("/api/game/challenges", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: myUsername,
+              sniperInc: matchSniperHits,
+              speedrunnerInc: matchSpeedrunnerHits,
+              risingStarInc,
+              highRollerInc
+            })
+          }).catch(console.error);
+        }
+
         if (winner) {
           fetch("/api/game/winner", {
             method: "POST",
@@ -489,6 +530,8 @@ function GeoKurdistanInner() {
       setHasGuessed(false);
       setGuessMarker(null);
       setShowScoreboard(false);
+      setMatchSniperHits(0);
+      setMatchSpeedrunnerHits(0);
     } else {
       if (isHost && channelRef.current) {
         const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);

@@ -41,12 +41,13 @@ export default async function HomePage() {
   let userId: string | undefined = undefined;
   let currentStreak = 0;
   let lastStreakClaim: string | null = null;
+  let challenges = { risingStar: 0, sniper: 0, highRoller: 0, speedrunner: 0 };
 
   if (userData?.user) {
     userId = userData.user.id;
     const { data: profile } = await supabase
       .from("profiles")
-      .select("rp, wins, avatar_url, username, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, current_streak, last_streak_claim")
+      .select("rp, wins, avatar_url, username, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, current_streak, last_streak_claim, challenge_rising_star, challenge_sniper, challenge_high_roller, challenge_speedrunner")
       .eq("id", userData.user.id)
       .single();
     if (profile) {
@@ -62,6 +63,13 @@ export default async function HomePage() {
       equippedAvatarFrame = profile.equipped_avatar_frame || null;
       currentStreak = profile.current_streak || 0;
       lastStreakClaim = profile.last_streak_claim || null;
+      
+      challenges = {
+        risingStar: profile.challenge_rising_star || 0,
+        sniper: profile.challenge_sniper || 0,
+        highRoller: profile.challenge_high_roller || 0,
+        speedrunner: profile.challenge_speedrunner || 0
+      };
     }
   }
 
@@ -271,7 +279,7 @@ export default async function HomePage() {
               <Play className="fill-white shrink-0" size={22} />
               <span>Find Match</span>
             </Link>
-            <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} />
+            <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} challenges={challenges} />
             <DailyStreakTracker currentStreak={currentStreak} lastClaimDate={lastStreakClaim} />
           </div>
         </div>
