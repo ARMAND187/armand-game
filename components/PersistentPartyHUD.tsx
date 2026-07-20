@@ -10,8 +10,7 @@ import {
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { useEffect, useState, useCallback } from "react";
-import { usePathname } from "next/navigation";
-import { Mic, MicOff, PhoneOff, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Mic, MicOff, PhoneOff, ChevronDown, ChevronUp } from "lucide-react";
 import { usePartyContext } from "@/context/PartyContext";
 
 // ─── Token fetcher ────────────────────────────────────────────────────────────
@@ -229,47 +228,33 @@ function PartyRoomWrapper({ room, username, onLeave }: { room: string; username:
   );
 }
 
-// ─── Main export: mounts in layout, shows HUD on all non-friends pages ───────
+// ─── Main export: mounts in layout, always floating ─────────────────────────
 export default function PersistentPartyHUD() {
   const { activeParty, myUsername, leaveParty } = usePartyContext();
-  const pathname = usePathname();
-
-  // Don't show mini-HUD on friends page (full UI is there)
-  // But still need the audio renderer mounted — handled via the LiveKitRoom inside
-  const isFriendsPage = pathname === "/friends";
 
   if (!activeParty || !myUsername) return null;
 
   return (
     <>
-      {/* Always render the room for audio — but visually hide the HUD on /friends */}
-      {isFriendsPage ? (
-        // On friends page we don't render the HUD — VoicePartyPanel renders there
-        // But we still need audio: render invisible room
-        <div style={{ display: "none" }}>
-          <PartyRoomWrapper room={activeParty} username={myUsername} onLeave={leaveParty} />
-        </div>
-      ) : (
-        // On all other pages: show the floating mini-HUD
-        <div
-          style={{
-            position: "fixed",
-            bottom: "76px", // above bottom nav
-            left: "12px",
-            zIndex: 9000,
-            minWidth: 160,
-            maxWidth: 240,
-            background: "rgba(9,9,11,0.92)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1px solid rgba(167,139,250,0.3)",
-            borderRadius: 16,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(167,139,250,0.1)",
-          }}
-        >
-          <PartyRoomWrapper room={activeParty} username={myUsername} onLeave={leaveParty} />
-        </div>
-      )}
+      {/* Single LiveKitRoom — always floating bottom-left on every page */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "76px",
+          left: "12px",
+          zIndex: 9000,
+          minWidth: 160,
+          maxWidth: 240,
+          background: "rgba(9,9,11,0.92)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid rgba(167,139,250,0.3)",
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(167,139,250,0.1)",
+        }}
+      >
+        <PartyRoomWrapper room={activeParty} username={myUsername} onLeave={leaveParty} />
+      </div>
 
       <style>{`
         @keyframes pulse-dot {

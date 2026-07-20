@@ -406,22 +406,104 @@ export default function FriendsPage() {
           🎉 Party Lounge
         </h2>
         
-        {activeParty && ctxUsername ? (
-          <VoiceParty 
-            room={activeParty} 
-            username={ctxUsername} 
-            onLeave={handleLeaveParty} 
-          />
+        {activeParty ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "8px 0" }}>
+            {/* Active party banner */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 10,
+              background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.3)",
+              borderRadius: 12, padding: "10px 14px",
+            }}>
+              <div style={{
+                width: 10, height: 10, borderRadius: "50%", background: "#4ade80",
+                boxShadow: "0 0 8px #4ade80", flexShrink: 0,
+                animation: "pulse-green 1.5s ease-in-out infinite",
+              }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>Party Active</div>
+                <div style={{ fontSize: 11, color: "#a1a1aa" }}>Code: <span style={{ color: "#a78bfa", fontWeight: 800, letterSpacing: "0.1em" }}>{activeParty}</span></div>
+              </div>
+              <button
+                onClick={handleLeaveParty}
+                style={{
+                  background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)",
+                  borderRadius: 8, padding: "5px 10px", color: "#ef4444",
+                  fontSize: 11, fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                Leave
+              </button>
+            </div>
+            {/* Invite friends */}
+            <div style={{ fontSize: 12, color: "#a1a1aa", display: "flex", alignItems: "center", gap: 6 }}>
+              <PhoneCall size={12} />
+              Voice controls available in the floating party panel (bottom-left)
+            </div>
+            {/* Send invites to friends */}
+            {friends.length > 0 && (
+              <div>
+                <p style={{ fontSize: 11, color: "#a1a1aa", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Invite Friends</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {friends.map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => handleSendInvite(f.profile_id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: 20, padding: "5px 12px", color: "#e4e4e7",
+                        fontSize: 12, fontWeight: 600, cursor: "pointer",
+                      }}
+                    >
+                      <img
+                        src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`}
+                        alt="" style={{ width: 20, height: 20, borderRadius: "50%" }}
+                      />
+                      @{f.username}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <style>{`
+              @keyframes pulse-green {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.4; transform: scale(0.8); }
+              }
+            `}</style>
+          </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center mt-4">
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "12px 0" }}>
             <button 
               onClick={handleCreateParty}
               className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-3 rounded-full border border-zinc-700 flex items-center gap-2 font-medium transition-colors shadow-md"
             >
               <Plus size={18} /> Create Party
             </button>
+            <div style={{ display: "flex", gap: 8, width: "100%", maxWidth: 300 }}>
+              <input
+                className="search-input"
+                placeholder="Enter party code..."
+                value={partyCodeInput}
+                onChange={e => setPartyCodeInput(e.target.value.toUpperCase())}
+                style={{ flex: 1, background: "var(--bg-base)", letterSpacing: "0.1em", fontWeight: 700, textTransform: "uppercase" }}
+                onKeyDown={e => e.key === "Enter" && handleJoinParty()}
+              />
+              <button
+                onClick={() => handleJoinParty()}
+                disabled={!partyCodeInput.trim()}
+                style={{
+                  background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)",
+                  borderRadius: 10, padding: "8px 14px", color: "#a78bfa",
+                  fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+                }}
+              >
+                Join
+              </button>
+            </div>
           </div>
         )}
+
       </div>
 
       {/* ── Section 3: Active Parties ── */}
