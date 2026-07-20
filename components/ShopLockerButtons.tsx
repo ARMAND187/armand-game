@@ -4,6 +4,41 @@ import { useState, useEffect } from "react";
 import { ShoppingBag, Archive, X, Lock, Star, Sparkles, Package, Tag, Shirt, Zap, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
+function TimerCountdown({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    const targetDate = new Date(expiresAt).getTime();
+    
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance < 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      
+      const parts = [];
+      if (hours > 0) parts.push(`${hours}h`);
+      if (minutes > 0 || hours > 0) parts.push(`${minutes}m`);
+      parts.push(`${seconds}s`);
+
+      setTimeLeft(`Ends in ${parts.join(" ")}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return <span>{timeLeft}</span>;
+}
+
 export interface ShopItem {
   id: string;
   name: string;
@@ -14,6 +49,7 @@ export interface ShopItem {
   icon_name?: string;
   image_url?: string;
   description?: string;
+  expires_at?: string | null;
 }
 
 function renderIcon(item: ShopItem) {
@@ -119,7 +155,15 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
       }
     }
 
-    if (shopData) setItems(shopData);
+    if (shopData) {
+      // Filter out items that have expired
+      const now = new Date();
+      const activeShopItems = shopData.filter(item => {
+        if (!item.expires_at) return true;
+        return new Date(item.expires_at) > now;
+      });
+      setItems(activeShopItems);
+    }
     setLoading(false);
   };
 
@@ -234,6 +278,11 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
                 >
                   {item.rarity}
                 </div>
+                {item.expires_at && (
+                  <div style={{ fontSize: 10, color: "#fca5a5", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                    <TimerCountdown expiresAt={item.expires_at} />
+                  </div>
+                )}
                 <button
                   onClick={() => buyItem(item)}
                   disabled={isOwned || isPurchasing}

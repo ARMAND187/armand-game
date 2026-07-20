@@ -10,6 +10,8 @@ export default function AdminShopPanel() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<ShopItem>>({});
+  const [addingToShopId, setAddingToShopId] = useState<string | null>(null);
+  const [timerHours, setTimerHours] = useState<number>(24);
   const supabase = createClient();
 
   useEffect(() => {
@@ -57,9 +59,29 @@ export default function AdminShopPanel() {
     }
   };
 
-  const toggleStatus = async (item: ShopItem) => {
-    const { error } = await supabase.from("shop_items").update({ is_active: !(item as any).is_active }).eq("id", item.id);
-    if (!error) fetchItems();
+  const toggleStatus = async (item: ShopItem, forceActive?: boolean, expiresAt?: string | null) => {
+    const isActive = forceActive !== undefined ? forceActive : !(item as any).is_active;
+    const { error } = await supabase.from("shop_items").update({ 
+      is_active: isActive,
+      expires_at: expiresAt !== undefined ? expiresAt : (item as any).expires_at
+    }).eq("id", item.id);
+    
+    if (error) {
+      alert("Failed to update: " + error.message);
+    } else {
+      setAddingToShopId(null);
+      fetchItems();
+    }
+  };
+
+  const handleAddToShop = (item: ShopItem) => {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + timerHours);
+    toggleStatus(item, true, expiresAt.toISOString());
+  };
+
+  const handlePermanentAdd = (item: ShopItem) => {
+    toggleStatus(item, true, null);
   };
 
   if (loading) {
@@ -139,17 +161,57 @@ export default function AdminShopPanel() {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 14, color: isActive ? "#fff" : "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
                       {item.name}
-                      {!isActive && <span style={{ fontSize: 10, background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", padding: "2px 6px", borderRadius: 4 }}>Disabled</span>}
+                      {!isActive && <span style={{ fontSize: 10, background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", padding: "2px 6px", borderRadius: 4 }}>Hidden</span>}
+                      {isActive && (item as any).expires_at && (
+                        <span style={{ fontSize: 10, background: "rgba(167, 139, 250, 0.2)", color: "#a78bfa", padding: "2px 6px", borderRadius: 4 }}>
+                          In Shop ({(new Date((item as any).expires_at).toLocaleString())})
+                        </span>
+                      )}
+                      {isActive && !(item as any).expires_at && (
+                        <span style={{ fontSize: 10, background: "rgba(74, 222, 128, 0.2)", color: "#4ade80", padding: "2px 6px", borderRadius: 4 }}>
+                          In Shop (Permanent)
+                        </span>
+                      )}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{item.type} • {item.price} Coins</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>{item.type} • {item.price} Coins</div>
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => handleEdit(item)} style={{ background: "rgba(167, 139, 250, 0.1)", border: "1px solid rgba(167, 139, 250, 0.2)", borderRadius: 8, padding: 6, color: "var(--neon)", cursor: "pointer" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button onClick={() => handleEdit(item)} style={{ background: "transparent", border: "1px solid rgba(255, 255, 255, 0.2)", borderRadius: 8, padding: "6px 10px", color: "#fff", cursor: "pointer", fontSize: 12 }}>
                       Edit
                     </button>
-                    <button onClick={() => toggleStatus(item)} style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: 8, padding: 6, color: "#fff", cursor: "pointer" }}>
-                      {isActive ? "Disable" : "Enable"}
-                    </button>
+                    
+                    {isActive ? (
+                      <button onClick={() => toggleStatus(item, false, null)} style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 8, padding: "6px 10px", color: "#ef4444", cursor: "pointer", fontSize: 12 }}>
+                        Remove from Shop
+                      </button>
+                    ) : (
+                      addingToShopId === item.id ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <input 
+                            type="number" 
+                            className="search-input" 
+                            style={{ width: 60, padding: 6, fontSize: 12 }} 
+                            value={timerHours} 
+                            onChange={e => setTimerHours(Number(e.target.value))}
+                            placeholder="Hrs"
+                          />
+                          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>hrs</span>
+                          <button onClick={() => handleAddToShop(item)} style={{ background: "var(--neon)", border: "none", borderRadius: 6, padding: "6px 10px", color: "#000", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                            Add
+                          </button>
+                          <button onClick={() => handlePermanentAdd(item)} style={{ background: "transparent", border: "1px solid var(--neon)", borderRadius: 6, padding: "6px 10px", color: "var(--neon)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                            Add Permanently
+                          </button>
+                          <button onClick={() => setAddingToShopId(null)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12 }}>
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setAddingToShopId(item.id)} style={{ background: "rgba(74, 222, 128, 0.1)", border: "1px solid rgba(74, 222, 128, 0.2)", borderRadius: 8, padding: "6px 10px", color: "#4ade80", cursor: "pointer", fontSize: 12 }}>
+                          Add to Shop
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               )}
