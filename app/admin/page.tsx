@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, UploadCloud, Target, Trophy } from "lucide-react";
+import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, UploadCloud, Target, Trophy, Zap } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getRankFromRP } from "@/utils/RankSystem";
@@ -343,11 +343,11 @@ export default function AdminDashboard() {
       <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ padding: 12, borderRadius: 12, background: "rgba(245, 158, 11, 0.1)" }}>
-            <Trophy size={24} color="#f59e0b" />
+            <Zap size={24} color="#f59e0b" />
           </div>
           <div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Challenge & Streak Items</h2>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage rewards for challenges and daily streaks.</p>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Daily Streak Items</h2>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage rewards for daily streaks.</p>
           </div>
         </div>
         <button

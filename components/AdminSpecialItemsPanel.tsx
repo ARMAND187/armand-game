@@ -21,7 +21,6 @@ interface SpecialItem {
 }
 
 export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<"challenge" | "streak">("challenge");
   const [activeView, setActiveView] = useState<"active" | "storage">("active");
   const [items, setItems] = useState<SpecialItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,22 +32,20 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     fetchItems();
-  }, [activeTab]);
+  }, []);
 
   const fetchItems = async () => {
     setLoading(true);
-    const table = activeTab === "challenge" ? "challenge_items" : "streak_items";
-    const { data, error } = await supabase.from(table).select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("streak_items").select("*").order("created_at", { ascending: false });
     if (data) setItems(data);
     if (error) console.error(error);
     setLoading(false);
   };
 
   const handleCreate = async () => {
-    const table = activeTab === "challenge" ? "challenge_items" : "streak_items";
-    const { error } = await supabase.from(table).insert([{
+    const { error } = await supabase.from("streak_items").insert([{
       name: "New Item",
-      title: activeTab === "challenge" ? "Challenge Title" : "Streak Title",
+      title: "Streak Title",
       description: "Description here...",
       balance: 100,
       icon_name: "Star",
@@ -63,16 +60,14 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this item permanently?")) return;
-    const table = activeTab === "challenge" ? "challenge_items" : "streak_items";
-    const { error } = await supabase.from(table).delete().eq("id", id);
+    const { error } = await supabase.from("streak_items").delete().eq("id", id);
     if (error) alert("Failed to delete: " + error.message);
     else fetchItems();
   };
 
   const handleSave = async (id: string) => {
-    const table = activeTab === "challenge" ? "challenge_items" : "streak_items";
     const { error } = await supabase
-      .from(table)
+      .from("streak_items")
       .update({
         name: editForm.name,
         title: editForm.title,
@@ -93,9 +88,8 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
   };
 
   const toggleStatus = async (item: SpecialItem, forceActive?: boolean, availableFrom?: string | null, expiresAt?: string | null) => {
-    const table = activeTab === "challenge" ? "challenge_items" : "streak_items";
     const isActive = forceActive !== undefined ? forceActive : !item.is_active;
-    const { error } = await supabase.from(table).update({ 
+    const { error } = await supabase.from("streak_items").update({ 
       is_active: isActive,
       available_from: availableFrom !== undefined ? availableFrom : item.available_from,
       expires_at: expiresAt !== undefined ? expiresAt : item.expires_at
@@ -150,8 +144,6 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
 
   const now = new Date();
   const filteredItems = items.filter(item => {
-    if (activeTab === "challenge") return true; // Show all challenges unconditionally
-    
     const isActive = item.is_active;
     const isAvailable = !item.available_from || new Date(item.available_from) <= now;
     const isExpired = item.expires_at && new Date(item.expires_at) <= now;
@@ -163,63 +155,31 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <FullScreenOverlay title="🏆 Special Items Management" onClose={onClose}>
-      {/* Top Type Selector */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-        <button
-          onClick={() => { setActiveTab("challenge"); setActiveView("active"); }}
-          style={{
-            flex: 1, padding: "12px", borderRadius: 12, fontWeight: 800, fontSize: 14,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
-            background: activeTab === "challenge" ? "rgba(168, 85, 247, 0.2)" : "var(--bg-card)",
-            color: activeTab === "challenge" ? "var(--neon)" : "var(--text-muted)",
-            border: activeTab === "challenge" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent",
-          }}
-        >
-          <Target size={18} /> Challenge Items
-        </button>
-        <button
-          onClick={() => { setActiveTab("streak"); setActiveView("active"); }}
-          style={{
-            flex: 1, padding: "12px", borderRadius: 12, fontWeight: 800, fontSize: 14,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
-            background: activeTab === "streak" ? "rgba(245, 158, 11, 0.2)" : "var(--bg-card)",
-            color: activeTab === "streak" ? "#f59e0b" : "var(--text-muted)",
-            border: activeTab === "streak" ? "1px solid rgba(245, 158, 11, 0.4)" : "1px solid transparent",
-          }}
-        >
-          <Zap size={18} /> Daily Streak Items
-        </button>
-      </div>
-
+    <FullScreenOverlay title="⚡ Daily Streak Items" onClose={onClose}>
       {/* Storage vs Active View & Controls */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: 16 }}>
-        {activeTab === "streak" && (
-          <>
-            <button
-              onClick={() => setActiveView("active")}
-              style={{
-                padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer",
-                background: activeView === "active" ? "rgba(168, 85, 247, 0.2)" : "transparent",
-                color: activeView === "active" ? "var(--neon)" : "var(--text-muted)",
-                border: activeView === "active" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
-              }}
-            >
-              Active Streaks
-            </button>
-            <button
-              onClick={() => setActiveView("storage")}
-              style={{
-                padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-                background: activeView === "storage" ? "rgba(168, 85, 247, 0.2)" : "transparent",
-                color: activeView === "storage" ? "var(--neon)" : "var(--text-muted)",
-                border: activeView === "storage" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
-              }}
-            >
-              <Package size={14} /> Storage Vault
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => setActiveView("active")}
+          style={{
+            padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer",
+            background: activeView === "active" ? "rgba(168, 85, 247, 0.2)" : "transparent",
+            color: activeView === "active" ? "var(--neon)" : "var(--text-muted)",
+            border: activeView === "active" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
+          }}
+        >
+          Active Streaks
+        </button>
+        <button
+          onClick={() => setActiveView("storage")}
+          style={{
+            padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+            background: activeView === "storage" ? "rgba(168, 85, 247, 0.2)" : "transparent",
+            color: activeView === "storage" ? "var(--neon)" : "var(--text-muted)",
+            border: activeView === "storage" ? "1px solid rgba(168, 85, 247, 0.4)" : "1px solid transparent"
+          }}
+        >
+          <Package size={14} /> Storage Vault
+        </button>
         <div style={{ flex: 1 }} />
         <button onClick={handleCreate} style={{
           background: "var(--neon)", color: "#000", border: "none", borderRadius: 20, padding: "8px 16px",
@@ -233,7 +193,7 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
         <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 className="mly-spinner" color="var(--neon)" /></div>
       ) : filteredItems.length === 0 ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
-          No {activeTab} items found in {activeView}.
+          No streak items found in {activeView}.
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -324,84 +284,80 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
                         <button onClick={() => handleDelete(item.id)} style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 8, padding: "8px", color: "#ef4444", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700 }}>
                           <Trash2 size={14} /> Delete
                         </button>
-                        {activeTab === "streak" && (
-                          activeView === "active" ? (
-                            <button onClick={() => toggleStatus(item, false, null, null)} style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                              Vault Item
-                            </button>
-                          ) : (
-                            <button onClick={() => setAddingToShopId(item.id)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#4ade80", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                              Make Active
-                            </button>
-                          )
+                        {activeView === "active" ? (
+                          <button onClick={() => toggleStatus(item, false, null, null)} style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                            Vault Item
+                          </button>
+                        ) : (
+                          <button onClick={() => setAddingToShopId(item.id)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#4ade80", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                            Make Active
+                          </button>
                         )}
                       </div>
                     </div>
 
                     {/* Stats / Info */}
-                    {activeTab === "streak" && (
-                      activeView === "active" ? (
-                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
-                          {item.available_from && (
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#a78bfa", fontWeight: 700 }}>
-                              <Calendar size={14} /> Active for {calculateDaysInShop(item.available_from)} days
+                    {activeView === "active" ? (
+                      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
+                        {item.available_from && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#a78bfa", fontWeight: 700 }}>
+                            <Calendar size={14} /> Active for {calculateDaysInShop(item.available_from)} days
+                          </div>
+                        )}
+                        {item.expires_at ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#fbbf24", fontWeight: 700 }}>
+                            <Clock size={14} /> Expires in: {calculateTimeLeft(item.expires_at)}
+                          </div>
+                        ) : (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#4ade80", fontWeight: 700 }}>
+                            <Check size={14} /> Permanent Item
+                          </div>
+                        )}
+                      </div>
+                    ) : addingToShopId === item.id ? (
+                      <div style={{ background: "rgba(0,0,0,0.3)", padding: 12, borderRadius: 8, marginTop: 12 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 12 }}>Activate Special Item</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          <button onClick={() => handleQueueNextRefresh(item)} style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "10px", color: "#60a5fa", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                            Queue for Next Midnight Refresh (24hr limit)
+                          </button>
+                          
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <div style={{ flex: 1, display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
+                              <input 
+                                type="number" 
+                                style={{ background: "transparent", border: "none", color: "#fff", padding: "10px", width: "100%", outline: "none", fontSize: 13, fontWeight: 700 }}
+                                value={timerHours} 
+                                onChange={e => setTimerHours(Number(e.target.value))}
+                              />
+                              <div style={{ padding: "10px", color: "var(--text-muted)", fontSize: 13, fontWeight: 700, background: "rgba(255,255,255,0.05)" }}>hours</div>
                             </div>
-                          )}
-                          {item.expires_at ? (
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#fbbf24", fontWeight: 700 }}>
-                              <Clock size={14} /> Expires in: {calculateTimeLeft(item.expires_at)}
-                            </div>
-                          ) : (
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#4ade80", fontWeight: 700 }}>
-                              <Check size={14} /> Permanent Item
-                            </div>
-                          )}
-                        </div>
-                      ) : addingToShopId === item.id ? (
-                        <div style={{ background: "rgba(0,0,0,0.3)", padding: 12, borderRadius: 8, marginTop: 12 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 12 }}>Activate Special Item</div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            <button onClick={() => handleQueueNextRefresh(item)} style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "10px", color: "#60a5fa", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-                              Queue for Next Midnight Refresh (24hr limit)
-                            </button>
-                            
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <div style={{ flex: 1, display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
-                                <input 
-                                  type="number" 
-                                  style={{ background: "transparent", border: "none", color: "#fff", padding: "10px", width: "100%", outline: "none", fontSize: 13, fontWeight: 700 }}
-                                  value={timerHours} 
-                                  onChange={e => setTimerHours(Number(e.target.value))}
-                                />
-                                <div style={{ padding: "10px", color: "var(--text-muted)", fontSize: 13, fontWeight: 700, background: "rgba(255,255,255,0.05)" }}>hours</div>
-                              </div>
-                              <button onClick={() => handleAddToShopNow(item)} style={{ background: "var(--neon)", border: "none", borderRadius: 8, padding: "10px 16px", color: "#000", cursor: "pointer", fontSize: 13, fontWeight: 800 }}>
-                                Activate Now
-                              </button>
-                            </div>
-
-                            <button onClick={() => handlePermanentAdd(item)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "10px", color: "#4ade80", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-                              Activate Permanently
-                            </button>
-
-                            <button onClick={() => setAddingToShopId(null)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, marginTop: 4 }}>
-                              Cancel
+                            <button onClick={() => handleAddToShopNow(item)} style={{ background: "var(--neon)", border: "none", borderRadius: 8, padding: "10px 16px", color: "#000", cursor: "pointer", fontSize: 13, fontWeight: 800 }}>
+                              Activate Now
                             </button>
                           </div>
+
+                          <button onClick={() => handlePermanentAdd(item)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "10px", color: "#4ade80", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                            Activate Permanently
+                          </button>
+
+                          <button onClick={() => setAddingToShopId(null)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, marginTop: 4 }}>
+                            Cancel
+                          </button>
                         </div>
-                      ) : (
-                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
-                          {item.available_from && new Date(item.available_from) > new Date() ? (
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#60a5fa", fontWeight: 700 }}>
-                              <Calendar size={14} /> Queued to return: {new Date(item.available_from).toLocaleString()}
-                            </div>
-                          ) : (
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>
-                              <Package size={14} /> Currently in Storage Vault
-                            </div>
-                          )}
-                        </div>
-                      )
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: 8 }}>
+                        {item.available_from && new Date(item.available_from) > new Date() ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#60a5fa", fontWeight: 700 }}>
+                            <Calendar size={14} /> Queued to return: {new Date(item.available_from).toLocaleString()}
+                          </div>
+                        ) : (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>
+                            <Package size={14} /> Currently in Storage Vault
+                          </div>
+                        )}
+                      </div>
                     )}
 
                   </div>
