@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, UploadCloud, Target } from "lucide-react";
+import { Shield, Users, Send, Loader2, ArrowLeft, Trash2, Edit2, ListOrdered, UploadCloud, Target, Trophy } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getRankFromRP } from "@/utils/RankSystem";
 import { adminToggleStatus } from "@/app/actions/admin";
 import { OnlinePlayersModal } from "@/components/OnlinePlayersModal";
 import { ShopManagementModal } from "@/components/ShopManagementModal";
+import { AdminSpecialItemsPanel } from "@/components/AdminSpecialItemsPanel";
 import { AdminChallengePanel } from "@/components/AdminChallengePanel";
 
 const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardStats"), {
@@ -37,6 +38,7 @@ export default function AdminDashboard() {
   const [userLimit, setUserLimit] = useState<number | "All">("All");
   const [showOnlineModal, setShowOnlineModal] = useState(false);
   const [showShopModal, setShowShopModal] = useState(false);
+  const [showSpecialItems, setShowSpecialItems] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   // Notification states
@@ -337,9 +339,23 @@ export default function AdminDashboard() {
       </div>
 
       {/* Challenge Items Management */}
-      {showChallengeModal && <AdminChallengePanel onClose={() => setShowChallengeModal(false)} />}
-      
+      {showSpecialItems && <AdminSpecialItemsPanel onClose={() => setShowSpecialItems(false)} />}
+      <button
+        onClick={() => setShowSpecialItems(true)}
+        className="p-6 rounded-2xl flex flex-col gap-3 transition-transform hover:-translate-y-1"
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", marginBottom: 24, width: "100%" }}
+      >
+        <div style={{ padding: 12, borderRadius: 12, background: "rgba(245, 158, 11, 0.1)", width: "fit-content" }}>
+          <Trophy size={24} color="#f59e0b" />
+        </div>
+        <div style={{ textAlign: "left" }}>
+          <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#fff" }}>Challenge & Streak Items</h3>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage rewards for challenges and daily streaks</p>
+        </div>
+      </button>
+
       {/* Challenge Management Button */}
+      {showChallengeModal && <AdminChallengePanel onClose={() => setShowChallengeModal(false)} />}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Challenge Management</h2>

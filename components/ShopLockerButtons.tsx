@@ -348,16 +348,27 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
       .from("user_inventory")
       .select(`
         shop_item_id,
+        challenge_item_id,
+        streak_item_id,
         shop_items (
           id, name, type, price, rarity, rarity_color, icon_name, image_url, description
+        ),
+        challenge_items (
+          id, name, title, description, balance, icon_name, image_url, rarity, rarity_color
+        ),
+        streak_items (
+          id, name, title, description, balance, icon_name, image_url, rarity, rarity_color
         )
       `)
       .eq("user_id", user.id);
 
     let items: ShopItem[] = [];
     if (invData) {
-      const dbItems = invData.map((i: any) => i.shop_items as ShopItem).filter(Boolean);
-      items = [...dbItems];
+      invData.forEach((i: any) => {
+        if (i.shop_items) items.push(i.shop_items as ShopItem);
+        if (i.challenge_items) items.push({ ...i.challenge_items, type: i.challenge_items.title, price: i.challenge_items.balance, id: "chal_" + i.challenge_items.id } as ShopItem);
+        if (i.streak_items) items.push({ ...i.streak_items, type: i.streak_items.title, price: i.streak_items.balance, id: "strk_" + i.streak_items.id } as ShopItem);
+      });
     }
     
     // Fetch special items from database to get their dynamic colors and icons
@@ -387,15 +398,29 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
     if (equipping) return;
     setEquipping(item.id);
 
-    if (item.id.startsWith('chal_')) {
+    if (item.id.startsWith('chal_') || item.id.startsWith('strk_')) {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && item.type === 'Title') {
-        const { error } = await supabase.from("profiles").update({ equipped_title: item.name }).eq("id", user.id);
-        if (error) {
-          alert("Failed to equip title.");
-        } else {
-          setEquippedTitle(item.name);
-          router.refresh();
+      if (user) {
+        let col = "";
+        if (item.type === 'Map Pin') col = 'equipped_pin_url';
+        if (item.type === 'Name Flair') col = 'equipped_flair';
+        if (item.type === 'Title') col = 'equipped_title';
+        if (item.type === 'Banner') col = 'equipped_banner';
+        if (item.type === 'Avatar Frame') col = 'equipped_avatar_frame';
+        
+        if (col) {
+          const val = (item.type === 'Title' || item.type === 'Name Flair') ? item.name : item.image_url;
+          const { error } = await supabase.from("profiles").update({ [col]: val }).eq("id", user.id);
+          if (error) {
+            alert("Failed to equip item.");
+          } else {
+            if (item.type === 'Map Pin' && item.image_url) setEquippedPinUrl(item.image_url);
+            else if (item.type === 'Name Flair') setEquippedFlair(item.name);
+            else if (item.type === 'Title') setEquippedTitle(item.name);
+            else if (item.type === 'Banner' && item.image_url) setEquippedBanner(item.image_url);
+            else if (item.type === 'Avatar Frame' && item.image_url) setEquippedAvatarFrame(item.image_url);
+            router.refresh();
+          }
         }
       }
       setEquipping(null);
