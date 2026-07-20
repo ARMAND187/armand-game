@@ -108,12 +108,19 @@ export default function AuthProvider() {
 
   // Update presence when pathname changes
   useEffect(() => {
-    if (presenceChannelRef.current) {
-      presenceChannelRef.current.track({
-        online_at: new Date().toISOString(),
-        status: pathname.startsWith('/play') ? 'in-game' : 'online',
-      });
-    }
+    const updatePresence = async () => {
+      if (presenceChannelRef.current && presenceChannelRef.current.state === 'joined') {
+        try {
+          await presenceChannelRef.current.track({
+            online_at: new Date().toISOString(),
+            status: pathname.startsWith('/play') ? 'in-game' : 'online',
+          });
+        } catch (e) {
+          console.error("Failed to update presence status", e);
+        }
+      }
+    };
+    updatePresence();
   }, [pathname]);
 
   return null;
