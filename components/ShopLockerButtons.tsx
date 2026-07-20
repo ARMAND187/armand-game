@@ -330,7 +330,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
     // Fetch Profile for equipped items
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, pin_color, challenge_rising_star, challenge_sniper, challenge_high_roller, challenge_speedrunner")
+      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, pin_color, challenge_rising_star, challenge_sniper, challenge_high_roller, challenge_speedrunner, daily_streak")
       .eq("id", user.id)
       .single();
 
@@ -360,20 +360,24 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
       items = [...dbItems];
     }
     
-    // Inject Challenge Titles into Locker Inventory if completed
-    if (profileData) {
-      if (profileData.challenge_rising_star >= 5) {
-        items.push({ id: 'chal_risingstar', name: 'Rising Star', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Star', price: 0 } as any);
-      }
-      if (profileData.challenge_sniper >= 10) {
-        items.push({ id: 'chal_sniper', name: 'Sniper', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Crosshair', price: 0 } as any);
-      }
-      if (profileData.challenge_high_roller >= 5) {
-        items.push({ id: 'chal_highroller', name: 'Geographer', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Target', price: 0 } as any);
-      }
-      if (profileData.challenge_speedrunner >= 5) {
-        items.push({ id: 'chal_speedrunner', name: 'Speedster', type: 'Title', rarity: 'Legendary', rarity_color: '#4ade80', icon_name: 'Zap', price: 0 } as any);
-      }
+    // Fetch special items from database to get their dynamic colors and icons
+    const { data: specialData } = await supabase.from("shop_items").select("*").in("type", ["Challenge Title", "Streak Title"]);
+    
+    if (profileData && specialData) {
+      const pushSpecial = (name: string, condition: boolean, prefixId: string) => {
+        if (condition) {
+          const dbItem = specialData.find(i => i.name === name);
+          if (dbItem) {
+            items.push({ ...dbItem, id: prefixId } as ShopItem);
+          }
+        }
+      };
+
+      pushSpecial('Rising Star', profileData.challenge_rising_star >= 5, 'chal_risingstar');
+      pushSpecial('Sniper', profileData.challenge_sniper >= 10, 'chal_sniper');
+      pushSpecial('Geographer', profileData.challenge_high_roller >= 5, 'chal_highroller');
+      pushSpecial('Speedster', profileData.challenge_speedrunner >= 5, 'chal_speedrunner');
+      pushSpecial('Navigator', profileData.daily_streak >= 1, 'chal_navigator'); // Use chal_ prefix to bypass RPC for streak titles too!
     }
 
     setOwnedItems(items);
