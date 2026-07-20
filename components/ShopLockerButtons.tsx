@@ -49,6 +49,7 @@ export interface ShopItem {
   icon_name?: string;
   image_url?: string;
   description?: string;
+  available_from?: string | null;
   expires_at?: string | null;
 }
 
@@ -156,11 +157,15 @@ function ShopScreen({ onClose }: { onClose: () => void }) {
     }
 
     if (shopData) {
-      // Filter out items that have expired
+      // Filter out items that have expired or are queued for the future
       const now = new Date();
       const activeShopItems = shopData.filter(item => {
-        if (!item.expires_at) return true;
-        return new Date(item.expires_at) > now;
+        // Must be available
+        if (item.available_from && new Date(item.available_from) > now) return false;
+        // Must not be expired
+        if (item.expires_at && new Date(item.expires_at) < now) return false;
+        
+        return true;
       });
       setItems(activeShopItems);
     }

@@ -59,10 +59,11 @@ export default function AdminShopPanel() {
     }
   };
 
-  const toggleStatus = async (item: ShopItem, forceActive?: boolean, expiresAt?: string | null) => {
+  const toggleStatus = async (item: ShopItem, forceActive?: boolean, availableFrom?: string | null, expiresAt?: string | null) => {
     const isActive = forceActive !== undefined ? forceActive : !(item as any).is_active;
     const { error } = await supabase.from("shop_items").update({ 
       is_active: isActive,
+      available_from: availableFrom !== undefined ? availableFrom : (item as any).available_from,
       expires_at: expiresAt !== undefined ? expiresAt : (item as any).expires_at
     }).eq("id", item.id);
     
@@ -74,14 +75,27 @@ export default function AdminShopPanel() {
     }
   };
 
-  const handleAddToShop = (item: ShopItem) => {
+  const handleQueueNextRefresh = (item: ShopItem) => {
+    // Next 12 AM
+    const nextMidnight = new Date();
+    nextMidnight.setHours(24, 0, 0, 0); // Next midnight
+    const endMidnight = new Date(nextMidnight);
+    endMidnight.setHours(nextMidnight.getHours() + 24); // The midnight after that
+
+    toggleStatus(item, true, nextMidnight.toISOString(), endMidnight.toISOString());
+  };
+
+  const handleAddToShopNow = (item: ShopItem) => {
+    // Right now
+    const availableFrom = new Date();
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + timerHours);
-    toggleStatus(item, true, expiresAt.toISOString());
+    toggleStatus(item, true, availableFrom.toISOString(), expiresAt.toISOString());
   };
 
   const handlePermanentAdd = (item: ShopItem) => {
-    toggleStatus(item, true, null);
+    const availableFrom = new Date();
+    toggleStatus(item, true, availableFrom.toISOString(), null);
   };
 
   if (loading) {
@@ -162,12 +176,17 @@ export default function AdminShopPanel() {
                     <div style={{ fontWeight: 700, fontSize: 14, color: isActive ? "#fff" : "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
                       {item.name}
                       {!isActive && <span style={{ fontSize: 10, background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", padding: "2px 6px", borderRadius: 4 }}>Hidden</span>}
-                      {isActive && (item as any).expires_at && (
-                        <span style={{ fontSize: 10, background: "rgba(167, 139, 250, 0.2)", color: "#a78bfa", padding: "2px 6px", borderRadius: 4 }}>
-                          In Shop ({(new Date((item as any).expires_at).toLocaleString())})
+                      {isActive && (item as any).available_from && new Date((item as any).available_from) > new Date() && (
+                        <span style={{ fontSize: 10, background: "rgba(59, 130, 246, 0.2)", color: "#60a5fa", padding: "2px 6px", borderRadius: 4 }}>
+                          Queued (starts {new Date((item as any).available_from).toLocaleString()})
                         </span>
                       )}
-                      {isActive && !(item as any).expires_at && (
+                      {isActive && (!(item as any).available_from || new Date((item as any).available_from) <= new Date()) && (item as any).expires_at && (
+                        <span style={{ fontSize: 10, background: "rgba(167, 139, 250, 0.2)", color: "#a78bfa", padding: "2px 6px", borderRadius: 4 }}>
+                          In Shop (ends {new Date((item as any).expires_at).toLocaleString()})
+                        </span>
+                      )}
+                      {isActive && (!(item as any).available_from || new Date((item as any).available_from) <= new Date()) && !(item as any).expires_at && (
                         <span style={{ fontSize: 10, background: "rgba(74, 222, 128, 0.2)", color: "#4ade80", padding: "2px 6px", borderRadius: 4 }}>
                           In Shop (Permanent)
                         </span>
@@ -181,28 +200,30 @@ export default function AdminShopPanel() {
                     </button>
                     
                     {isActive ? (
-                      <button onClick={() => toggleStatus(item, false, null)} style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 8, padding: "6px 10px", color: "#ef4444", cursor: "pointer", fontSize: 12 }}>
+                      <button onClick={() => toggleStatus(item, false, null, null)} style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 8, padding: "6px 10px", color: "#ef4444", cursor: "pointer", fontSize: 12 }}>
                         Remove from Shop
                       </button>
                     ) : (
                       addingToShopId === item.id ? (
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <input 
-                            type="number" 
-                            className="search-input" 
-                            style={{ width: 60, padding: 6, fontSize: 12 }} 
-                            value={timerHours} 
-                            onChange={e => setTimerHours(Number(e.target.value))}
-                            placeholder="Hrs"
-                          />
-                          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>hrs</span>
-                          <button onClick={() => handleAddToShop(item)} style={{ background: "var(--neon)", border: "none", borderRadius: 6, padding: "6px 10px", color: "#000", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                            Add
+                          <button onClick={() => handleQueueNextRefresh(item)} style={{ background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 6, padding: "6px 10px", color: "#60a5fa", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                            Queue for Next Refresh (12 AM)
                           </button>
-                          <button onClick={() => handlePermanentAdd(item)} style={{ background: "transparent", border: "1px solid var(--neon)", borderRadius: 6, padding: "6px 10px", color: "var(--neon)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                            Add Permanently
-                          </button>
-                          <button onClick={() => setAddingToShopId(null)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12 }}>
+                          
+                          <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
+                            <input 
+                              type="number" 
+                              className="search-input" 
+                              style={{ width: 50, padding: 4, fontSize: 12 }} 
+                              value={timerHours} 
+                              onChange={e => setTimerHours(Number(e.target.value))}
+                            />
+                            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>hrs</span>
+                            <button onClick={() => handleAddToShopNow(item)} style={{ background: "var(--neon)", border: "none", borderRadius: 6, padding: "6px 10px", color: "#000", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                              Add Now
+                            </button>
+                          </div>
+                          <button onClick={() => setAddingToShopId(null)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, marginLeft: 4 }}>
                             Cancel
                           </button>
                         </div>
