@@ -55,18 +55,18 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
 
   return (
     <div className="w-full relative flex flex-col">
-      <div className="pt-6 pb-8 px-10">
+      <div className="pt-6 pb-8 px-2 sm:px-10">
         <div className="flex items-center gap-2 mb-6 relative z-10">
         <Flame color={currentStreak > 0 ? "#ef4444" : "var(--text-muted)"} fill={currentStreak > 0 ? "#ef4444" : "none"} size={20} />
         <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
       </div>
 
-      <div className="flex justify-between items-center relative z-10">
+      <div className="flex justify-between items-center relative z-10 px-1 sm:px-0">
         {/* Connection line behind the circles */}
-        <div className="absolute left-6 right-6 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
+        <div className="absolute left-2 right-2 sm:left-6 sm:right-6 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
         <div 
-          className="absolute left-6 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
-          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 48px)` }}
+          className="absolute left-2 sm:left-6 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
+          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 16px)` }} // Adjust line width approx
         />
 
         {days.map((d, i) => {

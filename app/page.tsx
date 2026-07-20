@@ -197,8 +197,8 @@ export default async function HomePage() {
             {/* Username + Title */}
             <div className="min-w-0 flex flex-col justify-center relative z-10" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>
               <h1
-                className="truncate"
-                style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", display: "flex", alignItems: "center" }}
+                className="text-xl sm:text-2xl break-all"
+                style={{ margin: 0, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", display: "flex", alignItems: "center" }}
               >
                 <PlayerNameFlair username={username} flair={equippedFlair} />
               </h1>
