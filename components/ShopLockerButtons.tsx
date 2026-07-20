@@ -364,27 +364,29 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
 
     let items: ShopItem[] = [];
     if (invData) {
+      const getType = (t: string) => t?.includes("Title") ? "Title" : (t?.includes("Flair") ? "Name Flair" : (t?.includes("Banner") ? "Banner" : "Title"));
       invData.forEach((i: any) => {
         if (i.shop_items) items.push(i.shop_items as ShopItem);
-        if (i.challenge_items) items.push({ ...i.challenge_items, type: i.challenge_items.title, price: i.challenge_items.balance, id: "chal_" + i.challenge_items.id } as ShopItem);
-        if (i.streak_items) items.push({ ...i.streak_items, type: i.streak_items.title, price: i.streak_items.balance, id: "strk_" + i.streak_items.id } as ShopItem);
+        if (i.challenge_items) items.push({ ...i.challenge_items, type: getType(i.challenge_items.title), price: i.challenge_items.balance, id: "chal_" + i.challenge_items.id } as ShopItem);
+        if (i.streak_items) items.push({ ...i.streak_items, type: getType(i.streak_items.title), price: i.streak_items.balance, id: "strk_" + i.streak_items.id } as ShopItem);
       });
     }
     
     // Fetch special items from database to get their dynamic colors and icons
     const { data: specialData } = await supabase.from("shop_items").select("*").in("type", ["Challenge Title", "Streak Title"]);
     
+    // Legacy fallback for old items (if they don't exist in user_inventory yet)
     if (profileData && specialData) {
       const pushSpecial = (name: string, condition: boolean, prefixId: string) => {
-        if (condition) {
+        if (condition && !items.some(i => i.name === name)) {
           const dbItem = specialData.find(i => i.name === name);
           if (dbItem) {
-            items.push({ ...dbItem, id: prefixId } as ShopItem);
+            items.push({ ...dbItem, type: "Title", id: prefixId } as ShopItem);
           }
         }
       };
 
-      pushSpecial('Navigator', profileData.daily_streak >= 1, 'chal_navigator'); // Use chal_ prefix to bypass RPC for streak titles too!
+      pushSpecial('Navigator', profileData.current_streak >= 1, 'chal_navigator'); 
     }
 
     setOwnedItems(items);

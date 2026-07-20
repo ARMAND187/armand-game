@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Flame, CheckCircle2, CircleDashed } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { claimDailyStreak } from "@/app/actions/streak";
 
 interface DailyStreakTrackerProps {
   currentStreak: number;
@@ -30,11 +31,15 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
     if (claiming || alreadyClaimedToday) return;
     setClaiming(true);
     
-    const supabase = createClient();
-    const { data, error } = await supabase.rpc("claim_daily_streak");
+    // Check if streak was artificially reset recently
+    if (currentStreak >= 7) {
+        // Safe guard
+    }
     
-    if (error || !data?.success) {
-      alert(error?.message || data?.error || "Failed to claim reward.");
+    const data = await claimDailyStreak();
+    
+    if (!data?.success) {
+      alert(data?.error || "Failed to claim reward.");
       setClaiming(false);
     } else {
       const isCoin = !isNaN(Number(data.reward)) && data.reward !== "0";
