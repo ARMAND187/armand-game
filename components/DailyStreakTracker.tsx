@@ -37,7 +37,8 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
       alert(error?.message || data?.error || "Failed to claim reward.");
       setClaiming(false);
     } else {
-      alert(`Claimed ${data.reward} Coins! You are on a ${data.new_streak}-day streak!`);
+      const isCoin = !isNaN(Number(data.reward)) && data.reward !== "0";
+      alert(`Claimed ${data.reward}${isCoin ? ' Coins' : ''}! You are on a ${data.new_streak}-day streak!`);
       // Refresh the page to update header coins and local state
       window.location.reload();
     }
@@ -61,7 +62,7 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
         <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
       </div>
 
-      <div className="flex justify-between items-center relative z-10 px-1 sm:px-0">
+      <div className="flex justify-between items-center relative z-10 px-4 sm:px-2">
         {/* Connection line behind the circles */}
         <div className="absolute left-2 right-2 sm:left-6 sm:right-6 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
         <div 
