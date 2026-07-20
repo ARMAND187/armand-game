@@ -103,6 +103,16 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to permanently delete this item?")) return;
+    const { error } = await supabase.from("shop_items").delete().eq("id", id);
+    if (error) {
+      alert("Failed to delete: " + error.message);
+    } else {
+      fetchItems();
+    }
+  };
+
   const toggleStatus = async (item: ShopItem, forceActive?: boolean, availableFrom?: string | null, expiresAt?: string | null) => {
     const isActive = forceActive !== undefined ? forceActive : !(item as any).is_active;
     const { error } = await supabase.from("shop_items").update({ 
@@ -330,6 +340,9 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
                       <div style={{ display: "flex", gap: 8 }}>
                         <button onClick={() => handleEdit(item)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 12px", color: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
                           Edit
+                        </button>
+                        <button onClick={() => handleDelete(item.id)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 12px", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                          Delete
                         </button>
                         {activeTab === "active" ? (
                           <button onClick={() => toggleStatus(item, false, null, null)} style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
