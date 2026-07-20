@@ -21,6 +21,9 @@ interface SpecialItem {
 }
 
 export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
+  const [items, setItems] = useState<SpecialItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<SpecialItem>>({});
   const supabase = createClient();
 
