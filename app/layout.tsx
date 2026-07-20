@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 
-const geist = Geist({
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-geist",
+  variable: "--font-outfit",
   display: "swap",
 });
 
@@ -65,7 +65,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${outfit.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: PWA_RESTORE_SCRIPT }} />
       </head>
