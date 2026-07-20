@@ -19,10 +19,8 @@ export default function ChallengesButton({ wins, currentTitle, userId, challenge
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-bold text-lg transition-all duration-300"
+        className="w-full py-4 flex items-center justify-center gap-3 font-bold text-[15px] tracking-wide transition-all duration-300 hover:bg-white/5"
         style={{
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.1)",
           color: "var(--text-primary)",
         }}
       >

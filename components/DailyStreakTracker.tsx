@@ -54,32 +54,42 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
   ];
 
   return (
-    <div className="w-full mt-4 p-4 rounded-2xl relative overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-      <div className="flex items-center justify-between mb-4 relative z-10">
+    <div className="w-full relative overflow-hidden py-4 px-2">
+      <div className="flex items-center justify-between mb-5 relative z-10 px-2">
         <div className="flex items-center gap-2">
-          <Flame color={currentStreak > 0 ? "#ef4444" : "var(--text-muted)"} fill={currentStreak > 0 ? "#ef4444" : "none"} size={22} />
-          <h3 className="font-bold text-sm tracking-wider uppercase text-zinc-300">Daily Rewards</h3>
+          <Flame color={currentStreak > 0 ? "#ef4444" : "var(--text-muted)"} fill={currentStreak > 0 ? "#ef4444" : "none"} size={20} />
+          <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
         </div>
         {!alreadyClaimedToday ? (
           <button 
             onClick={handleClaim}
             disabled={claiming}
-            className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
-            style={{ background: "#4ade80", color: "#000", cursor: claiming ? "wait" : "pointer" }}
+            style={{ 
+              background: "#4ade80", 
+              color: "#000", 
+              padding: "6px 14px", 
+              borderRadius: "8px", 
+              fontSize: "12px", 
+              fontWeight: 800, 
+              cursor: claiming ? "wait" : "pointer",
+              border: "none",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em"
+            }}
           >
             {claiming ? "Claiming..." : "Claim Today"}
           </button>
         ) : (
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Come back tomorrow</span>
+          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Come back tomorrow</span>
         )}
       </div>
 
-      <div className="flex justify-between items-center relative z-10">
+      <div className="flex justify-between items-center relative z-10 px-3">
         {/* Connection line behind the circles */}
-        <div className="absolute left-4 right-4 h-1 top-1/2 -translate-y-1/2 bg-zinc-800 -z-10 rounded-full" />
+        <div className="absolute left-7 right-7 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
         <div 
-          className="absolute left-4 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
-          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 32px)` }}
+          className="absolute left-7 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
+          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 48px)` }}
         />
 
         {days.map((d, i) => {

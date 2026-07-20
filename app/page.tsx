@@ -279,8 +279,13 @@ export default async function HomePage() {
               <Play className="fill-white shrink-0" size={22} />
               <span>Find Match</span>
             </Link>
-            <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} challenges={challenges} />
-            <DailyStreakTracker currentStreak={currentStreak} lastClaimDate={lastStreakClaim} />
+            
+            {/* ── Combined Challenges & Streaks Card ── */}
+            <div className="w-full rounded-2xl flex flex-col overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} challenges={challenges} />
+              <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "0 16px" }} />
+              <DailyStreakTracker currentStreak={currentStreak} lastClaimDate={lastStreakClaim} />
+            </div>
           </div>
         </div>
 
