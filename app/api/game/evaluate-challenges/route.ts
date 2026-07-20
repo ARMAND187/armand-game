@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +12,11 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // 1. Fetch active dynamic challenges
     const { data: challenges } = await supabase
@@ -58,13 +64,14 @@ export async function POST(request: Request) {
         const newProgress = (current?.progress || 0) + increments;
         const isCompleted = newProgress >= challenge.target_value;
 
-        await supabase.from("user_challenge_progress").upsert({
+        const { error: upsertErr } = await supabaseAdmin.from("user_challenge_progress").upsert({
           user_id: user.id,
           challenge_id: challenge.id,
           progress: Math.min(newProgress, challenge.target_value),
           completed: isCompleted,
           completed_at: isCompleted ? new Date().toISOString() : null
         });
+        if (upsertErr) console.error("Error upserting progress:", upsertErr);
 
         // Auto-grant reward if completed
         if (isCompleted && !current?.completed && challenge.reward_id) {
@@ -73,17 +80,18 @@ export async function POST(request: Request) {
           const { data: cItems } = await supabase.from("challenge_items").select("id").ilike("name", `%${titleName}%`).limit(1);
           if (cItems && cItems.length > 0) {
             const cId = cItems[0].id;
-            // Check if item already owned
-            const { data: inv } = await supabase.from("user_inventory")
+            // Check if item already owned using Admin client
+            const { data: inv } = await supabaseAdmin.from("user_inventory")
               .select("id")
               .eq("user_id", user.id)
               .eq("challenge_item_id", cId);
               
             if (!inv || inv.length === 0) {
-              await supabase.from("user_inventory").insert([{
+              const { error: insertErr } = await supabaseAdmin.from("user_inventory").insert([{
                 user_id: user.id,
                 challenge_item_id: cId
               }]);
+              if (insertErr) console.error("Error inserting challenge reward:", insertErr);
             }
           }
         }

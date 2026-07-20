@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export async function claimDailyStreak() {
   try {
@@ -10,6 +11,11 @@ export async function claimDailyStreak() {
     if (!user) {
       return { success: false, error: "Not authenticated" };
     }
+
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // 1. Get the user's profile
     const { data: profile } = await supabase
@@ -84,32 +90,35 @@ export async function claimDailyStreak() {
         const itemId = streakItems[0].id;
         
         // Ensure user doesn't already have it
-        const { data: inv } = await supabase
+        const { data: inv } = await supabaseAdmin
           .from("user_inventory")
           .select("id")
           .eq("user_id", user.id)
           .eq("streak_item_id", itemId);
 
         if (!inv || inv.length === 0) {
-          await supabase.from("user_inventory").insert([{
+          const { error: insertErr } = await supabaseAdmin.from("user_inventory").insert([{
             user_id: user.id,
             streak_item_id: itemId
           }]);
+          if (insertErr) console.error("Error granting streak item:", insertErr);
         }
       }
     }
     
     if (rewardBalance > 0) {
-      await supabase.from("profiles").update({
+      const { error: rpErr } = await supabaseAdmin.from("profiles").update({
         rp: (profile.rp || 0) + rewardBalance
       }).eq("id", user.id);
+      if (rpErr) console.error("Error updating RP:", rpErr);
     }
 
     // 4. Update the profile with new streak
-    await supabase.from("profiles").update({
+    const { error: streakErr } = await supabaseAdmin.from("profiles").update({
       current_streak: newStreak,
       last_streak_claim: now.toISOString()
     }).eq("id", user.id);
+    if (streakErr) console.error("Error updating streak:", streakErr);
 
     return { 
       success: true, 
