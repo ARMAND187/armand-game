@@ -327,6 +327,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       setPlayers(Array.from(new Set([room.host_username, myUsername])));
       setRoomId(room.id);
       setIsHost(room.host_username === myUsername);
+      setDisplayCode(room.room_code);
       
       if (room.status === "playing") {
          router.push(`${playRoute}?roomId=${room.id}`);

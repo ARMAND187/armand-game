@@ -36,6 +36,8 @@ export interface MultiplayerGuess {
   distanceKm: number;
   score: number;
   equippedFlair?: string | null;
+  equippedPinUrl?: string | null;
+  pinColor?: string | null;
 }
 
 type GameState = "WAITING" | "PLAYING" | "REVEALING" | "ROUND_END" | "GAME_OVER";
@@ -170,6 +172,8 @@ function GeoKurdistanInner() {
       distanceKm,
       score,
       equippedFlair,
+      equippedPinUrl,
+      pinColor,
     };
 
     // Challenge Checks
@@ -194,7 +198,7 @@ function GeoKurdistanInner() {
       return [...prev, guess];
     });
     setPlayerFlairs(prev => ({ ...prev, [myUsername]: equippedFlair }));
-  }, [locationIndices, round, myUsername, roomId, equippedFlair]);
+  }, [locationIndices, round, myUsername, roomId, equippedFlair, equippedPinUrl, pinColor]);
 
   const handleTimeUp = useCallback(() => {
     if (!hasGuessed) {

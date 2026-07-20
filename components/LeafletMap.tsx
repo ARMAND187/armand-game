@@ -152,7 +152,7 @@ export default function LeafletMap({
   if (realLocation && roundGuesses.length > 0) {
     linesToDraw = roundGuesses.map((g) => ({
       positions: [[g.guessLat, g.guessLng], [realLocation.lat, realLocation.lng]] as LatLngExpression[],
-      color: generatePlayerColor(g.username),
+      color: g.pinColor || generatePlayerColor(g.username),
     }));
   } else if (guessResult) {
     linesToDraw.push({
@@ -193,9 +193,9 @@ export default function LeafletMap({
             key={i} 
             position={[g.guessLat, g.guessLng]} 
             icon={createPlayerIcon(
-              generatePlayerColor(g.username), 
+              g.pinColor || generatePlayerColor(g.username), 
               isMe ? `${g.username} (You)` : g.username,
-              isMe ? customPinUrl : undefined
+              g.equippedPinUrl || (isMe ? customPinUrl : undefined)
             )} 
           />
         );
