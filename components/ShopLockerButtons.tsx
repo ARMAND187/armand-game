@@ -387,6 +387,21 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
     if (equipping) return;
     setEquipping(item.id);
 
+    if (item.id.startsWith('chal_')) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && item.type === 'Title') {
+        const { error } = await supabase.from("profiles").update({ equipped_title: item.name }).eq("id", user.id);
+        if (error) {
+          alert("Failed to equip title.");
+        } else {
+          setEquippedTitle(item.name);
+          router.refresh();
+        }
+      }
+      setEquipping(null);
+      return;
+    }
+
     const { data, error } = await supabase.rpc("equip_shop_item", { p_item_id: item.id });
     
     if (error || !data?.success) {

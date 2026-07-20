@@ -34,15 +34,7 @@ export default function ChallengesButton({ wins, currentTitle, userId, challenge
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         wins={wins}
-        currentTitle={equippedTitle}
-        userId={userId}
         challenges={challenges || { risingStar: 0, sniper: 0, highRoller: 0, speedrunner: 0 }}
-        onTitleEquipped={(title) => {
-          setEquippedTitle(title);
-          // To reflect globally immediately without refresh, we might need router.refresh() 
-          // or just rely on the next navigation since it's a server component reload on Home.
-          window.location.reload(); 
-        }}
       />
     </>
   );

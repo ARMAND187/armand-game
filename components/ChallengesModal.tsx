@@ -9,19 +9,12 @@ interface ChallengesModalProps {
   isOpen: boolean;
   onClose: () => void;
   wins: number;
-  currentTitle: string | null;
-  onTitleEquipped: (title: string) => void;
-  userId?: string;
   challenges: { risingStar: number, sniper: number, highRoller: number, speedrunner: number };
 }
-
 export default function ChallengesModal({
   isOpen,
   onClose,
   wins,
-  currentTitle,
-  onTitleEquipped,
-  userId,
   challenges,
 }: ChallengesModalProps) {
   const [equipping, setEquipping] = useState(false);
@@ -45,14 +38,7 @@ export default function ChallengesModal({
   const speedrunnerProgress = Math.min(challenges.speedrunner, 5);
   const isSpeedrunnerCompleted = speedrunnerProgress >= 5;
 
-  const handleEquipTitle = async (title: string) => {
-    if (!userId) return;
-    setEquipping(true);
-    const supabase = createClient();
-    await supabase.from("profiles").update({ equipped_title: title }).eq("id", userId);
-    onTitleEquipped(title);
-    setEquipping(false);
-  };
+
 
   return createPortal(
     <div
@@ -135,22 +121,9 @@ export default function ChallengesModal({
 
             {isRisingStarCompleted && (
               <div style={{ flexShrink: 0, paddingLeft: 16 }}>
-                {currentTitle === "Rising Star" ? (
-                  <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", fontSize: 13, fontWeight: 800 }}>
-                    Equipped
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleEquipTitle("Rising Star")}
-                    disabled={equipping}
-                    style={{
-                      padding: "10px 20px", borderRadius: 10, background: "#4ade80", border: "none",
-                      color: "#000", fontSize: 13, fontWeight: 800, cursor: equipping ? "wait" : "pointer"
-                    }}
-                  >
-                    {equipping ? "Equipping..." : "Equip Title"}
-                  </button>
-                )}
+                <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--neon)", fontSize: 13, fontWeight: 800 }}>
+                  In Locker
+                </div>
               </div>
             )}
           </div>
@@ -190,22 +163,9 @@ export default function ChallengesModal({
 
             {isSniperCompleted && (
               <div style={{ flexShrink: 0, paddingLeft: 16 }}>
-                {currentTitle === "Sniper" ? (
-                  <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", fontSize: 13, fontWeight: 800 }}>
-                    Equipped
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleEquipTitle("Sniper")}
-                    disabled={equipping}
-                    style={{
-                      padding: "10px 20px", borderRadius: 10, background: "#4ade80", border: "none",
-                      color: "#000", fontSize: 13, fontWeight: 800, cursor: equipping ? "wait" : "pointer"
-                    }}
-                  >
-                    {equipping ? "Equipping..." : "Equip Title"}
-                  </button>
-                )}
+                <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--neon)", fontSize: 13, fontWeight: 800 }}>
+                  In Locker
+                </div>
               </div>
             )}
           </div>
@@ -245,22 +205,9 @@ export default function ChallengesModal({
 
             {isHighRollerCompleted && (
               <div style={{ flexShrink: 0, paddingLeft: 16 }}>
-                {currentTitle === "Geographer" ? (
-                  <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", fontSize: 13, fontWeight: 800 }}>
-                    Equipped
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleEquipTitle("Geographer")}
-                    disabled={equipping}
-                    style={{
-                      padding: "10px 20px", borderRadius: 10, background: "#4ade80", border: "none",
-                      color: "#000", fontSize: 13, fontWeight: 800, cursor: equipping ? "wait" : "pointer"
-                    }}
-                  >
-                    {equipping ? "Equipping..." : "Equip Title"}
-                  </button>
-                )}
+                <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--neon)", fontSize: 13, fontWeight: 800 }}>
+                  In Locker
+                </div>
               </div>
             )}
           </div>
@@ -300,22 +247,9 @@ export default function ChallengesModal({
 
             {isSpeedrunnerCompleted && (
               <div style={{ flexShrink: 0, paddingLeft: 16 }}>
-                {currentTitle === "Speedster" ? (
-                  <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", fontSize: 13, fontWeight: 800 }}>
-                    Equipped
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleEquipTitle("Speedster")}
-                    disabled={equipping}
-                    style={{
-                      padding: "10px 20px", borderRadius: 10, background: "#4ade80", border: "none",
-                      color: "#000", fontSize: 13, fontWeight: 800, cursor: equipping ? "wait" : "pointer"
-                    }}
-                  >
-                    {equipping ? "Equipping..." : "Equip Title"}
-                  </button>
-                )}
+                <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "var(--neon)", fontSize: 13, fontWeight: 800 }}>
+                  In Locker
+                </div>
               </div>
             )}
           </div>
