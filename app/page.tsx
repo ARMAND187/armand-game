@@ -12,6 +12,8 @@ import PlayerNameFlair from "@/components/PlayerNameFlair";
 import ChallengesButton from "@/components/ChallengesButton";
 import DailyStreakTracker from "@/components/DailyStreakTracker";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Home — Armand Games",
   description: "Your competitive gaming hub.",

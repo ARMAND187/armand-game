@@ -460,6 +460,33 @@ function GeoKurdistanInner() {
         updateLobbyRP(stateRef.current.totalScores, totalRounds).catch(console.error);
       }
       
+      // Evaluate Challenge progress for current player (all modes)
+      let risingStarInc = 0;
+      let highRollerInc = 0;
+      const myFinalScore = stateRef.current.totalScores[myUsername] || 0;
+      
+      if (totalRounds === 5 && myFinalScore > 370) {
+        risingStarInc = 1;
+      }
+      if (myFinalScore / totalRounds >= 95) {
+        highRollerInc = 1;
+      }
+
+      // Submit Challenge progress
+      if (matchSniperHits > 0 || matchSpeedrunnerHits > 0 || risingStarInc > 0 || highRollerInc > 0) {
+        fetch("/api/game/challenges", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: myUsername,
+            sniperInc: matchSniperHits,
+            speedrunnerInc: matchSpeedrunnerHits,
+            risingStarInc,
+            highRollerInc
+          })
+        }).catch(console.error);
+      }
+
       // Update wins
       if ((isHost || isPublic) && roomId) {
         let maxScore = -1;
@@ -470,33 +497,6 @@ function GeoKurdistanInner() {
             winner = user;
           }
         });
-        
-        // Evaluate Challenge progress for current player
-        let risingStarInc = 0;
-        let highRollerInc = 0;
-        const myFinalScore = stateRef.current.totalScores[myUsername] || 0;
-        
-        if (totalRounds === 5 && myFinalScore > 370) {
-          risingStarInc = 1;
-        }
-        if (myFinalScore / totalRounds >= 95) {
-          highRollerInc = 1;
-        }
-
-        // Submit Challenge progress
-        if (matchSniperHits > 0 || matchSpeedrunnerHits > 0 || risingStarInc > 0 || highRollerInc > 0) {
-          fetch("/api/game/challenges", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              username: myUsername,
-              sniperInc: matchSniperHits,
-              speedrunnerInc: matchSpeedrunnerHits,
-              risingStarInc,
-              highRollerInc
-            })
-          }).catch(console.error);
-        }
 
         if (winner) {
           fetch("/api/game/winner", {

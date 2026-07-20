@@ -4,17 +4,18 @@ import { createClient } from "@/utils/supabase/server";
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { username, sniperInc, speedrunnerInc, risingStarInc, highRollerInc } = await request.json();
+    const { sniperInc, speedrunnerInc, risingStarInc, highRollerInc } = await request.json();
 
-    if (!username) {
-      return NextResponse.json({ error: "Missing username" }, { status: 400 });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Fetch the current profile challenges
     const { data: profile } = await supabase
       .from("profiles")
       .select("challenge_rising_star, challenge_sniper, challenge_high_roller, challenge_speedrunner")
-      .eq("username", username)
+      .eq("id", user.id)
       .single();
 
     if (profile) {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
         await supabase
           .from("profiles")
           .update(updates)
-          .eq("username", username);
+          .eq("id", user.id);
       }
     }
 
