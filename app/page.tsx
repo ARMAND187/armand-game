@@ -9,6 +9,7 @@ import { createClient } from "@/utils/supabase/server";
 import { getRankFromRP } from "@/utils/RankSystem";
 import ShopLockerButtons from "@/components/ShopLockerButtons";
 import PlayerNameFlair from "@/components/PlayerNameFlair";
+import ChallengesButton from "@/components/ChallengesButton";
 
 export const metadata = {
   title: "Home — Armand Games",
@@ -33,11 +34,14 @@ export default async function HomePage() {
   let avatarUrl: string | null = null;
   let username = "Player";
   let equippedFlair: string | null = null;
+  let equippedTitle: string | null = null;
+  let userId: string | undefined = undefined;
 
   if (userData?.user) {
+    userId = userData.user.id;
     const { data: profile } = await supabase
       .from("profiles")
-      .select("rp, wins, avatar_url, username, equipped_flair")
+      .select("rp, wins, avatar_url, username, equipped_flair, equipped_title")
       .eq("id", userData.user.id)
       .single();
     if (profile) {
@@ -48,6 +52,7 @@ export default async function HomePage() {
         || userData.user.user_metadata?.username
         || "Player";
       equippedFlair = profile.equipped_flair || null;
+      equippedTitle = profile.equipped_title || null;
     }
   }
 
@@ -98,50 +103,62 @@ export default async function HomePage() {
           />
 
           {/* ── 1. Player Identity Header ── */}
-          <div className="relative z-10 flex items-center" style={{ gap: "16px", marginBottom: "36px" }}>
-            {/* Avatar with online dot */}
-            <div className="relative shrink-0">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={username}
-                  style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: `2px solid ${rankInfo.color}66` }}
-                />
-              ) : (
-                <div
+          <div className="relative z-10 flex items-center justify-center mb-8">
+            <div 
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 16,
+                background: "rgba(255,255,255,0.03)", 
+                border: `2px solid ${rankInfo.color}`, 
+                borderRadius: 9999,
+                padding: "8px 24px 8px 8px",
+                boxShadow: `0 0 16px ${rankInfo.color}33`
+              }}
+            >
+              {/* Avatar with online dot */}
+              <div className="relative shrink-0">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={username}
+                    style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.1)" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 56, height: 56, borderRadius: "50%",
+                      background: `linear-gradient(135deg, ${rankInfo.color}55, #1e1040)`,
+                      border: "2px solid rgba(255,255,255,0.1)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 22, fontWeight: 900, color: rankInfo.color,
+                    }}
+                  >
+                    {username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span
                   style={{
-                    width: 56, height: 56, borderRadius: "50%",
-                    background: `linear-gradient(135deg, ${rankInfo.color}55, #1e1040)`,
-                    border: `2px solid ${rankInfo.color}66`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 22, fontWeight: 900, color: rankInfo.color,
+                    position: "absolute", bottom: 2, right: 2,
+                    width: 12, height: 12, borderRadius: "50%",
+                    background: "#4ade80", border: "2px solid #09090b",
+                    boxShadow: "0 0 6px #4ade80",
                   }}
-                >
-                  {username.charAt(0).toUpperCase()}
-                </div>
-              )}
-              {/* Online dot */}
-              <span
-                style={{
-                  position: "absolute", bottom: 2, right: 2,
-                  width: 12, height: 12, borderRadius: "50%",
-                  background: "#4ade80", border: "2px solid #09090b",
-                  boxShadow: "0 0 6px #4ade80",
-                }}
-              />
-            </div>
+                />
+              </div>
 
-            {/* Username + hub label */}
-            <div className="min-w-0">
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(167,139,250,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2 }}>
-                Player Hub
-              </p>
-              <h1
-                className="truncate"
-                style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", display: "flex", alignItems: "center" }}
-              >
-                <PlayerNameFlair username={username} flair={equippedFlair} />
-              </h1>
+              {/* Username + Title */}
+              <div className="flex flex-col min-w-0" style={{ paddingRight: 8 }}>
+                <h1
+                  className="truncate"
+                  style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", display: "flex", alignItems: "center" }}
+                >
+                  <PlayerNameFlair username={username} flair={equippedFlair} />
+                </h1>
+                {equippedTitle && (
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 2 }}>
+                    {equippedTitle}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -199,8 +216,8 @@ export default async function HomePage() {
 
           {/* Quick Stats Removed per request */}
 
-          {/* ── Find Match Button ── */}
-          <div className="relative z-10 mt-auto">
+          {/* ── Find Match & Challenges Buttons ── */}
+          <div className="relative z-10 mt-auto flex flex-col gap-3">
             <Link
               href="/lobby/geokurdistan"
               className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-xl tracking-widest uppercase transition-all duration-300 relative overflow-hidden group"
@@ -214,6 +231,7 @@ export default async function HomePage() {
               <Play className="fill-white shrink-0" size={22} />
               <span>Find Match</span>
             </Link>
+            <ChallengesButton wins={wins} currentTitle={equippedTitle} userId={userId} />
           </div>
         </div>
 
