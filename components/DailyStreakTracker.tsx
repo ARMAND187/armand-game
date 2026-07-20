@@ -74,23 +74,23 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
           const isNext = currentStreak === i && !alreadyClaimedToday;
           
           return (
-            <div key={d.day} className="flex flex-col items-center gap-2 relative">
+            <div key={d.day} className="flex flex-col items-center relative z-10">
               <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
-                style={{ 
-                  background: isClaimed ? "rgba(239, 68, 68, 0.2)" : (isNext ? "rgba(74, 222, 128, 0.2)" : "rgba(0,0,0,0.5)"),
-                  border: isClaimed ? "2px solid #ef4444" : (isNext ? "2px solid #4ade80" : "2px solid #27272a"),
-                  boxShadow: isNext ? "0 0 12px rgba(74, 222, 128, 0.4)" : (isClaimed ? "0 0 12px rgba(239, 68, 68, 0.4)" : "none"),
-                  zIndex: 10
+                className="transition-all duration-300 flex items-center justify-center mb-1"
+                style={{
+                  filter: isNext ? "drop-shadow(0 0 8px rgba(74, 222, 128, 0.6))" : (isClaimed ? "drop-shadow(0 0 8px rgba(239, 68, 68, 0.6))" : "none")
                 }}
               >
-                {isClaimed ? (
-                  <CheckCircle2 color="#ef4444" size={20} />
-                ) : (
-                  <span style={{ fontSize: 11, fontWeight: 800, color: isNext ? "#4ade80" : "#52525b" }}>+{d.reward}</span>
-                )}
+                <Flame 
+                  color={isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#3f3f46")} 
+                  fill={isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "none")} 
+                  size={28} 
+                  strokeWidth={1.5}
+                  className={isNext ? "animate-pulse" : ""}
+                />
               </div>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase mt-2">Day {d.day}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b") }}>+{d.reward}</span>
+              <span className="text-[9px] font-bold text-zinc-500 uppercase mt-0.5">Day {d.day}</span>
             </div>
           );
         })}
