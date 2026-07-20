@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 import { usePresenceStore } from "@/store/usePresenceStore";
@@ -9,8 +9,12 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 export default function AuthProvider() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
   const setOnlineCount = usePresenceStore((state) => state.setOnlineCount);
+  const setActiveUsers = usePresenceStore((state) => state.setActiveUsers);
+  
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     // 1. Listen for auth changes to trigger redirect
@@ -54,27 +58,39 @@ export default function AuthProvider() {
     });
 
     // 2. Track global presence
-    let presenceChannel: ReturnType<typeof supabase.channel> | null = null;
-    
     const initPresence = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id || `anon-${Math.random().toString(36).substr(2, 9)}`;
 
-      presenceChannel = supabase.channel('global-lobby', {
+      const channel = supabase.channel('global-lobby', {
         config: {
           presence: { key: userId },
         },
       });
+      presenceChannelRef.current = channel;
 
-      presenceChannel
+      channel
         .on("presence", { event: "sync" }, () => {
-          const state = presenceChannel!.presenceState();
-          setOnlineCount(Object.keys(state).length);
+          const state = channel.presenceState();
+          
+          // Map state to ActiveUsers array
+          const users = Object.keys(state).map((key) => {
+            const presences = state[key] as any[];
+            const firstPresence = presences[0] || {};
+            return {
+              userId: key,
+              status: firstPresence.status || 'online'
+            };
+          });
+          
+          setOnlineCount(users.length);
+          setActiveUsers(users as any);
         })
         .subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
-            await presenceChannel!.track({
+            await channel.track({
               online_at: new Date().toISOString(),
+              status: window.location.pathname.startsWith('/play') ? 'in-game' : 'online',
             });
           }
         });
@@ -84,11 +100,21 @@ export default function AuthProvider() {
 
     return () => {
       subscription.unsubscribe();
-      if (presenceChannel) {
-        supabase.removeChannel(presenceChannel);
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
       }
     };
   }, [router, supabase]);
+
+  // Update presence when pathname changes
+  useEffect(() => {
+    if (presenceChannelRef.current) {
+      presenceChannelRef.current.track({
+        online_at: new Date().toISOString(),
+        status: pathname.startsWith('/play') ? 'in-game' : 'online',
+      });
+    }
+  }, [pathname]);
 
   return null;
 }

@@ -8,6 +8,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getRankFromRP } from "@/utils/RankSystem";
 import { adminToggleStatus } from "@/app/actions/admin";
+import { OnlinePlayersModal } from "@/components/OnlinePlayersModal";
 
 const AdminDashboardStats = dynamic(() => import("@/components/AdminDashboardStats"), {
   ssr: false,
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalLocations, setTotalLocations] = useState(0);
   const [userLimit, setUserLimit] = useState<number | "All">("All");
+  const [showOnlineModal, setShowOnlineModal] = useState(false);
 
   // Notification states
   const [notifTitle, setNotifTitle] = useState("");
@@ -264,15 +266,27 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <div style={{ background: "rgba(167, 139, 250, 0.2)", padding: 12, borderRadius: 12 }}>
-          <Shield size={32} color="var(--neon)" />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, gap: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ background: "rgba(167, 139, 250, 0.2)", padding: 12, borderRadius: 12 }}>
+            <Shield size={32} color="var(--neon)" />
+          </div>
+          <div>
+            <h1 className="page-header" style={{ margin: 0 }}>Admin Dashboard</h1>
+            <p className="page-subtitle" style={{ margin: 0 }}>Manage users and send broadcasts</p>
+          </div>
         </div>
-        <div>
-          <h1 className="page-header" style={{ margin: 0 }}>Admin Dashboard</h1>
-          <p className="page-subtitle" style={{ margin: 0 }}>Manage users and send broadcasts</p>
-        </div>
+        <button 
+          className="btn-play" 
+          onClick={() => setShowOnlineModal(true)}
+          style={{ padding: "10px 20px", fontSize: 13, gap: 6 }}
+        >
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 10px #4ade80" }} />
+          View Online Players
+        </button>
       </div>
+
+      {showOnlineModal && <OnlinePlayersModal onClose={() => setShowOnlineModal(false)} />}
 
       <AdminDashboardStats totalRegistered={totalUsers} totalLocations={totalLocations} />
 
