@@ -151,8 +151,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         const activePlayers = Object.keys(state);
         setPlayers(activePlayers);
 
-        if (activePlayers.length >= 4) {
-          // Trigger ready if we are exactly 4
+        if (!displayCode && activePlayers.length >= 4) {
+          // Trigger ready if we are exactly 4 (public only)
           setTimeout(() => {
             router.push(`${playRoute}?roomId=${roomId}`);
           }, 1000);
@@ -287,7 +287,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     
     try {
       const isUuid = target.length > 20;
-      let query = supabase.from("rooms").select("*").in("status", ["waiting", "playing"]).lt("player_count", 4).limit(1);
+      let query = supabase.from("rooms").select("*").in("status", ["waiting", "playing"]).lt("player_count", 10).limit(1);
       
       if (isUuid) {
         query = query.eq("id", target);
@@ -448,7 +448,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       ) : (
         <>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--neon)", marginBottom: 16 }}>
-            Waiting for players... ({players.length}/4)
+            Waiting for players... ({players.length}/{displayCode ? 10 : 4})
             {displayCode && (
               <>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -464,8 +464,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             )}
           </div>
           
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {[0, 1, 2, 3].map((slotIndex) => {
+          <div style={{ display: "grid", gridTemplateColumns: displayCode ? "repeat(5, 1fr)" : "1fr 1fr", gap: 10 }}>
+            {Array.from({ length: displayCode ? 10 : 4 }).map((_, slotIndex) => {
               const player = players[slotIndex];
               return (
                 <div
