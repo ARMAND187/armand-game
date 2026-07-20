@@ -39,8 +39,9 @@ import UpdateNotification from "@/components/UpdateNotification";
 import AuthProvider from "@/components/AuthProvider";
 import PathTracker from "@/components/PathTracker";
 import VerifyOverlay from "@/components/VerifyOverlay";
-
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { PartyProvider } from "@/context/PartyContext";
+import PartyHUDLoader from "@/components/PartyHUDLoader";
 
 const PWA_RESTORE_SCRIPT = `
   try {
@@ -69,16 +70,19 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
-          <Suspense fallback={null}>
-            <PathTracker />
-          </Suspense>
-          <AuthProvider />
-          <UpdateNotification />
-          <GlobalToaster />
-          <VerifyOverlay />
-          {/* Main scrollable area — padded so content clears the bottom nav */}
-          <main className="app-shell">{children}</main>
-          <BottomNav />
+          <PartyProvider>
+            <Suspense fallback={null}>
+              <PathTracker />
+            </Suspense>
+            <AuthProvider />
+            <UpdateNotification />
+            <GlobalToaster />
+            <VerifyOverlay />
+            {/* Main scrollable area — padded so content clears the bottom nav */}
+            <main className="app-shell">{children}</main>
+            <BottomNav />
+            <PartyHUDLoader />
+          </PartyProvider>
         </ThemeProvider>
       </body>
     </html>

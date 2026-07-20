@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 
 import VoiceParty from "@/components/VoiceParty";
+import { usePartyContext } from "@/context/PartyContext";
 
 interface Friend {
   id: string; // ID of the friendship row or the user profile
@@ -45,15 +46,14 @@ export default function FriendsPage() {
   const [addFeedback, setAddFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const [myUserId, setMyUserId] = useState<string | null>(null);
-  const [myUsername, setMyUsername] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   
   const [incomingInvites, setIncomingInvites] = useState<IncomingInvite[]>([]);
 
-  // Voice Party state
+  // Voice Party — from global context (connection lives in layout)
+  const { activeParty, myUsername: ctxUsername, joinParty, leaveParty: ctxLeaveParty } = usePartyContext();
   const [partyCodeInput, setPartyCodeInput] = useState("");
-  const [activeParty, setActiveParty] = useState<string | null>(null);
   
   const supabase = createClient();
 
@@ -126,7 +126,7 @@ export default function FriendsPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setMyUserId(data.user.id);
-        setMyUsername(data.user.user_metadata?.username || "guest");
+        // myUsername comes from context (already loaded there)
       }
     });
   }, [supabase]);
@@ -182,7 +182,7 @@ export default function FriendsPage() {
   const handleCreateParty = async () => {
     if (!myUserId) return;
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setActiveParty(code);
+    joinParty(code);
     await supabase.from("profiles").update({ current_party: code }).eq("id", myUserId);
     loadData();
   };
@@ -191,7 +191,7 @@ export default function FriendsPage() {
     if (!myUserId) return;
     const code = (codeOverride || partyCodeInput).trim().toUpperCase();
     if (code) {
-      setActiveParty(code);
+      joinParty(code);
       await supabase.from("profiles").update({ current_party: code }).eq("id", myUserId);
       loadData();
     }
@@ -199,7 +199,7 @@ export default function FriendsPage() {
 
   const handleLeaveParty = async () => {
     if (!myUserId) return;
-    setActiveParty(null);
+    ctxLeaveParty();
     await supabase.from("profiles").update({ current_party: null }).eq("id", myUserId);
     loadData();
   };
@@ -406,10 +406,10 @@ export default function FriendsPage() {
           🎉 Party Lounge
         </h2>
         
-        {activeParty && myUsername ? (
+        {activeParty && ctxUsername ? (
           <VoiceParty 
             room={activeParty} 
-            username={myUsername} 
+            username={ctxUsername} 
             onLeave={handleLeaveParty} 
           />
         ) : (
