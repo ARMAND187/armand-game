@@ -1,28 +1,75 @@
 "use client";
 
-import { useState } from "react";
-import { Gift, Tag, Sparkles, CheckCircle, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Gift, Tag, Sparkles, CheckCircle, AlertCircle, Lock } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+
+type ShopPackage = {
+  id: string;
+  name: string;
+  base_amount: number;
+  bonus_amount: number;
+  price_usd: number;
+};
 
 export default function RedeemPage() {
-  const [code, setCode]       = useState("");
-  const [status, setStatus]   = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  
+  const [packages, setPackages] = useState<ShopPackage[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
+  const [purchasingId, setPurchasingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async () => {
+    const { data, error } = await supabase
+      .from("shop_packages")
+      .select("*")
+      .order("base_amount", { ascending: true });
+      
+    if (!error && data) {
+      setPackages(data);
+    }
+    setPackagesLoading(false);
+  };
 
   const handleRedeem = async () => {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) return;
     setStatus("loading");
 
-    // TODO: replace with real Supabase edge-function call
-    await new Promise((r) => setTimeout(r, 1200));
+    const { data, error } = await supabase.rpc("redeem_code", { p_code: trimmed });
 
-    if (trimmed === "DEMO2025") {
-      setStatus("success");
-      setMessage("Code accepted! Balance updated.");
-    } else {
+    if (error || !data?.success) {
       setStatus("error");
-      setMessage("Invalid or expired code. Try again.");
+      // The RPC returns a secure generic error or a lockout message
+      setMessage(error?.message || data?.error || "Invalid or expired code.");
+    } else {
+      setStatus("success");
+      setMessage(`Code accepted! Added ${data.reward} Balance.`);
     }
+  };
+
+  const handlePurchase = async (pkg: ShopPackage) => {
+    if (purchasingId) return;
+    setPurchasingId(pkg.id);
+    
+    // Simulate transaction delay
+    await new Promise(r => setTimeout(r, 800));
+    
+    const { data, error } = await supabase.rpc("purchase_shop_package", { p_package_id: pkg.id });
+    
+    if (error || !data?.success) {
+      alert(error?.message || data?.error || "Transaction failed.");
+    } else {
+      alert(`Success! You received ${data.reward} Balance.`);
+    }
+    
+    setPurchasingId(null);
   };
 
   const reset = () => { setCode(""); setStatus("idle"); setMessage(""); };
@@ -33,27 +80,36 @@ export default function RedeemPage() {
       <p className="page-subtitle">Enter a code or buy Balance</p>
 
       {/* ── Code Redemption ── */}
-      <div className="redeem-card">
-        <div className="redeem-card-header">
+      <div className="redeem-card" style={{
+        background: "rgba(24, 24, 27, 0.4)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 20,
+        padding: 24,
+        marginBottom: 32,
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)"
+      }}>
+        <div className="redeem-card-header" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
           <Tag size={18} color="var(--neon)" />
-          <span>Redemption Code</span>
+          <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Redemption Code</span>
         </div>
 
         {status === "success" ? (
-          <div className="redeem-success">
-            <CheckCircle size={36} color="#4ade80" />
-            <p className="redeem-feedback-text">{message}</p>
+          <div className="redeem-success" style={{ textAlign: "center", padding: "20px 0" }}>
+            <CheckCircle size={48} color="#4ade80" style={{ margin: "0 auto 16px" }} />
+            <p className="redeem-feedback-text" style={{ fontSize: 15, fontWeight: 700, color: "#4ade80", marginBottom: 20 }}>{message}</p>
             <button className="btn-redeem-ghost" onClick={reset}>Redeem Another</button>
           </div>
         ) : status === "error" ? (
-          <div className="redeem-error">
-            <AlertCircle size={36} color="#f87171" />
-            <p className="redeem-feedback-text" style={{ color: "#f87171" }}>{message}</p>
+          <div className="redeem-error" style={{ textAlign: "center", padding: "20px 0" }}>
+            <AlertCircle size={48} color="#f87171" style={{ margin: "0 auto 16px" }} />
+            <p className="redeem-feedback-text" style={{ fontSize: 15, fontWeight: 700, color: "#f87171", marginBottom: 20 }}>{message}</p>
             <button className="btn-redeem-ghost" onClick={reset}>Try Again</button>
           </div>
         ) : (
           <>
-            <p className="redeem-hint">
+            <p className="redeem-hint" style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
               Enter your code below. Codes are case-insensitive.
             </p>
             <input
@@ -66,6 +122,19 @@ export default function RedeemPage() {
               id="redeem-code-input"
               spellCheck={false}
               autoComplete="off"
+              style={{
+                width: "100%",
+                background: "rgba(0,0,0,0.2)",
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                padding: "16px",
+                color: "#fff",
+                fontSize: 16,
+                letterSpacing: "0.05em",
+                marginBottom: 16,
+                outline: "none",
+                fontFamily: "monospace"
+              }}
             />
             <button
               className="btn-redeem"
@@ -86,30 +155,66 @@ export default function RedeemPage() {
         )}
       </div>
 
-      {/* ── Buy Options (Coming Soon) ── */}
-      <div className="redeem-section-header">
-        <Sparkles size={14} color="var(--neon)" />
-        <span>Buy Balance</span>
+      {/* ── Buy Options ── */}
+      <div className="redeem-section-header" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+        <Sparkles size={16} color="var(--neon)" />
+        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Buy Balance</span>
       </div>
 
-      {[
-        { amount: 500,   price: "$1.99",  bonus: "" },
-        { amount: 1200,  price: "$3.99",  bonus: "+200 bonus" },
-        { amount: 3000,  price: "$9.99",  bonus: "+500 bonus" },
-        { amount: 7500,  price: "$19.99", bonus: "+1500 bonus" },
-      ].map((pack) => (
-        <div key={pack.amount} className="buy-pack">
-          <div className="buy-pack-icon">💎</div>
-          <div className="buy-pack-info">
-            <div className="buy-pack-amount">{pack.amount.toLocaleString()} Balance</div>
-            {pack.bonus && <div className="buy-pack-bonus">{pack.bonus}</div>}
-          </div>
-          <div className="buy-pack-right">
-            <div className="buy-pack-price">{pack.price}</div>
-            <div className="coming-soon-tag">Coming Soon</div>
-          </div>
+      {packagesLoading ? (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading store...</div>
+      ) : packages.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Store unavailable.</div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+          {packages.map((pack) => (
+            <div key={pack.id} className="buy-pack" style={{
+              background: "rgba(24, 24, 27, 0.4)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
+            }}>
+              <div className="buy-pack-icon" style={{
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: "rgba(167, 139, 250, 0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 24,
+                boxShadow: "0 0 15px rgba(167,139,250,0.15)"
+              }}>💎</div>
+              <div className="buy-pack-info" style={{ flex: 1 }}>
+                <div className="buy-pack-amount" style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>
+                  {pack.base_amount.toLocaleString()} Balance
+                </div>
+                {pack.bonus_amount > 0 && (
+                  <div className="buy-pack-bonus" style={{ fontSize: 12, fontWeight: 700, color: "#4ade80", marginTop: 2 }}>
+                    +{pack.bonus_amount.toLocaleString()} bonus
+                  </div>
+                )}
+              </div>
+              <div className="buy-pack-right" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                <button 
+                  className="btn-redeem-small"
+                  onClick={() => handlePurchase(pack)}
+                  disabled={purchasingId === pack.id}
+                  style={{ minWidth: 80, justifyContent: "center" }}
+                >
+                  {purchasingId === pack.id ? "..." : `$${pack.price_usd}`}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }
