@@ -162,8 +162,11 @@ export default function LeafletMap({
       color: g.pinColor || generatePlayerColor(g.username),
     }));
   } else if (guessResult) {
+    // Some locations from Supabase use 'latitude' instead of 'lat'
+    const targetLat = (guessResult.location as any).latitude || guessResult.location.lat;
+    const targetLng = (guessResult.location as any).longitude || guessResult.location.lng;
     linesToDraw.push({
-      positions: [[guessResult.guessLat, guessResult.guessLng], [guessResult.location.lat, guessResult.location.lng]] as LatLngExpression[],
+      positions: [[guessResult.guessLat, guessResult.guessLng], [targetLat, targetLng]] as LatLngExpression[],
       color: myColor,
     });
   }
