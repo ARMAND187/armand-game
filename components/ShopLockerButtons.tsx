@@ -211,7 +211,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
       {loading ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading shop...</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
           {items.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             const isOwned = ownedIds.has(item.id);
             const isPurchasing = purchasing === item.id;
@@ -220,15 +220,18 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
               <div
                 key={item.id}
                 style={{
-                  background: "var(--bg-card, #18181b)",
-                  border: "1px solid var(--border, #27272a)",
-                  borderRadius: 16,
+                  background: "rgba(24, 24, 27, 0.5)",
+                  border: `1px solid ${isOwned ? "rgba(74, 222, 128, 0.3)" : "rgba(255, 255, 255, 0.1)"}`,
+                  borderRadius: 20,
                   padding: 16,
                   display: "flex",
                   flexDirection: "column",
                   gap: 8,
                   position: "relative",
                   overflow: "hidden",
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)"
                 }}
               >
                 {/* Rarity glow */}
@@ -300,20 +303,26 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                 <button
                   onClick={() => buyItem(item)}
                   disabled={isOwned || isPurchasing}
-                  style={{
+                  className={isOwned ? "" : "btn-redeem-small"}
+                  style={isOwned ? {
                     marginTop: 4,
-                    background: isOwned ? "rgba(74, 222, 128, 0.1)" : "rgba(167,139,250,0.1)",
-                    border: `1px solid ${isOwned ? "rgba(74, 222, 128, 0.25)" : "rgba(167,139,250,0.25)"}`,
-                    borderRadius: 10,
+                    background: "rgba(74, 222, 128, 0.1)",
+                    border: "1px solid rgba(74, 222, 128, 0.25)",
+                    borderRadius: 999,
                     padding: "7px 0",
-                    color: isOwned ? "#4ade80" : "#a78bfa",
+                    color: "#4ade80",
                     fontSize: 12,
                     fontWeight: 700,
-                    cursor: isOwned ? "default" : (isPurchasing ? "wait" : "pointer"),
+                    cursor: "default",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 6,
+                    width: "100%"
+                  } : {
+                    marginTop: 4,
+                    justifyContent: "center",
+                    width: "100%"
                   }}
                 >
                   {isOwned ? (
