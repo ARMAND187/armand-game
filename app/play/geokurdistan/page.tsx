@@ -290,8 +290,9 @@ function GeoKurdistanInner() {
       const isPublicRoom = room.is_public;
       setIsPublic(isPublicRoom);
       setTotalRounds(room.total_rounds || 5);
-      setTimeLimit(room.time_limit_seconds ?? 30);
-      setTimer(room.time_limit_seconds ?? 30);
+      const fetchedTimeLimit = room.time_limit_seconds ?? 30;
+      setTimeLimit(fetchedTimeLimit);
+      setTimer(fetchedTimeLimit);
       const isRoomHost = room.host_username === realUsername;
       setIsHost(isRoomHost);
 
@@ -331,7 +332,7 @@ function GeoKurdistanInner() {
           if (isPublicRoom) return; // Public uses deterministic logic
           setLocationIndices(payload.payload.indices);
           setGameState("PLAYING");
-          setTimer(timeLimit);
+          setTimer(fetchedTimeLimit);
           setRound(1);
           setRoundGuesses([]);
           setTotalScores({});
@@ -356,7 +357,7 @@ function GeoKurdistanInner() {
             setRound((r) => r + 1); // fallback
           }
           setGameState("PLAYING");
-          setTimer(timeLimit);
+          setTimer(fetchedTimeLimit);
           setRoundGuesses([]);
           setHasGuessed(false);
           setGuessMarker(null);
@@ -399,7 +400,7 @@ function GeoKurdistanInner() {
                const indices = generateDeterministicIndices(roomId, room.total_rounds || 5, availableLocations.length);
                setLocationIndices(indices);
                setGameState("PLAYING");
-               setTimer(timeLimit);
+               setTimer(fetchedTimeLimit);
                setRound(1);
                setRoundGuesses([]);
                setTotalScores({});
@@ -418,7 +419,7 @@ function GeoKurdistanInner() {
                    });
                    setLocationIndices(indices);
                    setGameState("PLAYING");
-                   setTimer(timeLimit);
+                   setTimer(fetchedTimeLimit);
                  }, 2000);
                } else {
                  setTimeout(() => {
