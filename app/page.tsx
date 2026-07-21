@@ -172,8 +172,8 @@ export default async function HomePage() {
                       src={`data:image/svg+xml;utf8,${encodeURIComponent(equippedAvatarFrame)}`}
                       alt="Avatar Frame"
                       style={{
-                        position: "absolute", top: -8, left: -8,
-                        width: 80, height: 80, maxWidth: "none", zIndex: 2, pointerEvents: "none"
+                        position: "absolute", top: -6, left: -6,
+                        width: 76, height: 76, maxWidth: "none", zIndex: 2, pointerEvents: "none"
                       }}
                     />
                   ) : (
@@ -181,8 +181,8 @@ export default async function HomePage() {
                       src={equippedAvatarFrame} 
                       alt="Frame"
                       style={{
-                        position: "absolute", top: -8, left: -8,
-                        width: 80, height: 80, maxWidth: "none", zIndex: 2, pointerEvents: "none"
+                        position: "absolute", top: -6, left: -6,
+                        width: 76, height: 76, maxWidth: "none", zIndex: 2, pointerEvents: "none"
                       }}
                     />
                   )
