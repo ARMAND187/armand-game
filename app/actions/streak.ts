@@ -20,7 +20,7 @@ export async function claimDailyStreak() {
     // 1. Get the user's profile
     const { data: profile } = await supabase
       .from("profiles")
-      .select("current_streak, last_streak_claim, rp")
+      .select("current_streak, last_streak_claim, rp, balance")
       .eq("id", user.id)
       .single();
 
@@ -105,10 +105,10 @@ export async function claimDailyStreak() {
     }
     
     if (rewardBalance > 0) {
-      const { error: rpErr } = await supabaseAdmin.from("profiles").update({
-        rp: (profile.rp || 0) + rewardBalance
+      const { error: balErr } = await supabaseAdmin.from("profiles").update({
+        balance: (profile.balance || 0) + rewardBalance
       }).eq("id", user.id);
-      if (rpErr) console.error("Error updating RP:", rpErr);
+      if (balErr) console.error("Error updating Balance:", balErr);
     }
 
     // 4. Update the profile with new streak

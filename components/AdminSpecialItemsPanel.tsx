@@ -39,16 +39,16 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
     setLoading(false);
   };
 
-  const handleCreate = async () => {
+  const handleCreateForDay = async (day: number) => {
     const { error } = await supabase.from("streak_items").insert([{
-      name: "New Item",
+      name: `Day ${day} Reward`,
       title: "Streak Title",
       description: "Description here...",
-      balance: 100,
+      balance: day === 2 ? 50 : 0,
       icon_name: "Star",
-      rarity: "Legendary",
-      rarity_color: "#4ade80",
-      required_streak: 1
+      rarity: "Epic",
+      rarity_color: "#a78bfa",
+      required_streak: day
     }]);
     
     if (error) alert("Failed to create: " + error.message);
@@ -88,73 +88,121 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
   const filteredItems = items.sort((a, b) => (a.required_streak || 1) - (b.required_streak || 1));
 
   return (
-    <FullScreenOverlay title="⚡ Daily Streak Items" onClose={onClose}>
+    <FullScreenOverlay title="⚡ Daily Streak Management" onClose={onClose}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <h3 style={{ margin: 0, color: "white", fontSize: 18 }}>All Streak Rewards</h3>
-        <div style={{ flex: 1 }} />
-        <button onClick={handleCreate} style={{
-          background: "var(--neon)", color: "#000", border: "none", borderRadius: 20, padding: "8px 16px",
-          fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", gap: 6
-        }}>
-          <Plus size={16} /> Create New Item
-        </button>
+        <h3 style={{ margin: 0, color: "white", fontSize: 18 }}>7-Day Streak Rewards</h3>
       </div>
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 className="mly-spinner" color="var(--neon)" /></div>
-      ) : filteredItems.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
-          No streak items found.
-        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {filteredItems.map(item => {
+          {[1, 2, 3, 4, 5, 6, 7].map(day => {
+            const item = items.find(i => i.required_streak === day);
+            
+            if (!item) {
+              return (
+                <div key={`empty-${day}`} style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 16, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "var(--text-muted)" }}>{day}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 15, fontWeight: 700 }}>No Reward for Day {day}</div>
+                  </div>
+                  <button onClick={() => handleCreateForDay(day)} style={{ background: "transparent", border: "1px solid var(--neon)", color: "var(--neon)", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>
+                    <Plus size={16} /> Create Reward
+                  </button>
+                </div>
+              );
+            }
+
             const isEditing = editingId === item.id;
             
             return (
-              <div key={item.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 16, overflow: "hidden" }}>
+              <div key={item.id} className="glass-panel" style={{ padding: 16 }}>
                 {isEditing ? (
-                  <div style={{ padding: 20 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-                      <input className="search-input" value={editForm.name || ""} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Item Name (e.g. Navigator)" />
-                      <input className="search-input" type="number" min="1" value={editForm.required_streak || 1} onChange={e => setEditForm({...editForm, required_streak: parseInt(e.target.value)})} placeholder="Required Streak Day (e.g. 1)" />
-                      <input className="search-input" style={{ gridColumn: "span 2" }} value={editForm.description || ""} onChange={e => setEditForm({...editForm, description: e.target.value})} placeholder="Description" />
-                      <input className="search-input" value={editForm.icon_name || ""} onChange={e => setEditForm({...editForm, icon_name: e.target.value})} placeholder="Icon Name (e.g. Compass)" />
-                      <input className="search-input" value={editForm.image_url || ""} onChange={e => setEditForm({...editForm, image_url: e.target.value})} placeholder="Image URL (optional)" />
-                      <select className="search-input" value={editForm.rarity || ""} onChange={e => setEditForm({...editForm, rarity: e.target.value})}>
-                        <option value="Common">Common</option>
-                        <option value="Rare">Rare</option>
-                        <option value="Epic">Epic</option>
-                        <option value="Legendary">Legendary</option>
-                      </select>
-                      <input className="search-input" type="color" value={editForm.rarity_color || "#ffffff"} onChange={e => setEditForm({...editForm, rarity_color: e.target.value})} />
-                      <input className="search-input" type="number" value={editForm.balance || 0} onChange={e => setEditForm({...editForm, balance: parseInt(e.target.value) || 0})} placeholder="Reward Balance (e.g. 50)" style={{ gridColumn: "span 2" }} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16, background: "rgba(0,0,0,0.2)", padding: 20, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Item Details (Day {day})</label>
+                      <input
+                        className="search-input"
+                        value={editForm.name || ""}
+                        onChange={e => setEditForm({...editForm, name: e.target.value})}
+                        placeholder="Item Name (e.g. Navigator)"
+                      />
+                      <input 
+                        className="search-input" 
+                        value={editForm.description || ""} 
+                        onChange={e => setEditForm({...editForm, description: e.target.value})} 
+                        placeholder="Description text" 
+                      />
                     </div>
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 16 }}>
-                      <button onClick={() => setEditingId(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 16px", color: "var(--text-muted)", cursor: "pointer" }}>Cancel</button>
-                      <button onClick={() => handleSave(item.id)} style={{ background: "var(--neon)", color: "#000", border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                        <Save size={16} /> Save
+
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Day Requirement</label>
+                        <input className="search-input" type="number" min="1" max="7" value={editForm.required_streak || 1} onChange={e => setEditForm({...editForm, required_streak: parseInt(e.target.value)})} placeholder="e.g. 1" />
+                      </div>
+                      
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Balance Reward</label>
+                        <input className="search-input" type="number" value={editForm.balance || 0} onChange={e => setEditForm({...editForm, balance: parseInt(e.target.value) || 0})} placeholder="e.g. 50" style={{ border: "1px solid rgba(168, 85, 247, 0.3)" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Rarity Tier</label>
+                        <select className="search-input" value={editForm.rarity || "Common"} onChange={e => setEditForm({...editForm, rarity: e.target.value})}>
+                          <option value="Common">Common</option>
+                          <option value="Rare">Rare</option>
+                          <option value="Epic">Epic</option>
+                          <option value="Legendary">Legendary</option>
+                        </select>
+                      </div>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Theme Color</label>
+                        <input className="search-input" type="color" value={editForm.rarity_color || "#ffffff"} onChange={e => setEditForm({...editForm, rarity_color: e.target.value})} style={{ padding: 4, height: 42, width: "100%" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Visual Asset (Icon Name or SVG/Image URL)</label>
+                      <input className="search-input" value={editForm.image_url || editForm.icon_name || ""} onChange={e => {
+                        const val = e.target.value;
+                        if (val.includes("/") || val.includes("<svg")) setEditForm({...editForm, image_url: val, icon_name: undefined});
+                        else setEditForm({...editForm, icon_name: val, image_url: undefined});
+                      }} placeholder="e.g. Star OR /pins/custom.png OR <svg..." />
+                    </div>
+                    
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <button onClick={() => setEditingId(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 20px", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancel</button>
+                      <button onClick={() => handleSave(item.id)} style={{ background: "var(--neon)", color: "#000", border: "none", borderRadius: 8, padding: "8px 24px", cursor: "pointer", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", gap: 6, boxShadow: "0 0 15px rgba(168, 85, 247, 0.4)" }}>
+                        <Save size={16} /> Save Changes
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ padding: 20 }}>
+                  <div style={{ padding: 4 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-                          <h3 style={{ margin: 0, color: "white", fontSize: 18 }}>{item.name}</h3>
-                          <div style={{ background: "rgba(255,255,255,0.1)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{item.title}</div>
-                          <div style={{ background: "rgba(245, 158, 11, 0.15)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "#f59e0b" }}>Day {item.required_streak || 1}</div>
-                          {item.balance > 0 && <div style={{ background: "rgba(74, 222, 128, 0.15)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "#4ade80" }}>+{item.balance} RP</div>}
+                      <div style={{ flex: 1, display: "flex", alignItems: "flex-start", gap: 16 }}>
+                        <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "50%", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#fff", fontSize: 18, border: "2px solid rgba(255,255,255,0.1)" }}>
+                          {day}
                         </div>
-                        <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)" }}>{item.description}</p>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                            <h3 style={{ margin: 0, color: "white", fontSize: 18 }}>{item.name}</h3>
+                            <div style={{ background: "rgba(255,255,255,0.1)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{item.title}</div>
+                            {item.balance > 0 && <div style={{ background: "rgba(74, 222, 128, 0.15)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "#4ade80" }}>+{item.balance} Balance</div>}
+                          </div>
+                          <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)" }}>{item.description}</p>
+                        </div>
                       </div>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <button onClick={() => { setEditingId(item.id); setEditForm(item); }} style={{ background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 8, padding: "8px", color: "#fff", cursor: "pointer" }}>
-                          <Edit2 size={16} />
+                        <button onClick={() => { setEditingId(item.id); setEditForm(item); }} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 16px", color: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                          <Edit2 size={14} /> Edit
                         </button>
-                        <button onClick={() => handleDelete(item.id)} style={{ background: "rgba(239, 68, 68, 0.1)", border: "none", borderRadius: 8, padding: "8px", color: "#ef4444", cursor: "pointer" }}>
-                          <Trash2 size={16} />
+                        <button onClick={() => handleDelete(item.id)} style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 8, padding: "8px 16px", color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                          <Trash2 size={14} /> Delete
                         </button>
                       </div>
                     </div>
