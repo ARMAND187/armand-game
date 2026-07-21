@@ -456,7 +456,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Rounds</div>
               <div style={{ display: "flex", gap: 8 }}>
-                {[3, 5, 10].map(r => (
+                {[5, 10, 25].map(r => (
                   <button
                     key={r}
                     onClick={() => setTotalRounds(r)}
