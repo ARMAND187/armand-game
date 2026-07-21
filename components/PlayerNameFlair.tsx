@@ -87,12 +87,12 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
       
       const newFontSize = Math.max(origFontSize, 25); // Boost for readability
       
-      // Calculate exact extra width needed (assuming average char width is ~0.6x font size)
-      const origTextWidth = 10 * origFontSize * 0.6; // "PlayerName" is 10 chars
-      const newTextWidth = username.length * newFontSize * 0.6;
-      const extraWidth = newTextWidth - origTextWidth;
+      // Calculate exact extra width needed
+      const origTextWidth = 10 * origFontSize * 0.6; // "PlayerName" is 10 chars (designer assumed average 0.6x width)
+      const newTextWidth = username.length * newFontSize * 0.65; // Use 0.65x for new text to give generous padding for bold letters
+      const extraWidth = Math.max(0, newTextWidth - origTextWidth); // Only grow, never shrink
       
-      if (extraWidth !== 0) {
+      if (extraWidth > 0) {
         // Stretch the viewBox
         finalSvg = finalSvg.replace(/viewBox="0 0 (\d+) (\d+)"/, (match, w, h) => {
           return `viewBox="0 0 ${Math.max(50, parseInt(w, 10) + extraWidth)} ${h}"`;
