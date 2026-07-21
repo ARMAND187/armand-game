@@ -61,6 +61,15 @@ function gradeDistance(km: number) {
   return             { emoji: "😅", label: "Far off!",                  color: "#f87171" };
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
 function seededRandom(seed: number) {
     const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
@@ -143,6 +152,7 @@ function GeoKurdistanInner() {
   const [showScoreboard, setShowScoreboard] = useState(false);
   const [forfeitWin, setForfeitWin] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
+  const [locationIndices, setLocationIndices] = useState<number[]>([]);
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -258,7 +268,7 @@ function GeoKurdistanInner() {
     if (!roomId) {
       // Single player fallback if no room ID provided
       setTimeout(() => {
-        const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+        const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
         const indices = shuffled.slice(0, totalRounds);
         setLocationIndices(indices);
         setGameState("PLAYING");
@@ -399,7 +409,7 @@ function GeoKurdistanInner() {
             } else {
                if (isRoomHost) {
                  setTimeout(async () => {
-                   const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+                   const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
                    const indices = shuffled.slice(0, room.total_rounds || 5);
                    channel.send({
                      type: "broadcast",
@@ -530,26 +540,30 @@ function GeoKurdistanInner() {
 
   const handlePlayAgain = () => {
     if (!roomId) {
-      const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+      const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
       const indices = shuffled.slice(0, totalRounds);
       setLocationIndices(indices);
       setGameState("PLAYING");
-      setTimer(timeLimit);
       setRound(1);
+      setTimer(timeLimit);
       setRoundGuesses([]);
-      setTotalScores({});
       setHasGuessed(false);
       setGuessMarker(null);
       setShowScoreboard(false);
-    } else {
-      if (isHost && channelRef.current) {
-        const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
+      return;
+    }
+
+    if (isHost && channelRef.current) {
+      setTimeout(() => {
+        const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
         const indices = shuffled.slice(0, totalRounds);
-        channelRef.current.send({
-           type: "broadcast",
-           event: "GAME_START",
-           payload: { indices, players }
-        });
+        if (channelRef.current) {
+          channelRef.current.send({
+             type: "broadcast",
+             event: "GAME_START",
+             payload: { indices, players }
+          });
+        }
         setLocationIndices(indices);
         setGameState("PLAYING");
         setTimer(timeLimit);
@@ -559,7 +573,7 @@ function GeoKurdistanInner() {
         setHasGuessed(false);
         setGuessMarker(null);
         setShowScoreboard(false);
-      }
+      }, 0);
     }
   };
 
