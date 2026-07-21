@@ -324,7 +324,7 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
                         </button>
                         {activeTab === "active" ? (
                           <button onClick={() => toggleStatus(item, false, null, null)} style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                            Remove
+                            Move to Storage
                           </button>
                         ) : (
                           <button onClick={() => setAddingToShopId(item.id)} style={{ background: "rgba(74, 222, 128, 0.15)", border: "1px solid rgba(74, 222, 128, 0.3)", borderRadius: 8, padding: "6px 12px", color: "#4ade80", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
