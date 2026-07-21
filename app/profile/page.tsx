@@ -4,7 +4,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { useEffect, useState } from "react";
 import {
   Settings, Bell, Gift, ChevronRight, Smartphone,
-  Shield, Edit3, RefreshCw, Loader2, Mail, AlertCircle, ArrowLeft
+  Shield, Edit3, RefreshCw, Loader2, Mail, AlertCircle, ArrowLeft, MessageSquare
 } from "lucide-react";
 import { getRankFromRP } from "@/utils/RankSystem";
 import Link from "next/link";
@@ -505,7 +505,7 @@ export default function ProfilePage() {
             key={label}
             href={href}
             className="settings-menu-item"
-            style={{ borderBottom: i < menuItems.length - 1 ? "1px solid var(--border)" : "none" }}
+            style={{ borderBottom: "1px solid var(--border)" }}
           >
             <div className="settings-menu-left">
               <div className="profile-menu-icon">
@@ -519,6 +519,25 @@ export default function ProfilePage() {
             <ChevronRight size={16} color="var(--text-muted)" />
           </Link>
         ))}
+        
+        <a
+          href="https://discord.gg/4HBhtR7kYU"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="settings-menu-item"
+          style={{ borderBottom: "none" }}
+        >
+          <div className="settings-menu-left">
+            <div className="profile-menu-icon" style={{ background: "rgba(88, 101, 242, 0.1)", color: "#5865F2", border: "1px solid rgba(88, 101, 242, 0.2)" }}>
+              <MessageSquare size={17} />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Join our Discord</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>Community, updates & support</div>
+            </div>
+          </div>
+          <ChevronRight size={16} color="var(--text-muted)" />
+        </a>
       </div>
     </div>
   );
