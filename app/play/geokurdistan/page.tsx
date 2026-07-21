@@ -70,7 +70,14 @@ function generateDeterministicIndices(seedStr: string, count: number, maxVal: nu
     let seed = 0;
     for(let i = 0; i < seedStr.length; i++) seed += seedStr.charCodeAt(i);
     const indices: number[] = [];
-    while(indices.length < count) {
+    
+    // Prevent infinite loop if count exceeds maxVal
+    const actualCount = Math.min(count, maxVal);
+    
+    // Also protect against maxVal being 0
+    if (actualCount <= 0) return indices;
+
+    while(indices.length < actualCount) {
         seed++;
         const val = Math.floor(seededRandom(seed) * maxVal);
         if(!indices.includes(val) && val < maxVal) indices.push(val);
