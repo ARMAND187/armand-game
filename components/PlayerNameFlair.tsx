@@ -28,14 +28,49 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
 
   if (flair && flair.trim().startsWith("<svg")) {
     let finalSvg = flair;
-    let hasReplaced = false;
 
+    // Advanced dynamic pill rendering:
+    // If it's a standard pill-based SVG from the user (contains rect and text),
+    // extract its properties and render a perfect responsive CSS pill!
+    const bgMatch = finalSvg.match(/<rect[^>]*fill="([^"]+)"/);
+    const borderMatch = finalSvg.match(/<rect[^>]*stroke="([^"]+)"/);
+    const textMatch = finalSvg.match(/<text[^>]*fill="([^"]+)"/);
+
+    if (bgMatch && borderMatch && textMatch) {
+      const bgColor = bgMatch[1];
+      const borderColor = borderMatch[1];
+      const textColor = textMatch[1];
+
+      // Extract the icon by stripping out the rect, text, and svg tags
+      let iconInner = finalSvg
+        .replace(/<rect[^>]*>/, '')
+        .replace(/<text[^>]*>.*?<\/text>/, '')
+        .replace(/<svg[^>]*>/, '')
+        .replace(/<\/svg>/, '')
+        .trim();
+
+      // The icon is typically drawn in the first 56x56 area of the 220x56 canvas.
+      const iconSvg = `<svg width="24" height="24" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">${iconInner}</svg>`;
+
+      return (
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: bgColor, border: `2px solid ${borderColor}`, padding: "2px 10px 2px 4px", borderRadius: 9999, maxWidth: "100%" }}>
+          <div 
+            style={{ display: "flex", alignItems: "center", marginLeft: -4, marginRight: -2 }}
+            dangerouslySetInnerHTML={{ __html: iconSvg }} 
+          />
+          <span style={{ color: textColor, fontWeight: 800, fontSize: 12 }}>{username}</span>
+        </div>
+      );
+    }
+
+    // Fallback if the SVG is not a standard pill format
+    let hasReplaced = false;
     if (finalSvg.includes("PlayerName")) {
       finalSvg = finalSvg.replace("PlayerName", username);
       hasReplaced = true;
     }
 
-    // Ensure the SVG scales down to a reasonable flair height (28px)
+    // Ensure fallback scales down to a reasonable flair height (28px)
     finalSvg = finalSvg
       .replace(/width="[^"]*"/, '')
       .replace(/height="[^"]*"/, 'height="28"');
