@@ -35,6 +35,11 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
       hasReplaced = true;
     }
 
+    // Ensure the SVG scales down to a reasonable flair height (28px)
+    finalSvg = finalSvg
+      .replace(/width="[^"]*"/, '')
+      .replace(/height="[^"]*"/, 'height="28"');
+
     return (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "100%" }}>
         <div 
