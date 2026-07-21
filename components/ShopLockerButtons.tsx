@@ -462,13 +462,13 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
         if (item.type === 'Avatar Frame') col = 'equipped_avatar_frame';
         
         if (col) {
-          const val = (item.type === 'Title' || item.type === 'Name Flair') ? item.name : item.image_url;
+          const val = item.type === 'Title' ? item.name : (item.image_url || item.name);
           const { error } = await supabase.from("profiles").update({ [col]: val }).eq("id", user.id);
           if (error) {
             alert("Failed to equip item.");
           } else {
             if (item.type === 'Map Pin' && item.image_url) setEquippedPinUrl(item.image_url);
-            else if (item.type === 'Name Flair') setEquippedFlair(item.name);
+            else if (item.type === 'Name Flair') setEquippedFlair(item.image_url || item.name);
             else if (item.type === 'Title') setEquippedTitle(item.name);
             else if (item.type === 'Banner' && item.image_url) setEquippedBanner(item.image_url);
             else if (item.type === 'Avatar Frame' && item.image_url) setEquippedAvatarFrame(item.image_url);
@@ -488,7 +488,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
       if (item.type === 'Map Pin' && item.image_url) {
         setEquippedPinUrl(item.image_url);
       } else if (item.type === 'Name Flair') {
-        setEquippedFlair(item.name);
+        setEquippedFlair(item.image_url || item.name);
       } else if (item.type === 'Title') {
         setEquippedTitle(item.name);
       } else if (item.type === 'Banner' && item.image_url) {

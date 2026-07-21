@@ -26,6 +26,27 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
     );
   }
 
+  if (flair && flair.trim().startsWith("<svg")) {
+    return (
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "100%" }}>
+        <div 
+          style={{ display: "flex", alignItems: "center" }}
+          dangerouslySetInnerHTML={{ __html: flair }} 
+        />
+        <span style={{ fontWeight: 800 }}>@{username}</span>
+      </div>
+    );
+  }
+
+  if (flair && (flair.startsWith("http") || flair.startsWith("/"))) {
+    return (
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "100%" }}>
+        <img src={flair} alt="Flair" style={{ height: 24, objectFit: "contain" }} />
+        <span style={{ fontWeight: 800 }}>@{username}</span>
+      </div>
+    );
+  }
+
   return (
     <span style={{ 
       whiteSpace: "nowrap", 
