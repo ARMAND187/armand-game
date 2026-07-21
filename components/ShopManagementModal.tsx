@@ -235,43 +235,75 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
             
             return (
               <div key={item.id} className="glass-panel" style={{ padding: 16 }}>
-                {isEditing ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <input
-                      className="search-input"
-                      value={editForm.name || ""}
-                      onChange={e => setEditForm({...editForm, name: e.target.value})}
-                      placeholder="Item Name"
-                    />
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <input className="search-input" type="number" value={editForm.price || 0} onChange={e => setEditForm({...editForm, price: Number(e.target.value)})} placeholder="Price" style={{ flex: 1 }} />
-                      <select 
-                        className="search-input" 
-                        value={editForm.type || "Map Pin"} 
-                        onChange={e => setEditForm({...editForm, type: e.target.value})} 
-                        style={{ flex: 1, appearance: "none" }}
-                      >
-                        <option value="Map Pin">Map Pin</option>
-                        <option value="Name Flair">Name Flair</option>
-                        <option value="Title">Title</option>
-                        <option value="Banner">Banner</option>
-                        <option value="Avatar Frame">Avatar Frame</option>
-                      </select>
-                    </div>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <input className="search-input" value={editForm.rarity || ""} onChange={e => setEditForm({...editForm, rarity: e.target.value})} placeholder="Rarity" style={{ flex: 1 }} />
-                      <input className="search-input" value={editForm.rarity_color || ""} onChange={e => setEditForm({...editForm, rarity_color: e.target.value})} placeholder="Color (#hex)" style={{ flex: 1 }} />
-                    </div>
-                    <input className="search-input" value={editForm.image_url || editForm.icon_name || ""} onChange={e => {
-                      const val = e.target.value;
-                      if (val.includes("/")) setEditForm({...editForm, image_url: val, icon_name: undefined});
-                      else setEditForm({...editForm, icon_name: val, image_url: undefined});
-                    }} placeholder="Icon Name or Image URL (/pins/fire-pin.png)" />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16, background: "rgba(0,0,0,0.2)", padding: 20, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
                     
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 4 }}>
-                      <button onClick={handleCancel} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancel</button>
-                      <button onClick={() => handleSave(item.id)} style={{ background: "var(--neon)", color: "#000", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-                        <Save size={14} /> Save
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Item Details</label>
+                      <input
+                        className="search-input"
+                        value={editForm.name || ""}
+                        onChange={e => setEditForm({...editForm, name: e.target.value})}
+                        placeholder="Item Name (e.g. Diamond Ring)"
+                      />
+                      <input 
+                        className="search-input" 
+                        value={editForm.description || ""} 
+                        onChange={e => setEditForm({...editForm, description: e.target.value})} 
+                        placeholder="Description text" 
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Category</label>
+                        <select 
+                          className="search-input" 
+                          value={editForm.type || "Map Pin"} 
+                          onChange={e => setEditForm({...editForm, type: e.target.value})} 
+                        >
+                          <option value="Map Pin">Map Pin</option>
+                          <option value="Name Flair">Name Flair</option>
+                          <option value="Title">Title</option>
+                          <option value="Banner">Banner</option>
+                          <option value="Avatar Frame">Avatar Frame</option>
+                        </select>
+                      </div>
+                      
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Price (Balance)</label>
+                        <input className="search-input" type="number" value={editForm.price || 0} onChange={e => setEditForm({...editForm, price: Number(e.target.value)})} placeholder="e.g. 500" style={{ border: "1px solid rgba(168, 85, 247, 0.3)" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Rarity Tier</label>
+                        <select className="search-input" value={editForm.rarity || "Common"} onChange={e => setEditForm({...editForm, rarity: e.target.value})}>
+                          <option value="Common">Common</option>
+                          <option value="Rare">Rare</option>
+                          <option value="Epic">Epic</option>
+                          <option value="Legendary">Legendary</option>
+                        </select>
+                      </div>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Theme Color</label>
+                        <input className="search-input" type="color" value={editForm.rarity_color || "#ffffff"} onChange={e => setEditForm({...editForm, rarity_color: e.target.value})} style={{ padding: 4, height: 42, width: "100%" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Visual Asset (Icon or SVG/Image URL)</label>
+                      <input className="search-input" value={editForm.image_url || editForm.icon_name || ""} onChange={e => {
+                        const val = e.target.value;
+                        if (val.includes("/") || val.includes("<svg")) setEditForm({...editForm, image_url: val, icon_name: undefined});
+                        else setEditForm({...editForm, icon_name: val, image_url: undefined});
+                      }} placeholder="e.g. Shield OR /pins/custom.png OR <svg..." />
+                    </div>
+                    
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <button onClick={handleCancel} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 20px", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancel</button>
+                      <button onClick={() => handleSave(item.id)} style={{ background: "var(--neon)", color: "#000", border: "none", borderRadius: 8, padding: "8px 24px", cursor: "pointer", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", gap: 6, boxShadow: "0 0 15px rgba(168, 85, 247, 0.4)" }}>
+                        <Save size={16} /> Save Changes
                       </button>
                     </div>
                   </div>
