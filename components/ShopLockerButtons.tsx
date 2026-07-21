@@ -652,13 +652,16 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
               <div
                 key={`default-${cat}`}
                 style={{
-                  background: "var(--bg-card, #18181b)",
-                  border: `1px solid ${isEquipped ? "rgba(167,139,250,0.4)" : "var(--border, #27272a)"}`,
-                  borderRadius: 14,
+                  background: "rgba(24, 24, 27, 0.4)",
+                  border: `1px solid ${isEquipped ? "rgba(167,139,250,0.5)" : "rgba(255,255,255,0.08)"}`,
+                  borderRadius: 16,
                   padding: "14px 16px",
                   display: "flex",
                   alignItems: "center",
                   gap: 14,
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
                 }}
               >
                 <div
@@ -700,15 +703,16 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                 <button
                   onClick={() => unequipCategory(cat)}
                   disabled={isEquipping || (isEquipped && cat !== 'Map Pin')}
+                  className={isEquipped && cat !== 'Map Pin' ? "" : "btn-redeem-small"}
                   style={{
-                    padding: "8px 16px",
-                    borderRadius: 20,
-                    background: isEquipped ? "rgba(255,255,255,0.05)" : "var(--primary, #8b5cf6)",
-                    color: isEquipped ? "var(--text-muted)" : "#fff",
-                    border: "none",
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: (isEquipping || (isEquipped && cat !== 'Map Pin')) ? "not-allowed" : "pointer",
+                    padding: "6px 14px",
+                    borderRadius: 999,
+                    background: isEquipped ? "rgba(167,139,250,0.15)" : "",
+                    border: isEquipped ? "1px solid rgba(167,139,250,0.3)" : "",
+                    color: isEquipped ? "#a78bfa" : "",
+                    fontWeight: 800,
+                    fontSize: 11,
+                    cursor: (isEquipping || (isEquipped && cat !== 'Map Pin')) ? "default" : "pointer",
                     opacity: isEquipping ? 0.7 : 1,
                   }}
                 >
@@ -742,13 +746,16 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
               <div
                 key={item.id}
                 style={{
-                  background: "var(--bg-card, #18181b)",
-                  border: `1px solid ${isEquipped ? "rgba(167,139,250,0.4)" : "var(--border, #27272a)"}`,
-                  borderRadius: 14,
+                  background: "rgba(24, 24, 27, 0.4)",
+                  border: `1px solid ${isEquipped ? "rgba(74, 222, 128, 0.4)" : "rgba(255,255,255,0.08)"}`,
+                  borderRadius: 16,
                   padding: "14px 16px",
                   display: "flex",
                   alignItems: "center",
                   gap: 14,
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
                 }}
               >
                 <div
@@ -775,14 +782,15 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                   <button
                     onClick={() => equipItem(item)}
                     disabled={isEquipped || isEquipping}
+                    className={isEquipped ? "" : "btn-redeem-small"}
                     style={{
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: 800,
-                      color: isEquipped ? "#a78bfa" : "var(--text-primary)",
-                      background: isEquipped ? "rgba(167,139,250,0.15)" : "var(--bg-elevated)",
-                      border: `1px solid ${isEquipped ? "rgba(167,139,250,0.3)" : "var(--border)"}`,
-                      padding: "6px 12px",
-                      borderRadius: 8,
+                      color: isEquipped ? "#4ade80" : "",
+                      background: isEquipped ? "rgba(74, 222, 128, 0.1)" : "",
+                      border: isEquipped ? "1px solid rgba(74, 222, 128, 0.3)" : "",
+                      padding: "6px 14px",
+                      borderRadius: 999,
                       cursor: isEquipped ? "default" : "pointer",
                     }}
                   >
