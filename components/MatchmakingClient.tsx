@@ -159,6 +159,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         if (!displayCode && activePlayers.length >= 4) {
           // Trigger ready if we are exactly 4 (public only)
           setTimeout(() => {
+            localStorage.removeItem("pwa_active_room");
             router.push(`${playRoute}?roomId=${roomId}`);
           }, 1000);
         }
@@ -176,6 +177,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         }
       })
       .on("broadcast", { event: "start-game" }, () => {
+        localStorage.removeItem("pwa_active_room");
         router.push(`${playRoute}?roomId=${roomId}`);
       })
       .subscribe(async (status) => {
@@ -347,6 +349,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       setCustomMaxPlayers(room.max_players || 10);
       
       if (room.status === "playing") {
+         localStorage.removeItem("pwa_active_room");
          router.push(`${playRoute}?roomId=${room.id}`);
       } else {
          setMatchState("waiting");
@@ -663,6 +666,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                   });
                 }
                 
+                localStorage.removeItem("pwa_active_room");
                 router.push(`${playRoute}?roomId=${roomId}`);
               }}
             >
