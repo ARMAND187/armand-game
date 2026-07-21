@@ -80,10 +80,25 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
       hasReplaced = true;
     }
 
-    // Ensure fallback scales down to a reasonable flair height (28px)
+    // Boost font-size dynamically for better readability in the scaled-down fallback
+    finalSvg = finalSvg.replace(/font-size="(\d+)"/g, (match, sizeStr) => {
+      let size = parseInt(sizeStr, 10);
+      if (size < 25) return `font-size="25"`;
+      return match;
+    });
+
+    // Extract original viewbox height to properly scale the final img height
+    let fallbackViewBoxMatch = finalSvg.match(/viewBox="0 0 \d+ (\d+)"/);
+    let originalHeight = 56;
+    if (fallbackViewBoxMatch) originalHeight = parseInt(fallbackViewBoxMatch[1], 10);
+    
+    // Scale the img height so that the inner pill (usually ~56px out of the canvas) renders at ~28px
+    const scaledHeight = (originalHeight / 56) * 28;
+
+    // Ensure fallback scales down properly
     finalSvg = finalSvg
       .replace(/width="[^"]*"/, '')
-      .replace(/height="[^"]*"/, 'height="28"');
+      .replace(/height="[^"]*"/, `height="${scaledHeight}"`);
 
     const fallbackDataUri = `data:image/svg+xml;utf8,${encodeURIComponent(finalSvg)}`;
 
@@ -92,7 +107,7 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
         <img 
           src={fallbackDataUri} 
           alt="Flair"
-          style={{ height: 28, display: "block" }}
+          style={{ height: scaledHeight, display: "block" }}
         />
         {!hasReplaced && <span style={{ fontWeight: 800 }}>@{username}</span>}
       </div>
