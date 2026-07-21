@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Flame, CheckCircle2, CircleDashed } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -49,15 +49,24 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
     }
   };
 
-  const days = [
-    { day: 1, type: "title", reward: "Navigator" },
-    { day: 2, type: "coins", reward: 50 },
-    { day: 3, type: "empty", reward: "?" },
-    { day: 4, type: "empty", reward: "?" },
-    { day: 5, type: "empty", reward: "?" },
-    { day: 6, type: "empty", reward: "?" },
-    { day: 7, type: "empty", reward: "?" },
-  ];
+  const [streakItems, setStreakItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchStreakItems = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("streak_items").select("*").order("required_streak", { ascending: true });
+      if (data) setStreakItems(data);
+    };
+    fetchStreakItems();
+  }, []);
+
+  const days = [1, 2, 3, 4, 5, 6, 7].map(day => {
+    const item = streakItems.find(i => i.required_streak === day);
+    if (!item) return { day, type: "empty", reward: "?" };
+    
+    if (item.balance > 0) return { day, type: "coins", reward: item.balance };
+    return { day, type: "title", reward: item.name };
+  });
 
   return (
     <div className="w-full relative flex flex-col">
