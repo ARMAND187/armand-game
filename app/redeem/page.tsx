@@ -19,7 +19,9 @@ export default function RedeemPage() {
   
   const [packages, setPackages] = useState<ShopPackage[]>([]);
   const [packagesLoading, setPackagesLoading] = useState(true);
-  const [purchasingId, setPurchasingId] = useState<string | null>(null);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<ShopPackage | null>(null);
 
   useEffect(() => {
     fetchPackages();
@@ -54,22 +56,9 @@ export default function RedeemPage() {
     }
   };
 
-  const handlePurchase = async (pkg: ShopPackage) => {
-    if (purchasingId) return;
-    setPurchasingId(pkg.id);
-    
-    // Simulate transaction delay
-    await new Promise(r => setTimeout(r, 800));
-    
-    const { data, error } = await supabase.rpc("purchase_shop_package", { p_package_id: pkg.id });
-    
-    if (error || !data?.success) {
-      alert(error?.message || data?.error || "Transaction failed.");
-    } else {
-      alert(`Success! You received ${data.reward} Balance.`);
-    }
-    
-    setPurchasingId(null);
+  const handlePurchase = (pkg: ShopPackage) => {
+    setSelectedPackage(pkg);
+    setIsModalOpen(true);
   };
 
   const reset = () => { setCode(""); setStatus("idle"); setMessage(""); };
@@ -205,14 +194,73 @@ export default function RedeemPage() {
                 <button 
                   className="btn-redeem-small"
                   onClick={() => handlePurchase(pack)}
-                  disabled={purchasingId === pack.id}
                   style={{ minWidth: 80, justifyContent: "center" }}
                 >
-                  {purchasingId === pack.id ? "..." : `$${pack.price_usd}`}
+                  ${pack.price_usd}
                 </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Premium Modal ── */}
+      {isModalOpen && selectedPackage && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.8)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: 24,
+        }}>
+          <div style={{
+            background: "var(--bg-card)",
+            border: "1px solid rgba(167, 139, 250, 0.3)",
+            borderRadius: 24,
+            width: "100%",
+            maxWidth: 400,
+            padding: 32,
+            boxShadow: "0 25px 50px rgba(0,0,0,0.5), 0 0 40px rgba(167, 139, 250, 0.15)",
+            position: "relative",
+            textAlign: "center"
+          }}>
+            <div style={{
+              width: 64, height: 64,
+              borderRadius: 16,
+              background: "rgba(167, 139, 250, 0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 20px",
+              boxShadow: "0 0 20px rgba(167, 139, 250, 0.2)"
+            }}>
+              <Sparkles size={32} color="#a78bfa" />
+            </div>
+            
+            <h2 style={{ fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 8 }}>
+              {selectedPackage.name}
+            </h2>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#4ade80", marginBottom: 24 }}>
+              {selectedPackage.base_amount + selectedPackage.bonus_amount} Balance
+            </div>
+            
+            <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 32 }}>
+              Please message an admin to manually process your payment and receive a gift code.
+            </p>
+            
+            <button 
+              className="btn-redeem" 
+              onClick={() => setIsModalOpen(false)}
+              style={{ width: "100%", justifyContent: "center" }}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>
