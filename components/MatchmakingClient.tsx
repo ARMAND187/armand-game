@@ -29,6 +29,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [totalRounds, setTotalRounds] = useState<number>(5);
   const [region, setRegion] = useState<string>("All Kurdistan");
   const [hasAutoJoined, setHasAutoJoined] = useState(false);
+  const [publicMaxPlayers, setPublicMaxPlayers] = useState<number>(4);
   const [customMaxPlayers, setCustomMaxPlayers] = useState<number>(10);
   const [customTimeLimit, setCustomTimeLimit] = useState<number>(30);
   
@@ -226,7 +227,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       // Look for an available public room, or create one natively if none exist
       const { data, error: rpcError } = await supabase.rpc('join_public_lobby', {
         p_game_id: gameId,
-        p_username: myUsername
+        p_username: myUsername,
+        p_max_players: publicMaxPlayers
       });
 
       if (rpcError) throw rpcError;
@@ -388,7 +390,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           <Link href={`${playRoute}?rounds=${totalRounds}&region=${encodeURIComponent(region)}`} className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0" }}>
             <Play size={16} fill="currentColor" /> Solo
           </Link>
-        <button className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0", background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }} onClick={joinPublicGame}>
+        <button className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0", background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }} onClick={() => setMatchState("public-setup")}>
           <Globe size={16} /> Public
         </button>
         <button
@@ -400,22 +402,77 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         </button>
         </div>
 
-        <div className="settings-card" style={{ marginBottom: 24 }}>
-          <div className="settings-row">
-            <span className="settings-row-label">Rounds</span>
-            <div className="settings-row-options">
-              {[5, 10, 25].map(r => (
-                <button
-                  key={r}
-                  onClick={() => setTotalRounds(r)}
-                  className={`settings-option-btn${totalRounds === r ? " active" : ""}`}
-                >
-                  {r}
-                </button>
-              ))}
+        <div className="settings-card" style={{ marginBottom: 24, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+          Select a mode above to start playing.
+        </div>
+      </div>
+    );
+  }
+
+  if (matchState === "public-setup") {
+    return (
+      <div className="settings-card" style={{ padding: "16px", textAlign: "left" }}>
+        <div style={{
+          background: "rgba(24, 24, 27, 0.4)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 20,
+          padding: 20,
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+          marginBottom: 16
+        }}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: 800, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+            <Globe size={18} color="var(--neon)" />
+            Public Matchmaking
+          </h3>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Max Players</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[2, 4].map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPublicMaxPlayers(p)}
+                    style={{
+                      flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 800, fontSize: 13,
+                      background: publicMaxPlayers === p ? "rgba(167, 139, 250, 0.15)" : "rgba(255,255,255,0.05)",
+                      color: publicMaxPlayers === p ? "#a78bfa" : "var(--text-muted)",
+                      border: publicMaxPlayers === p ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
+                      cursor: "pointer", transition: "all 0.2s"
+                    }}
+                  >{p} Players</button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Rounds</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div
+                  style={{
+                    flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 800, fontSize: 13,
+                    background: "rgba(167, 139, 250, 0.05)",
+                    color: "rgba(167, 139, 250, 0.5)",
+                    border: "1px solid rgba(167, 139, 250, 0.1)",
+                    textAlign: "center"
+                  }}
+                >5 Rounds (Locked)</div>
+              </div>
             </div>
           </div>
         </div>
+
+        <button className="btn-redeem" style={{ width: "100%", justifyContent: "center", margin: 0 }} onClick={joinPublicGame}>
+            Find Match
+        </button>
+        <button 
+          style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, width: "100%", marginTop: 16, cursor: "pointer" }}
+          onClick={() => setMatchState("idle")}
+        >
+          Cancel
+        </button>
       </div>
     );
   }
@@ -539,7 +596,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       ) : (
         <>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--neon)", marginBottom: 16 }}>
-            Waiting for players... ({players.length}/{displayCode ? customMaxPlayers : 4})
+            Waiting for players... ({players.length}/{displayCode ? customMaxPlayers : publicMaxPlayers})
             {displayCode && (
               <>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -556,7 +613,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: displayCode ? "repeat(auto-fit, minmax(120px, 1fr))" : "1fr 1fr", gap: 10 }}>
-            {Array.from({ length: displayCode ? customMaxPlayers : 4 }).map((_, slotIndex) => {
+            {Array.from({ length: displayCode ? customMaxPlayers : publicMaxPlayers }).map((_, slotIndex) => {
               const player = players[slotIndex];
               return (
                 <div
