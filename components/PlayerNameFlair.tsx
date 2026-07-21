@@ -41,28 +41,36 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
       const borderColor = borderMatch[1];
       const textColor = textMatch[1];
 
-      // Extract the icon by stripping out the rect, text, and svg tags
-      let iconInner = finalSvg
-        .replace(/<rect[^>]*>/, '')
-        .replace(/<text[^>]*>.*?<\/text>/, '')
-        .replace(/<svg[^>]*>/, '')
-        .replace(/<\/svg>/, '')
-        .trim();
+      // If the SVG uses a gradient (url(#...)) for its background or border,
+      // standard CSS won't be able to render it directly. Fallback to raw SVG rendering.
+      if (!bgColor.includes("url(") && !borderColor.includes("url(")) {
+        // Extract the icon by stripping out the rect, text, and svg tags
+        let iconInner = finalSvg
+          .replace(/<rect[^>]*>/, '')
+          .replace(/<text[^>]*>.*?<\/text>/, '')
+          .replace(/<svg[^>]*>/, '')
+          .replace(/<\/svg>/, '')
+          .trim();
 
-      // The icon is typically drawn in the first 56x56 area of the 220x56 canvas.
-      const iconSvg = `<svg width="24" height="24" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">${iconInner}</svg>`;
-      const iconSvgDataUri = `data:image/svg+xml;utf8,${encodeURIComponent(iconSvg)}`;
+        // Dynamically extract the viewbox height to properly frame the icon
+        let viewBoxMatch = finalSvg.match(/viewBox="0 0 \d+ (\d+)"/);
+        let vh = 56;
+        if (viewBoxMatch) vh = parseInt(viewBoxMatch[1], 10);
 
-      return (
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: bgColor, border: `2px solid ${borderColor}`, padding: "2px 10px 2px 4px", borderRadius: 9999, maxWidth: "100%" }}>
-          <img 
-            src={iconSvgDataUri} 
-            alt="Flair Icon"
-            style={{ width: 24, height: 24, marginLeft: -4, marginRight: -2 }}
-          />
-          <span style={{ color: textColor, fontWeight: 800, fontSize: 12 }}>{username}</span>
-        </div>
-      );
+        const iconSvg = `<svg width="24" height="24" viewBox="0 0 ${vh} ${vh}" xmlns="http://www.w3.org/2000/svg">${iconInner}</svg>`;
+        const iconSvgDataUri = `data:image/svg+xml;utf8,${encodeURIComponent(iconSvg)}`;
+
+        return (
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: bgColor, border: `2px solid ${borderColor}`, padding: "2px 10px 2px 4px", borderRadius: 9999, maxWidth: "100%" }}>
+            <img 
+              src={iconSvgDataUri} 
+              alt="Flair Icon"
+              style={{ width: 24, height: 24, marginLeft: -4, marginRight: -2 }}
+            />
+            <span style={{ color: textColor, fontWeight: 800, fontSize: 12 }}>{username}</span>
+          </div>
+        );
+      }
     }
 
     // Fallback if the SVG is not a standard pill format

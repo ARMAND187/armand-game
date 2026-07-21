@@ -67,13 +67,17 @@ function renderIcon(item: ShopItem) {
         const bgMatch = svgHtml.match(/<rect[^>]*fill="([^"]+)"/);
         const textMatch = svgHtml.match(/<text[^>]*fill="([^"]+)"/);
         if (bgMatch && textMatch) {
+          let viewBoxMatch = svgHtml.match(/viewBox="0 0 \d+ (\d+)"/);
+          let vh = 56;
+          if (viewBoxMatch) vh = parseInt(viewBoxMatch[1], 10);
+
           let iconInner = svgHtml
             .replace(/<rect[^>]*>/, '')
             .replace(/<text[^>]*>.*?<\/text>/, '')
             .replace(/<svg[^>]*>/, '')
             .replace(/<\/svg>/, '')
             .trim();
-          svgHtml = `<svg width="100%" height="100%" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">${iconInner}</svg>`;
+          svgHtml = `<svg width="100%" height="100%" viewBox="0 0 ${vh} ${vh}" xmlns="http://www.w3.org/2000/svg">${iconInner}</svg>`;
         }
       }
 
