@@ -13,6 +13,7 @@ import ChallengesButton from "@/components/ChallengesButton";
 import DailyStreakTracker from "@/components/DailyStreakTracker";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export const metadata = {
   title: "Home — Armand Games",
