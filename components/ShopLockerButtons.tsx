@@ -330,7 +330,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
     // Fetch Profile for equipped items
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, pin_color, challenge_rising_star, challenge_sniper, challenge_high_roller, challenge_speedrunner, daily_streak")
+      .select("equipped_pin_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, pin_color, challenge_rising_star, challenge_sniper, challenge_high_roller, challenge_speedrunner, current_streak")
       .eq("id", user.id)
       .single();
 
