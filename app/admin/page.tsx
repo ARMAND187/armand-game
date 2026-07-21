@@ -61,7 +61,35 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     checkAdmin();
+
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      setShowOnlineModal(hash === '#online');
+      setShowShopModal(hash === '#shop');
+      setShowSpecialItems(hash === '#special');
+      setShowChallengeModal(hash === '#challenges');
+      setShowPlayerInventory(hash === '#inventory');
+    };
+
+    // Initialize from URL hash on mount
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  const openModal = (hash: string) => {
+    window.location.hash = hash;
+  };
+
+  const closeModal = () => {
+    window.history.pushState(null, '', window.location.pathname);
+    setShowOnlineModal(false);
+    setShowShopModal(false);
+    setShowSpecialItems(false);
+    setShowChallengeModal(false);
+    setShowPlayerInventory(false);
+  };
 
   const checkAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -282,7 +310,7 @@ export default function AdminDashboard() {
         </div>
         <button 
           className="btn-play" 
-          onClick={() => setShowOnlineModal(true)}
+          onClick={() => openModal('online')}
           style={{ padding: "10px 20px", fontSize: 13, gap: 6 }}
         >
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 10px #4ade80" }} />
@@ -290,7 +318,7 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {showOnlineModal && <OnlinePlayersModal onClose={() => setShowOnlineModal(false)} />}
+      {showOnlineModal && <OnlinePlayersModal onClose={closeModal} />}
 
       <AdminDashboardStats totalRegistered={totalUsers} totalLocations={totalLocations} />
 
@@ -324,7 +352,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Shop Items Management */}
-      {showShopModal && <ShopManagementModal onClose={() => setShowShopModal(false)} />}
+      {showShopModal && <ShopManagementModal onClose={closeModal} />}
       
       {/* Shop Management Button */}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -333,7 +361,7 @@ export default function AdminDashboard() {
           <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage active shop items and storage.</p>
         </div>
         <button 
-          onClick={() => setShowShopModal(true)}
+          onClick={() => openModal('shop')}
           style={{ background: "rgba(168, 85, 247, 0.15)", border: "1px solid rgba(168, 85, 247, 0.3)", borderRadius: 8, padding: "8px 16px", color: "var(--neon)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
         >
           Open Shop Manager
@@ -341,7 +369,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Challenge Items Management */}
-      {showSpecialItems && <AdminSpecialItemsPanel onClose={() => setShowSpecialItems(false)} />}
+      {showSpecialItems && <AdminSpecialItemsPanel onClose={closeModal} />}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ padding: 12, borderRadius: 12, background: "rgba(245, 158, 11, 0.1)" }}>
@@ -353,7 +381,7 @@ export default function AdminDashboard() {
           </div>
         </div>
         <button
-          onClick={() => setShowSpecialItems(true)}
+          onClick={() => openModal('special')}
           style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 16px", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
         >
           Open Manager
@@ -361,14 +389,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* Challenge Management Button */}
-      {showChallengeModal && <AdminChallengePanel onClose={() => setShowChallengeModal(false)} />}
+      {showChallengeModal && <AdminChallengePanel onClose={closeModal} />}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Challenge Management</h2>
           <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Manage active dynamic challenges and rewards.</p>
         </div>
         <button 
-          onClick={() => setShowChallengeModal(true)}
+          onClick={() => openModal('challenges')}
           style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "8px 16px", color: "#60a5fa", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
         >
           Open Challenge Manager
@@ -376,14 +404,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* Player Inventory Management Button */}
-      {showPlayerInventory && <AdminPlayerInventoryPanel onClose={() => setShowPlayerInventory(false)} />}
+      {showPlayerInventory && <AdminPlayerInventoryPanel onClose={closeModal} />}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", margin: 0 }}>Player Inventories</h2>
           <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0 0" }}>Search players and manage their locker items directly.</p>
         </div>
         <button 
-          onClick={() => setShowPlayerInventory(true)}
+          onClick={() => openModal('inventory')}
           style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: 8, padding: "8px 16px", color: "#10b981", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
         >
           Manage Lockers
