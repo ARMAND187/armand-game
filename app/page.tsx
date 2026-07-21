@@ -121,7 +121,9 @@ export default async function HomePage() {
             style={{ 
               marginBottom: "36px",
               background: equippedBanner 
-                ? `url(${equippedBanner}) center/cover no-repeat` 
+                ? (equippedBanner.trim().startsWith("<svg") 
+                    ? `url("data:image/svg+xml;utf8,${encodeURIComponent(equippedBanner)}") center/cover no-repeat` 
+                    : `url(${equippedBanner}) center/cover no-repeat`)
                 : "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))",
               border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: "16px",
@@ -164,18 +166,28 @@ export default async function HomePage() {
                 
                 {/* Custom Avatar Frame Overlay OR Default Rank Border */}
                 {equippedAvatarFrame ? (
-                  <img 
-                    src={equippedAvatarFrame} 
-                    alt="Frame"
-                    style={{
-                      position: "absolute",
-                      top: -8, left: -8,
-                      width: 80, height: 80,
-                      maxWidth: "none",
-                      zIndex: 2,
-                      pointerEvents: "none"
-                    }}
-                  />
+                  equippedAvatarFrame.trim().startsWith("<svg") ? (
+                    <div 
+                      style={{
+                        position: "absolute", top: -8, left: -8,
+                        width: 80, height: 80, zIndex: 2, pointerEvents: "none"
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: equippedAvatarFrame
+                          .replace(/width="[^"]*"/, 'width="100%"')
+                          .replace(/height="[^"]*"/, 'height="100%"')
+                      }}
+                    />
+                  ) : (
+                    <img 
+                      src={equippedAvatarFrame} 
+                      alt="Frame"
+                      style={{
+                        position: "absolute", top: -8, left: -8,
+                        width: 80, height: 80, maxWidth: "none", zIndex: 2, pointerEvents: "none"
+                      }}
+                    />
+                  )
                 ) : (
                   <div 
                     style={{

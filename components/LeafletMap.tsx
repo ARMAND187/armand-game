@@ -126,7 +126,14 @@ export default function LeafletMap({
         "></div>`;
 
     if (pinUrl) {
-      pinHtml = `<img src="${pinUrl}" style="width:36px; height:36px; object-fit:contain; filter:drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); transform:translateY(8px);" />`;
+      if (pinUrl.trim().startsWith("<svg")) {
+        const svgContent = pinUrl
+          .replace(/width="[^"]*"/, 'width="100%"')
+          .replace(/height="[^"]*"/, 'height="100%"');
+        pinHtml = `<div style="width:36px; height:36px; filter:drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); transform:translateY(8px); display:flex; align-items:center; justify-content:center;">${svgContent}</div>`;
+      } else {
+        pinHtml = `<img src="${pinUrl}" style="width:36px; height:36px; object-fit:contain; filter:drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); transform:translateY(8px);" />`;
+      }
     }
 
     return L.divIcon({
