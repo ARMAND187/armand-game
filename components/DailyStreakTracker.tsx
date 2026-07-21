@@ -76,7 +76,7 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
         <h3 className="font-bold text-[13px] tracking-[0.1em] uppercase text-zinc-300" style={{ textShadow: "none" }}>Daily Rewards</h3>
       </div>
 
-      <div className="flex justify-between items-center relative z-10 px-4 sm:px-2">
+      <div className="flex justify-between items-start relative z-10 px-4 sm:px-2">
         {/* Connection line behind the circles */}
         <div className="absolute left-2 right-2 sm:left-6 sm:right-6 h-1 -translate-y-1/2 bg-white/5 -z-10 rounded-full" style={{ top: 14 }} />
         <div 
@@ -89,7 +89,7 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
           const isNext = currentStreak === i && !alreadyClaimedToday;
           
           return (
-            <div key={d.day} className="flex flex-col items-center relative z-10">
+            <div key={d.day} className="flex flex-col items-center relative z-10 w-10 sm:w-16">
               <div 
                 className="transition-all duration-300 flex items-center justify-center mb-1"
                 style={{
@@ -104,16 +104,16 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
                   className={isNext ? "animate-pulse" : ""}
                 />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, height: 28, justifyContent: "center" }}>
+              <div className="flex flex-col items-center justify-start h-8 sm:h-6 pt-1">
                 {d.type === "coins" ? (
-                  <span style={{ fontSize: 11, fontWeight: 800, color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b") }}>+{d.reward}</span>
+                  <span className="text-[10px] sm:text-[11px] font-extrabold" style={{ color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b") }}>+{d.reward}</span>
                 ) : d.type === "title" ? (
-                  <span style={{ fontSize: 8, fontWeight: 800, color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b"), textTransform: "uppercase" }}>{d.reward}</span>
+                  <span className="text-[7.5px] sm:text-[8px] font-extrabold text-center leading-[1.1] break-words w-full" style={{ color: isClaimed ? "#ef4444" : (isNext ? "#4ade80" : "#52525b"), textTransform: "uppercase" }}>{d.reward}</span>
                 ) : (
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#52525b" }}>?</span>
+                  <span className="text-[11px] sm:text-[12px] font-extrabold" style={{ color: "#52525b" }}>?</span>
                 )}
               </div>
-              <span className="text-[9px] font-bold text-zinc-500 uppercase mt-0.5">Day {d.day}</span>
+              <span className="text-[8.5px] sm:text-[9px] font-bold text-zinc-500 uppercase mt-0.5">Day {d.day}</span>
             </div>
           );
         })}
