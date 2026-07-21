@@ -8,30 +8,28 @@ export async function GET(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // 1. Fetch all users who have claimed Day 2 or higher
-    const { data: users, error: fetchErr } = await supabaseAdmin
+    // 1. Delete all streak items from user inventory
+    const { error: invErr } = await supabaseAdmin
+      .from("user_inventory")
+      .delete()
+      .not("streak_item_id", "is", null);
+
+    if (invErr) throw invErr;
+
+    // 2. Reset all player streaks back to 0
+    const { error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .select("id, balance, current_streak")
-      .gte("current_streak", 2);
+      .update({ 
+        current_streak: 0, 
+        last_streak_claim: null 
+      })
+      .neq("id", "00000000-0000-0000-0000-000000000000"); // Dummy condition to update all
 
-    if (fetchErr) throw fetchErr;
-
-    console.log(`Found ${users.length} users who have reached Day 2+`);
-
-    let updatedCount = 0;
-    // 2. Loop through and grant 50 balance
-    for (const user of users) {
-      const { error: updateErr } = await supabaseAdmin
-        .from("profiles")
-        .update({ balance: (user.balance || 0) + 50 })
-        .eq("id", user.id);
-        
-      if (!updateErr) updatedCount++;
-    }
+    if (profileErr) throw profileErr;
 
     return NextResponse.json({ 
       success: true, 
-      message: `Retroactively added 50 balance to ${updatedCount} players who claimed Day 2+` 
+      message: `Successfully reset all player streaks to 0 and removed all claimed streak items from their inventories!` 
     });
 
   } catch (error: any) {
