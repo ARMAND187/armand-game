@@ -89,9 +89,7 @@ export default async function HomePage() {
   ];
 
   return (
-    <div style={{ background: "#09090b", minHeight: "100vh", padding: "16px", paddingBottom: "100px" }}>
-
-      {/* ── Header ── */}
+    <div className="home-page" style={{ paddingBottom: "100px" }}>
       <header className="flex flex-col-reverse sm:flex-row items-end sm:items-center justify-end w-full relative gap-3 sm:gap-2" style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)", marginBottom: "40px" }}>
         <div className="flex items-center justify-end" style={{ gap: "10px" }}>
           <ShopLockerButtons />

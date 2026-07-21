@@ -28,9 +28,22 @@ export default function BottomNav() {
             href={href}
             prefetch={true}
             className={`bottom-nav-item${isActive ? " active" : ""}`}
+            style={{ position: 'relative' }}
           >
-            <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
-            <span className="bottom-nav-label">{label}</span>
+            <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} style={{ zIndex: 2 }} />
+            <span className="bottom-nav-label" style={{ zIndex: 2 }}>{label}</span>
+            {isActive && (
+              <div style={{
+                position: 'absolute',
+                bottom: -8,
+                width: 24,
+                height: 4,
+                borderRadius: 2,
+                background: 'var(--neon)',
+                boxShadow: '0 0 10px var(--neon), 0 0 20px var(--neon)',
+                animation: 'slide-up-fade 0.2s ease-out'
+              }} />
+            )}
           </Link>
         );
       })}
