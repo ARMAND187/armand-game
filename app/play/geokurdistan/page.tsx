@@ -69,20 +69,22 @@ function seededRandom(seed: number) {
 function generateDeterministicIndices(seedStr: string, count: number, maxVal: number) {
     let seed = 0;
     for(let i = 0; i < seedStr.length; i++) seed += seedStr.charCodeAt(i);
-    const indices: number[] = [];
     
-    // Prevent infinite loop if count exceeds maxVal
-    const actualCount = Math.min(count, maxVal);
-    
-    // Also protect against maxVal being 0
-    if (actualCount <= 0) return indices;
-
-    while(indices.length < actualCount) {
-        seed++;
-        const val = Math.floor(seededRandom(seed) * maxVal);
-        if(!indices.includes(val) && val < maxVal) indices.push(val);
+    // Create array of all possible indices
+    const allIndices: number[] = [];
+    for (let i = 0; i < maxVal; i++) {
+        allIndices.push(i);
     }
-    return indices;
+    
+    // Seeded Fisher-Yates shuffle
+    for (let i = allIndices.length - 1; i > 0; i--) {
+        seed++;
+        const j = Math.floor(seededRandom(seed) * (i + 1));
+        [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
+    }
+    
+    // Return the requested number of indices, capped at available locations
+    return allIndices.slice(0, Math.min(count, maxVal));
 }
 
 import { Suspense } from "react";
