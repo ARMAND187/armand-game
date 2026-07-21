@@ -54,6 +54,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             setIsHost(state.isHost);
             setExpiresAt(new Date(state.expiresAt));
             setTotalRounds(state.totalRounds);
+            if (state.maxPlayers) setCustomMaxPlayers(state.maxPlayers);
             setRegion(state.region);
             setMatchState(state.matchState);
           } else {
@@ -74,6 +75,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           isHost,
           expiresAt: expiresAt?.toISOString(),
           totalRounds,
+          maxPlayers: customMaxPlayers,
           region,
           matchState
         }));
@@ -340,6 +342,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       setRoomId(room.id);
       setIsHost(room.host_username === myUsername);
       setDisplayCode(room.room_code);
+      setCustomMaxPlayers(room.max_players || 10);
       
       if (room.status === "playing") {
          router.push(`${playRoute}?roomId=${room.id}`);
@@ -475,7 +478,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Max Players</div>
               <div style={{ display: "flex", gap: 8 }}>
-                {[2, 4, 10, 99].map(p => (
+                {[2, 4, 6, 10].map(p => (
                   <button
                     key={p}
                     onClick={() => setCustomMaxPlayers(p)}
@@ -486,7 +489,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                       border: customMaxPlayers === p ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
                       cursor: "pointer", transition: "all 0.2s"
                     }}
-                  >{p === 99 ? "Unlmt." : p}</button>
+                  >{p}</button>
                 ))}
               </div>
             </div>
@@ -494,7 +497,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Round Timer</div>
               <div style={{ display: "flex", gap: 8 }}>
-                {[15, 30, 60, 0].map(t => (
+                {[15, 30, 60].map(t => (
                   <button
                     key={t}
                     onClick={() => setCustomTimeLimit(t)}
@@ -505,7 +508,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                       border: customTimeLimit === t ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
                       cursor: "pointer", transition: "all 0.2s"
                     }}
-                  >{t === 0 ? "Unlmt." : `${t}s`}</button>
+                  >{t}s</button>
                 ))}
               </div>
             </div>
@@ -536,7 +539,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       ) : (
         <>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--neon)", marginBottom: 16 }}>
-            Waiting for players... ({players.length}/{displayCode ? 10 : 4})
+            Waiting for players... ({players.length}/{displayCode ? customMaxPlayers : 4})
             {displayCode && (
               <>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, userSelect: "all", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -553,7 +556,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: displayCode ? "repeat(auto-fit, minmax(120px, 1fr))" : "1fr 1fr", gap: 10 }}>
-            {Array.from({ length: displayCode ? 10 : 4 }).map((_, slotIndex) => {
+            {Array.from({ length: displayCode ? customMaxPlayers : 4 }).map((_, slotIndex) => {
               const player = players[slotIndex];
               return (
                 <div
