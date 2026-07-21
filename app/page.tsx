@@ -168,15 +168,12 @@ export default async function HomePage() {
                 {/* Custom Avatar Frame Overlay OR Default Rank Border */}
                 {equippedAvatarFrame ? (
                   equippedAvatarFrame.trim().startsWith("<svg") ? (
-                    <div 
+                    <img
+                      src={`data:image/svg+xml;utf8,${encodeURIComponent(equippedAvatarFrame)}`}
+                      alt="Avatar Frame"
                       style={{
                         position: "absolute", top: -8, left: -8,
                         width: 80, height: 80, zIndex: 2, pointerEvents: "none"
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: equippedAvatarFrame
-                          .replace(/width="[^"]*"/, 'width="100%"')
-                          .replace(/height="[^"]*"/, 'height="100%"')
                       }}
                     />
                   ) : (
