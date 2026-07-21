@@ -173,7 +173,7 @@ export default async function HomePage() {
                       alt="Avatar Frame"
                       style={{
                         position: "absolute", top: -8, left: -8,
-                        width: 80, height: 80, zIndex: 2, pointerEvents: "none"
+                        width: 80, height: 80, maxWidth: "none", zIndex: 2, pointerEvents: "none"
                       }}
                     />
                   ) : (
