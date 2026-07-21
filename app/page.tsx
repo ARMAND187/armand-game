@@ -171,6 +171,7 @@ export default async function HomePage() {
                       position: "absolute",
                       top: -8, left: -8,
                       width: 80, height: 80,
+                      maxWidth: "none",
                       zIndex: 2,
                       pointerEvents: "none"
                     }}
