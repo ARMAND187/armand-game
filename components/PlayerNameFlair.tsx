@@ -78,6 +78,26 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
     if (finalSvg.includes("PlayerName")) {
       finalSvg = finalSvg.replace("PlayerName", username);
       hasReplaced = true;
+      
+      // Dynamic username width detection system
+      const charDiff = username.length - 10; // "PlayerName" is 10 chars
+      if (charDiff !== 0) {
+        const extraWidth = charDiff * 11; // Approx 11px per character at standard font size
+        
+        // Stretch the viewBox
+        finalSvg = finalSvg.replace(/viewBox="0 0 (\d+) (\d+)"/, (match, w, h) => {
+          return `viewBox="0 0 ${Math.max(50, parseInt(w, 10) + extraWidth)} ${h}"`;
+        });
+        
+        // Stretch any large background rects
+        finalSvg = finalSvg.replace(/<rect([^>]*)width="(\d+)"([^>]*)>/g, (match, before, w, after) => {
+          const oldW = parseInt(w, 10);
+          if (oldW > 80) { // Assume >80px is a background rect
+            return `<rect${before}width="${Math.max(20, oldW + extraWidth)}"${after}>`;
+          }
+          return match;
+        });
+      }
     }
 
     // Boost font-size dynamically for better readability in the scaled-down fallback
