@@ -1,8 +1,23 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/utils/supabase/server";
 
 export async function GET(request: Request) {
   try {
+    // SECURITY CHECK: Verify the user is an admin before allowing execution
+    const serverClient = await createServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized - You must be logged in" }, { status: 401 });
+    }
+    
+    const { data: profile } = await serverClient.from("profiles").select("is_admin").eq("id", user.id).single();
+    if (!profile?.is_admin) {
+      return NextResponse.json({ error: "Forbidden - You must be an admin" }, { status: 403 });
+    }
+
+    // Initialize Admin client to bypass RLS for the reset
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
