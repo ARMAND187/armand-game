@@ -60,14 +60,31 @@ function renderIcon(item: ShopItem) {
   const color = item.rarity_color;
   if (item.image_url) {
     if (item.image_url.trim().startsWith("<svg")) {
+      let svgHtml = item.image_url;
+
+      // If this is a Name Flair pill, extract just the icon for the preview
+      if (item.type === 'Name Flair') {
+        const bgMatch = svgHtml.match(/<rect[^>]*fill="([^"]+)"/);
+        const textMatch = svgHtml.match(/<text[^>]*fill="([^"]+)"/);
+        if (bgMatch && textMatch) {
+          let iconInner = svgHtml
+            .replace(/<rect[^>]*>/, '')
+            .replace(/<text[^>]*>.*?<\/text>/, '')
+            .replace(/<svg[^>]*>/, '')
+            .replace(/<\/svg>/, '')
+            .trim();
+          svgHtml = `<svg width="100%" height="100%" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">${iconInner}</svg>`;
+        }
+      }
+
+      svgHtml = svgHtml
+        .replace(/width="[^"]*"/, 'width="100%"')
+        .replace(/height="[^"]*"/, 'height="100%"');
+
       return (
         <div 
           style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}
-          dangerouslySetInnerHTML={{ 
-            __html: item.image_url
-              .replace(/width="[^"]*"/, 'width="100%"')
-              .replace(/height="[^"]*"/, 'height="100%"') 
-          }}
+          dangerouslySetInnerHTML={{ __html: svgHtml }}
         />
       );
     }
