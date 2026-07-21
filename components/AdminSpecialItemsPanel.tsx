@@ -123,12 +123,22 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
                     
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Item Details (Day {day})</label>
-                      <input
-                        className="search-input"
-                        value={editForm.name || ""}
-                        onChange={e => setEditForm({...editForm, name: e.target.value})}
-                        placeholder="Item Name (e.g. Navigator)"
-                      />
+                      <div style={{ display: "flex", gap: 12 }}>
+                        <input
+                          className="search-input"
+                          style={{ flex: 2 }}
+                          value={editForm.name || ""}
+                          onChange={e => setEditForm({...editForm, name: e.target.value})}
+                          placeholder="Item Name (e.g. Navigator)"
+                        />
+                        <input
+                          className="search-input"
+                          style={{ flex: 1 }}
+                          value={editForm.title || ""}
+                          onChange={e => setEditForm({...editForm, title: e.target.value})}
+                          placeholder="Category (e.g. Profile Pin)"
+                        />
+                      </div>
                       <input 
                         className="search-input" 
                         value={editForm.description || ""} 
