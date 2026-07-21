@@ -27,13 +27,21 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
   }
 
   if (flair && flair.trim().startsWith("<svg")) {
+    let finalSvg = flair;
+    let hasReplaced = false;
+
+    if (finalSvg.includes("PlayerName")) {
+      finalSvg = finalSvg.replace("PlayerName", username);
+      hasReplaced = true;
+    }
+
     return (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "100%" }}>
         <div 
           style={{ display: "flex", alignItems: "center" }}
-          dangerouslySetInnerHTML={{ __html: flair }} 
+          dangerouslySetInnerHTML={{ __html: finalSvg }} 
         />
-        <span style={{ fontWeight: 800 }}>@{username}</span>
+        {!hasReplaced && <span style={{ fontWeight: 800 }}>@{username}</span>}
       </div>
     );
   }
