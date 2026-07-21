@@ -14,7 +14,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   // Fetch the public profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, wins, rp, avatar_url, equipped_flair, equipped_title")
+    .select("id, username, wins, rp, avatar_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame")
     .eq("username", decodedUsername)
     .maybeSingle();
 
@@ -36,8 +36,12 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         style={{ 
           height: 120, 
           width: "100%", 
-          background: `linear-gradient(to bottom, ${rankInfo.color}44, transparent)`,
-          borderBottom: `1px solid ${rankInfo.color}33`,
+          background: profile.equipped_banner 
+            ? (profile.equipped_banner.trim().startsWith("<svg") 
+                ? `url("data:image/svg+xml;utf8,${encodeURIComponent(profile.equipped_banner)}") center/cover no-repeat` 
+                : `url(${profile.equipped_banner}) center/cover no-repeat`)
+            : "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))",
+          borderBottom: `1px solid rgba(255,255,255,0.1)`,
           marginBottom: -60,
           maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
           WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)"
@@ -45,12 +49,33 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       />
 
       <div className="profile-card" style={{ position: "relative", zIndex: 10, marginBottom: "24px" }}>
-        <div className="profile-avatar-ring" style={{ border: "none", background: "none", overflow: "visible" }}>
+        <div className="profile-avatar-ring" style={{ border: "none", background: "none", overflow: "visible", position: "relative" }}>
           <img 
             src={profile.avatar_url || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${profile.username}`} 
             alt="Avatar" 
-            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)", border: `3px solid ${rankInfo.color}` }} 
+            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)", border: `3px solid ${rankInfo.color}`, zIndex: 1, position: "relative" }} 
           />
+          {profile.equipped_avatar_frame && (
+            profile.equipped_avatar_frame.trim().startsWith("<svg") ? (
+              <img
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(profile.equipped_avatar_frame)}`}
+                alt="Avatar Frame"
+                style={{
+                  position: "absolute", top: -8, left: -8,
+                  width: 106, height: 106, maxWidth: "none", zIndex: 2, pointerEvents: "none"
+                }}
+              />
+            ) : (
+              <img 
+                src={profile.equipped_avatar_frame} 
+                alt="Frame"
+                style={{
+                  position: "absolute", top: -8, left: -8,
+                  width: 106, height: 106, maxWidth: "none", zIndex: 2, pointerEvents: "none"
+                }}
+              />
+            )
+          )}
         </div>
         <div className="profile-username" style={{ textTransform: "none", display: "flex", flexDirection: "column", alignItems: "center" }}>
           <PlayerNameFlair username={profile.username} flair={profile.equipped_flair} />
