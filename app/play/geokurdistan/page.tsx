@@ -112,7 +112,7 @@ function GeoKurdistanInner() {
     if (regionQuery === "Sulaymaniyah Only") filtered = filtered.filter(loc => loc.city === "Sulaymaniyah" || loc.city === "Slemani");
     return filtered.length > 0 ? filtered : allLocations;
   }, [regionQuery, allLocations]);
-  const [locationIndices, setLocationIndices] = useState<number[]>([0, 1, 2, 3, 4]);
+  const [timeLimit, setTimeLimit] = useState(30);
   const [timer, setTimer] = useState(30);
   
   const [myUsername, setMyUsername] = useState("Player");
@@ -181,11 +181,10 @@ function GeoKurdistanInner() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        round_stats: [{
-          distance: distanceKm,
-          score: score,
-          time: 30 - timer
-        }]
+          playerId: myUsername,
+          score: Math.round(score),
+          distanceKm: distanceKm,
+          time: timeLimit === 0 ? 0 : timeLimit - timer
       })
     }).catch(console.error);
 
@@ -203,7 +202,7 @@ function GeoKurdistanInner() {
       return [...prev, guess];
     });
     setPlayerFlairs(prev => ({ ...prev, [myUsername]: equippedFlair }));
-  }, [locationIndices, round, myUsername, roomId, equippedFlair, equippedPinUrl, pinColor]);
+  }, [locationIndices, round, myUsername, roomId, equippedFlair, equippedPinUrl, pinColor, timeLimit, timer, availableLocations]);
 
   const handleTimeUp = useCallback(() => {
     if (!hasGuessed) {
@@ -272,6 +271,8 @@ function GeoKurdistanInner() {
       const isPublicRoom = room.is_public;
       setIsPublic(isPublicRoom);
       setTotalRounds(room.total_rounds || 5);
+      setTimeLimit(room.time_limit_seconds ?? 30);
+      setTimer(room.time_limit_seconds ?? 30);
       const isRoomHost = room.host_username === realUsername;
       setIsHost(isRoomHost);
 
@@ -311,7 +312,7 @@ function GeoKurdistanInner() {
           if (isPublicRoom) return; // Public uses deterministic logic
           setLocationIndices(payload.payload.indices);
           setGameState("PLAYING");
-          setTimer(30);
+          setTimer(timeLimit);
           setRound(1);
           setRoundGuesses([]);
           setTotalScores({});
@@ -336,7 +337,7 @@ function GeoKurdistanInner() {
             setRound((r) => r + 1); // fallback
           }
           setGameState("PLAYING");
-          setTimer(30);
+          setTimer(timeLimit);
           setRoundGuesses([]);
           setHasGuessed(false);
           setGuessMarker(null);
@@ -379,7 +380,7 @@ function GeoKurdistanInner() {
                const indices = generateDeterministicIndices(roomId, room.total_rounds || 5, availableLocations.length);
                setLocationIndices(indices);
                setGameState("PLAYING");
-               setTimer(30);
+               setTimer(timeLimit);
                setRound(1);
                setRoundGuesses([]);
                setTotalScores({});
@@ -398,7 +399,7 @@ function GeoKurdistanInner() {
                    });
                    setLocationIndices(indices);
                    setGameState("PLAYING");
-                   setTimer(30);
+                   setTimer(timeLimit);
                  }, 2000);
                } else {
                  setTimeout(() => {
@@ -419,7 +420,7 @@ function GeoKurdistanInner() {
 
   // Timer logic
   useEffect(() => {
-    if (gameState !== "PLAYING") return;
+    if (gameState !== "PLAYING" || timeLimit === 0) return;
     
     const interval = setInterval(() => {
       setTimer((t) => {
@@ -432,7 +433,7 @@ function GeoKurdistanInner() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [gameState, handleTimeUp]);
+  }, [gameState, handleTimeUp, timeLimit]);
 
   // End round if everyone guessed
   useEffect(() => {
@@ -475,15 +476,6 @@ function GeoKurdistanInner() {
         total_rounds: totalRounds,
         average_score: myFinalScore / totalRounds
       };
-
-      // Extract round stats for the current player from roundGuesses
-      // Assuming stateRef.current.roundGuesses isn't cumulative across the whole game (it's per round).
-      // Wait, we need the round history! Since we didn't save round history in state, 
-      // let's just let the backend handle cumulative or we should just pass the gameStats for now 
-      // and we will update round stats to be evaluated per-round.
-      
-      // Actually, we can evaluate gameStats at GAME_OVER. 
-      // For per-round stats, we should evaluate them at ROUND_END instead!
       
       fetch("/api/game/evaluate-challenges", {
         method: "POST",
@@ -519,13 +511,13 @@ function GeoKurdistanInner() {
       }
       setRound(nextRoundNum);
       setGameState("PLAYING");
-      setTimer(30);
+      setTimer(timeLimit);
       setRoundGuesses([]);
       setHasGuessed(false);
       setGuessMarker(null);
       setShowScoreboard(false);
     }
-  }, [round, totalRounds, isHost, isPublic, totalScores, roomId, myUsername]);
+  }, [round, totalRounds, isHost, isPublic, totalScores, roomId, myUsername, timeLimit]);
 
   const handlePlayAgain = () => {
     if (!roomId) {
@@ -533,15 +525,13 @@ function GeoKurdistanInner() {
       const indices = shuffled.slice(0, totalRounds);
       setLocationIndices(indices);
       setGameState("PLAYING");
-      setTimer(30);
+      setTimer(timeLimit);
       setRound(1);
       setRoundGuesses([]);
       setTotalScores({});
       setHasGuessed(false);
       setGuessMarker(null);
       setShowScoreboard(false);
-      setMatchSniperHits(0);
-      setMatchSpeedrunnerHits(0);
     } else {
       if (isHost && channelRef.current) {
         const shuffled = [...availableLocations].map((_, i) => i).sort(() => Math.random() - 0.5);
@@ -553,7 +543,7 @@ function GeoKurdistanInner() {
         });
         setLocationIndices(indices);
         setGameState("PLAYING");
-        setTimer(30);
+        setTimer(timeLimit);
         setRound(1);
         setRoundGuesses([]);
         setTotalScores({});
@@ -618,9 +608,11 @@ function GeoKurdistanInner() {
           </Link>
           <div style={{ textAlign: "center" }}>
             <div className="geo-round-badge">Round {round} / {totalRounds}</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: timer <= 10 ? "#ef4444" : "var(--neon)", fontVariantNumeric: "tabular-nums" }}>
-              {timer}s
-            </div>
+            {timeLimit > 0 && (
+              <div style={{ fontSize: 16, fontWeight: 800, color: timer <= 10 ? "#ef4444" : "var(--neon)", fontVariantNumeric: "tabular-nums" }}>
+                {timer}s
+              </div>
+            )}
           </div>
           <div style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center" }}>
             <PlayerNameFlair username={myUsername} flair={equippedFlair} />

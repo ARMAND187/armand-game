@@ -29,6 +29,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [totalRounds, setTotalRounds] = useState<number>(5);
   const [region, setRegion] = useState<string>("All Kurdistan");
   const [hasAutoJoined, setHasAutoJoined] = useState(false);
+  const [customMaxPlayers, setCustomMaxPlayers] = useState<number>(10);
+  const [customTimeLimit, setCustomTimeLimit] = useState<number>(30);
   
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friends, setFriends] = useState<{id: string, username: string}[]>([]);
@@ -259,6 +261,8 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           host_username: myUsername,
           room_code: shortCode,
           total_rounds: totalRounds,
+          max_players: customMaxPlayers,
+          time_limit_seconds: customTimeLimit,
           expires_at: expiration.toISOString()
         })
         .select()
@@ -287,7 +291,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     
     try {
       const isUuid = target.length > 20;
-      let query = supabase.from("rooms").select("*").in("status", ["waiting", "playing"]).lt("player_count", 10).limit(1);
+      let query = supabase.from("rooms").select("*").in("status", ["waiting", "playing"]).limit(1);
       
       if (isUuid) {
         query = query.eq("id", target);
@@ -309,6 +313,16 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       if (room.expires_at && new Date(room.expires_at).getTime() < Date.now()) {
         setMatchState("idle");
         alert("This invite has expired.");
+        return;
+      }
+      
+      const isAlreadyInRoom = (room.players || []).includes(myUsername);
+      const currentCount = room.player_count || 0;
+      const maxCount = room.max_players || 10;
+      
+      if (!isAlreadyInRoom && currentCount >= maxCount) {
+        setMatchState("idle");
+        alert("This room is already full.");
         return;
       }
 
@@ -423,10 +437,85 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           </button>
         </div>
         <div className="divider" style={{ margin: "16px 0" }} />
-        <div style={{ marginBottom: 12, fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Create Private Room</div>
-        <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>Uses current Rounds and Region settings</p>
-        <button className="btn-redeem-ghost" style={{ width: "100%", justifyContent: "center", margin: 0 }} onClick={createPrivateGame}>
-            Create Private Room
+        
+        {/* Custom Host Panel */}
+        <div style={{
+          background: "rgba(24, 24, 27, 0.4)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 20,
+          padding: 20,
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+          marginBottom: 16
+        }}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: 800, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+            <Users size={18} color="var(--neon)" />
+            Host Custom Room
+          </h3>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Rounds</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[3, 5, 10].map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setTotalRounds(r)}
+                    style={{
+                      flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 800, fontSize: 13,
+                      background: totalRounds === r ? "rgba(167, 139, 250, 0.15)" : "rgba(255,255,255,0.05)",
+                      color: totalRounds === r ? "#a78bfa" : "var(--text-muted)",
+                      border: totalRounds === r ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
+                      cursor: "pointer", transition: "all 0.2s"
+                    }}
+                  >{r}</button>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Max Players</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[2, 4, 10, 99].map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setCustomMaxPlayers(p)}
+                    style={{
+                      flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 800, fontSize: 13,
+                      background: customMaxPlayers === p ? "rgba(167, 139, 250, 0.15)" : "rgba(255,255,255,0.05)",
+                      color: customMaxPlayers === p ? "#a78bfa" : "var(--text-muted)",
+                      border: customMaxPlayers === p ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
+                      cursor: "pointer", transition: "all 0.2s"
+                    }}
+                  >{p === 99 ? "Unlmt." : p}</button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Round Timer</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[15, 30, 60, 0].map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setCustomTimeLimit(t)}
+                    style={{
+                      flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 800, fontSize: 13,
+                      background: customTimeLimit === t ? "rgba(167, 139, 250, 0.15)" : "rgba(255,255,255,0.05)",
+                      color: customTimeLimit === t ? "#a78bfa" : "var(--text-muted)",
+                      border: customTimeLimit === t ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
+                      cursor: "pointer", transition: "all 0.2s"
+                    }}
+                  >{t === 0 ? "Unlmt." : `${t}s`}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button className="btn-redeem" style={{ width: "100%", justifyContent: "center", margin: 0 }} onClick={createPrivateGame}>
+            Launch Private Room
         </button>
         <button 
           style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, width: "100%", marginTop: 16, cursor: "pointer" }}
