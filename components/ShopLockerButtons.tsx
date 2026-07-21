@@ -59,6 +59,18 @@ function renderIcon(item: ShopItem) {
   const size = 28;
   const color = item.rarity_color;
   if (item.image_url) {
+    if (item.image_url.trim().startsWith("<svg")) {
+      return (
+        <div 
+          style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}
+          dangerouslySetInnerHTML={{ 
+            __html: item.image_url
+              .replace(/width="[^"]*"/, 'width="100%"')
+              .replace(/height="[^"]*"/, 'height="100%"') 
+          }}
+        />
+      );
+    }
     return <img src={item.image_url} alt={item.name} style={{ width: size, height: size, objectFit: "contain" }} />;
   }
   switch (item.icon_name) {
@@ -364,7 +376,17 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
 
     let items: ShopItem[] = [];
     if (invData) {
-      const getType = (t: string) => t?.includes("Title") ? "Title" : (t?.includes("Flair") ? "Name Flair" : (t?.includes("Banner") ? "Banner" : "Title"));
+      const getType = (t: string) => {
+        if (!t) return "Title";
+        const low = t.toLowerCase();
+        if (low.includes("pin")) return "Map Pin";
+        if (low.includes("flair")) return "Name Flair";
+        if (low.includes("banner")) return "Banner";
+        if (low.includes("frame") || low.includes("avatar")) return "Avatar Frame";
+        if (low.includes("reward") || low.includes("balance") || low.includes("coin")) return "Reward";
+        return "Title";
+      };
+      
       invData.forEach((i: any) => {
         if (i.shop_items) items.push(i.shop_items as ShopItem);
         if (i.challenge_items) items.push({ ...i.challenge_items, type: getType(i.challenge_items.title), price: i.challenge_items.balance, id: "chal_" + i.challenge_items.id } as ShopItem);
