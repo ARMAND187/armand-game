@@ -326,8 +326,6 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
         return;
       }
 
-      const isAlreadyInRoom = (room.players || []).includes(myUsername);
-
       if (!isAlreadyInRoom) {
         await supabase
           .from("rooms")
