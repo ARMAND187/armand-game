@@ -78,10 +78,10 @@ export default function DailyStreakTracker({ currentStreak, lastClaimDate }: Dai
 
       <div className="flex justify-between items-center relative z-10 px-4 sm:px-2">
         {/* Connection line behind the circles */}
-        <div className="absolute left-2 right-2 sm:left-6 sm:right-6 h-1 top-1/2 -translate-y-1/2 bg-white/5 -z-10 rounded-full" />
+        <div className="absolute left-2 right-2 sm:left-6 sm:right-6 h-1 -translate-y-1/2 bg-white/5 -z-10 rounded-full" style={{ top: 14 }} />
         <div 
-          className="absolute left-2 sm:left-6 h-1 top-1/2 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
-          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 16px)` }} // Adjust line width approx
+          className="absolute left-2 sm:left-6 h-1 -translate-y-1/2 bg-red-500 -z-10 rounded-full transition-all duration-1000" 
+          style={{ width: `calc(${(Math.min(currentStreak, 7) / 7) * 100}% - 16px)`, top: 14 }} // Adjust line width approx
         />
 
         {days.map((d, i) => {
