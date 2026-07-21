@@ -180,7 +180,7 @@ function GeoKurdistanInner() {
     let score = 0;
 
     if (marker) {
-      distanceKm = calculateHaversineDistance(marker.lat, marker.lng, location.latitude, location.longitude);
+      distanceKm = calculateHaversineDistance(marker.lat, marker.lng, location.lat, location.lng);
       score = calculateScore(distanceKm);
     }
 
@@ -647,8 +647,8 @@ function GeoKurdistanInner() {
           <div className="geo-streetview">
             {location && (
               <StreetViewPlayer 
-                lat={location.latitude} 
-                lng={location.longitude} 
+                lat={location.lat} 
+                lng={location.lng} 
                 locationName={location.name}
                 sourceType={location.source_type}
                 imageId={location.image_id}
@@ -662,7 +662,7 @@ function GeoKurdistanInner() {
               <LeafletMap
               onMapClick={(lat, lng) => { if (!hasGuessed && gameState === "PLAYING") setGuessMarker({lat, lng})}}
               guessMarker={guessMarker}
-              realLocation={gameState === "ROUND_END" ? { lat: location.latitude, lng: location.longitude } : null}
+              realLocation={gameState === "ROUND_END" ? { lat: location.lat, lng: location.lng } : null}
               guessResult={myCurrentGuess ? { location, guessLat: myCurrentGuess.guessLat, guessLng: myCurrentGuess.guessLng, distanceKm: myCurrentGuess.distanceKm } : null}
               roundGuesses={roundGuesses}
               myUsername={myUsername}
