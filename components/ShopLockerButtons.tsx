@@ -506,6 +506,23 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
     if (error || !data?.success) {
       alert(error?.message || data?.error || "Failed to equip item.");
     } else {
+      // The RPC might save the item.name instead of item.image_url for SVGs.
+      // We explicitly override the column here to ensure the full SVG data is saved.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        let col = "";
+        if (item.type === 'Map Pin') col = 'equipped_pin_url';
+        if (item.type === 'Name Flair') col = 'equipped_flair';
+        if (item.type === 'Title') col = 'equipped_title';
+        if (item.type === 'Banner') col = 'equipped_banner';
+        if (item.type === 'Avatar Frame') col = 'equipped_avatar_frame';
+        
+        if (col) {
+          const val = item.type === 'Title' ? item.name : (item.image_url || item.name);
+          await supabase.from("profiles").update({ [col]: val }).eq("id", user.id);
+        }
+      }
+
       if (item.type === 'Map Pin' && item.image_url) {
         setEquippedPinUrl(item.image_url);
       } else if (item.type === 'Name Flair') {
@@ -700,13 +717,13 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
             let isEquipped = false;
             if (item.type === 'Map Pin' && item.image_url === equippedPinUrl) {
               isEquipped = true;
-            } else if (item.type === 'Name Flair' && item.name === equippedFlair) {
+            } else if (item.type === 'Name Flair' && (item.image_url === equippedFlair || item.name === equippedFlair)) {
               isEquipped = true;
             } else if (item.type === 'Title' && item.name === equippedTitle) {
               isEquipped = true;
-            } else if (item.type === 'Banner' && item.image_url === equippedBanner) {
+            } else if (item.type === 'Banner' && (item.image_url === equippedBanner || item.name === equippedBanner)) {
               isEquipped = true;
-            } else if (item.type === 'Avatar Frame' && item.image_url === equippedAvatarFrame) {
+            } else if (item.type === 'Avatar Frame' && (item.image_url === equippedAvatarFrame || item.name === equippedAvatarFrame)) {
               isEquipped = true;
             }
 
