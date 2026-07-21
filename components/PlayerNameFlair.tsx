@@ -79,11 +79,20 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
       finalSvg = finalSvg.replace("PlayerName", username);
       hasReplaced = true;
       
-      // Dynamic username width detection system
-      const charDiff = username.length - 10; // "PlayerName" is 10 chars
-      if (charDiff !== 0) {
-        const extraWidth = charDiff * 12; // Approx 12px per character at standard font size
-        
+      // Dynamic username width detection & font-size boost system
+      // First, extract the original font-size to calculate the baseline width
+      let origFontSize = 16; // default fallback
+      const fontMatch = finalSvg.match(/font-size="(\d+)"/);
+      if (fontMatch) origFontSize = parseInt(fontMatch[1], 10);
+      
+      const newFontSize = Math.max(origFontSize, 25); // Boost for readability
+      
+      // Calculate exact extra width needed (assuming average char width is ~0.6x font size)
+      const origTextWidth = 10 * origFontSize * 0.6; // "PlayerName" is 10 chars
+      const newTextWidth = username.length * newFontSize * 0.6;
+      const extraWidth = newTextWidth - origTextWidth;
+      
+      if (extraWidth !== 0) {
         // Stretch the viewBox
         finalSvg = finalSvg.replace(/viewBox="0 0 (\d+) (\d+)"/, (match, w, h) => {
           return `viewBox="0 0 ${Math.max(50, parseInt(w, 10) + extraWidth)} ${h}"`;
@@ -97,6 +106,11 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
           }
           return match;
         });
+      }
+      
+      // Apply the font-size boost
+      if (newFontSize > origFontSize) {
+        finalSvg = finalSvg.replace(/font-size="\d+"/g, `font-size="${newFontSize}"`);
       }
     }
 
