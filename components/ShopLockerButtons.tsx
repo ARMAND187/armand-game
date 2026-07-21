@@ -638,6 +638,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
           </div>
           
           {/* Default Items */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
           {categories.filter(c => c !== "All" && (activeCategory === "All" || activeCategory === c)).map(cat => {
             let isEquipped = false;
             if (cat === 'Map Pin' && !equippedPinUrl) isEquipped = true;
@@ -721,10 +722,12 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
               </div>
             );
           })}
+          </div>
 
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginTop: 10, marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Owned Items
           </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
           {ownedItems.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             // Determine if equipped
             let isEquipped = false;
@@ -802,6 +805,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
               </div>
             );
           })}
+          </div>
         </div>
       )}
     </FullScreenOverlay>
