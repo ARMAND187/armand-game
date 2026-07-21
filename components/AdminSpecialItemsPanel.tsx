@@ -128,6 +128,7 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
                         <option value="Legendary">Legendary</option>
                       </select>
                       <input className="search-input" type="color" value={editForm.rarity_color || "#ffffff"} onChange={e => setEditForm({...editForm, rarity_color: e.target.value})} />
+                      <input className="search-input" type="number" value={editForm.balance || 0} onChange={e => setEditForm({...editForm, balance: parseInt(e.target.value) || 0})} placeholder="Reward Balance (e.g. 50)" style={{ gridColumn: "span 2" }} />
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 16 }}>
                       <button onClick={() => setEditingId(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 16px", color: "var(--text-muted)", cursor: "pointer" }}>Cancel</button>
@@ -144,6 +145,7 @@ export function AdminSpecialItemsPanel({ onClose }: { onClose: () => void }) {
                           <h3 style={{ margin: 0, color: "white", fontSize: 18 }}>{item.name}</h3>
                           <div style={{ background: "rgba(255,255,255,0.1)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{item.title}</div>
                           <div style={{ background: "rgba(245, 158, 11, 0.15)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "#f59e0b" }}>Day {item.required_streak || 1}</div>
+                          {item.balance > 0 && <div style={{ background: "rgba(74, 222, 128, 0.15)", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, color: "#4ade80" }}>+{item.balance} RP</div>}
                         </div>
                         <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)" }}>{item.description}</p>
                       </div>
