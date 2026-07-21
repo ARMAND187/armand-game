@@ -29,7 +29,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [totalRounds, setTotalRounds] = useState<number>(5);
   const [region, setRegion] = useState<string>("All Kurdistan");
   const [hasAutoJoined, setHasAutoJoined] = useState(false);
-  const [publicMaxPlayers, setPublicMaxPlayers] = useState<number>(4);
+  const [publicMaxPlayers] = useState<number>(4);
   const [customMaxPlayers, setCustomMaxPlayers] = useState<number>(10);
   const [customTimeLimit, setCustomTimeLimit] = useState<number>(30);
   
@@ -431,25 +431,6 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           </h3>
           
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Max Players</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {[2, 4].map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setPublicMaxPlayers(p)}
-                    style={{
-                      flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 800, fontSize: 13,
-                      background: publicMaxPlayers === p ? "rgba(167, 139, 250, 0.15)" : "rgba(255,255,255,0.05)",
-                      color: publicMaxPlayers === p ? "#a78bfa" : "var(--text-muted)",
-                      border: publicMaxPlayers === p ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
-                      cursor: "pointer", transition: "all 0.2s"
-                    }}
-                  >{p} Players</button>
-                ))}
-              </div>
-            </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Rounds</div>
               <div style={{ display: "flex", gap: 8 }}>
