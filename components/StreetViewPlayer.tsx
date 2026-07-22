@@ -22,8 +22,8 @@ const CUSTOM_PLUGINS: any[] = [
         {
           id: 'nadir-patch',
           position: { pitch: -Math.PI / 2, yaw: 0 },
-          html: `<div style="width: 650px; height: 650px; background: rgba(0,0,0,0.85); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 50px rgba(0,0,0,0.9); border: 4px solid rgba(167,139,250,0.4);">
-            <img src="/icon-512.png" style="width: 380px; height: 380px; opacity: 0.95;" />
+          html: `<div style="width: 650px; height: 650px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 50px rgba(0,0,0,0.9); border: 4px solid rgba(167,139,250,0.4);">
+            <img src="/icon-512.png" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;" />
           </div>`,
           size: { width: 650, height: 650 },
           anchor: 'center center',
