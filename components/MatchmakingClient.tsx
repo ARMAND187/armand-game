@@ -699,16 +699,24 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
               const avatarUrl = profile?.avatar_url || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${player}`;
               
-              const bannerUrl = profile?.equipped_banner 
-                ? (profile.equipped_banner.trim().startsWith("<svg") 
-                    ? `data:image/svg+xml;utf8,${encodeURIComponent(profile.equipped_banner)}` 
-                    : profile.equipped_banner)
+              let rawBanner = profile?.equipped_banner;
+              if (rawBanner && rawBanner.trim().startsWith("<svg") && !rawBanner.includes("xmlns")) {
+                rawBanner = rawBanner.replace("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"");
+              }
+              const bannerUrl = rawBanner
+                ? (rawBanner.trim().startsWith("<svg") 
+                    ? `data:image/svg+xml;utf8,${encodeURIComponent(rawBanner)}` 
+                    : rawBanner)
                 : null;
 
-              const frameUrl = profile?.equipped_avatar_frame
-                ? (profile.equipped_avatar_frame.trim().startsWith("<svg")
-                    ? `data:image/svg+xml;utf8,${encodeURIComponent(profile.equipped_avatar_frame)}`
-                    : profile.equipped_avatar_frame)
+              let rawFrame = profile?.equipped_avatar_frame;
+              if (rawFrame && rawFrame.trim().startsWith("<svg") && !rawFrame.includes("xmlns")) {
+                rawFrame = rawFrame.replace("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"");
+              }
+              const frameUrl = rawFrame
+                ? (rawFrame.trim().startsWith("<svg")
+                    ? `data:image/svg+xml;utf8,${encodeURIComponent(rawFrame)}`
+                    : rawFrame)
                 : null;
               
               return (
@@ -767,7 +775,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                       <img 
                         src={frameUrl} 
                         alt="frame" 
-                        style={{ position: "absolute", top: "-15%", left: "-15%", width: "130%", height: "130%", pointerEvents: "none" }} 
+                        style={{ position: "absolute", top: "-9%", left: "-9%", width: "118%", height: "118%", pointerEvents: "none", zIndex: 2 }} 
                       />
                     )}
                   </div>
