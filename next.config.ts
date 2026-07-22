@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // @ts-expect-error - NextConfig types are sometimes outdated
   eslint: {
     ignoreDuringBuilds: true,
   },
