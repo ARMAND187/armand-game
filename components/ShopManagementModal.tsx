@@ -313,7 +313,7 @@ export function ShopManagementModal({ onClose }: ShopManagementModalProps) {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                       <div>
                         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#fff" }}>{item.name}</h3>
-                        <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>{item.type} • {item.price} RP</div>
+                        <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>{item.type} • {item.price} Coins</div>
                       </div>
                       <div style={{ display: "flex", gap: 8 }}>
                         <button onClick={() => handleEdit(item)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 12px", color: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
