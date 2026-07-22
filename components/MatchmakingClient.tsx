@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Users, Globe, Loader2, Play, UserPlus, X, Check, Share } from "lucide-react";
 
-type MatchState = "idle" | "searching" | "waiting" | "friends" | "public-setup";
+type MatchState = "idle" | "searching" | "waiting" | "friends" | "public-setup" | "solo-setup";
 
 interface Props {
   gameId: string;
@@ -390,9 +390,9 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 16 }}>
         <div style={{ display: "flex", gap: 8, justifyContent: "center", width: "100%" }}>
-          <Link href={`${playRoute}?rounds=${totalRounds}&region=${encodeURIComponent(region)}`} className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0" }}>
+          <button onClick={() => setMatchState("solo-setup")} className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0" }}>
             <Play size={16} fill="currentColor" /> Solo
-          </Link>
+          </button>
         <button className="btn-lobby-play" style={{ flex: 1, justifyContent: "center", padding: "12px 0", background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-primary)" }} onClick={() => setMatchState("public-setup")}>
           <Globe size={16} /> Public
         </button>
@@ -411,6 +411,60 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
       </div>
     );
   }
+
+  if (matchState === "solo-setup") {
+    return (
+      <div className="settings-card" style={{ padding: "16px", textAlign: "left" }}>
+        <div style={{
+          background: "rgba(24, 24, 27, 0.4)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 20,
+          padding: 20,
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+          marginBottom: 16
+        }}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: 800, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+            <Play size={18} color="var(--neon)" fill="currentColor" />
+            Solo Match
+          </h3>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Rounds</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[5, 10, 15].map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setTotalRounds(r)}
+                    style={{
+                      flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 800, fontSize: 13,
+                      background: totalRounds === r ? "rgba(167, 139, 250, 0.15)" : "rgba(255,255,255,0.05)",
+                      color: totalRounds === r ? "#a78bfa" : "var(--text-muted)",
+                      border: totalRounds === r ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
+                      cursor: "pointer", transition: "all 0.2s"
+                    }}
+                  >{r}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Link href={`${playRoute}?rounds=${totalRounds}&region=${encodeURIComponent(region)}`} className="btn-redeem" style={{ display: "flex", width: "100%", justifyContent: "center", margin: 0, textDecoration: "none" }}>
+            Start Solo Game
+        </Link>
+        <button 
+          style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, width: "100%", marginTop: 16, cursor: "pointer" }}
+          onClick={() => setMatchState("idle")}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
 
   if (matchState === "public-setup") {
     return (
@@ -500,7 +554,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Rounds</div>
               <div style={{ display: "flex", gap: 8 }}>
-                {[5, 10, 25].map(r => (
+                {[5, 10, 15].map(r => (
                   <button
                     key={r}
                     onClick={() => setTotalRounds(r)}
