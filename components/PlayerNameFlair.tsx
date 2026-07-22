@@ -76,7 +76,7 @@ export default function PlayerNameFlair({ username, flair }: { username: string;
     // Fallback if the SVG is not a standard pill format
     let hasReplaced = false;
     if (finalSvg.includes("PlayerName")) {
-      finalSvg = finalSvg.replace("PlayerName", username);
+      finalSvg = finalSvg.replace(/PlayerName/g, username);
       hasReplaced = true;
       
       // Dynamic username width detection & font-size boost system
