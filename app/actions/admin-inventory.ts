@@ -26,7 +26,7 @@ export async function searchPlayers(query: string) {
 
   const { data, error } = await admin
     .from("profiles")
-    .select("id, username, avatar_url, rp, wins")
+    .select("id, username, avatar_url, rp, balance")
     .ilike("username", `%${query}%`)
     .limit(10);
 
@@ -113,35 +113,50 @@ export async function getAllItems() {
   };
 }
 
-export async function addPlayerBalance(userId: string, amountToAdd: number) {
+export async function addPlayerRP(userId: string, amountToAdd: number) {
   const admin = await getAdminClient();
   if (!admin) return { success: false, error: "Unauthorized" };
 
   const { data: profile, error: fetchErr } = await admin.from("profiles").select("rp").eq("id", userId).single();
   if (fetchErr) return { success: false, error: fetchErr.message };
 
-  const newBalance = (profile?.rp || 0) + amountToAdd;
+  const newRp = (profile?.rp || 0) + amountToAdd;
 
-  const { error: updateErr } = await admin.from("profiles").update({ rp: newBalance }).eq("id", userId);
+  const { error: updateErr } = await admin.from("profiles").update({ rp: newRp }).eq("id", userId);
+  
+  if (updateErr) return { success: false, error: updateErr.message };
+  return { success: true, newRp };
+}
+
+export async function setPlayerRP(userId: string, newRp: number) {
+  const admin = await getAdminClient();
+  if (!admin) return { success: false, error: "Unauthorized" };
+
+  const { error: updateErr } = await admin.from("profiles").update({ rp: newRp }).eq("id", userId);
+  if (updateErr) return { success: false, error: updateErr.message };
+  return { success: true, newRp };
+}
+
+export async function addPlayerWalletBalance(userId: string, amountToAdd: number) {
+  const admin = await getAdminClient();
+  if (!admin) return { success: false, error: "Unauthorized" };
+
+  const { data: profile, error: fetchErr } = await admin.from("profiles").select("balance").eq("id", userId).single();
+  if (fetchErr) return { success: false, error: fetchErr.message };
+
+  const newBalance = (profile?.balance || 0) + amountToAdd;
+
+  const { error: updateErr } = await admin.from("profiles").update({ balance: newBalance }).eq("id", userId);
   
   if (updateErr) return { success: false, error: updateErr.message };
   return { success: true, newBalance };
 }
 
-export async function setPlayerBalance(userId: string, newBalance: number) {
+export async function setPlayerWalletBalance(userId: string, newBalance: number) {
   const admin = await getAdminClient();
   if (!admin) return { success: false, error: "Unauthorized" };
 
-  const { error: updateErr } = await admin.from("profiles").update({ rp: newBalance }).eq("id", userId);
+  const { error: updateErr } = await admin.from("profiles").update({ balance: newBalance }).eq("id", userId);
   if (updateErr) return { success: false, error: updateErr.message };
   return { success: true, newBalance };
-}
-
-export async function setPlayerWins(userId: string, newWins: number) {
-  const admin = await getAdminClient();
-  if (!admin) return { success: false, error: "Unauthorized" };
-
-  const { error: updateErr } = await admin.from("profiles").update({ wins: newWins }).eq("id", userId);
-  if (updateErr) return { success: false, error: updateErr.message };
-  return { success: true, newWins };
 }

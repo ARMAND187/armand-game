@@ -9,9 +9,10 @@ import {
   removeInventoryItem, 
   addInventoryItem, 
   getAllItems,
-  addPlayerBalance,
-  setPlayerBalance,
-  setPlayerWins
+  addPlayerRP,
+  setPlayerRP,
+  addPlayerWalletBalance,
+  setPlayerWalletBalance
 } from "@/app/actions/admin-inventory";
 
 export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) {
@@ -35,8 +36,9 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
   const [rpAction, setRpAction] = useState<'add' | 'set'>('add');
   const [addingRp, setAddingRp] = useState(false);
 
-  const [winsAmount, setWinsAmount] = useState("");
-  const [addingWins, setAddingWins] = useState(false);
+  const [balanceAmount, setBalanceAmount] = useState("");
+  const [balanceAction, setBalanceAction] = useState<'add' | 'set'>('add');
+  const [addingBalance, setAddingBalance] = useState(false);
 
   useEffect(() => {
     // Load all possible items for the dropdown
@@ -104,34 +106,34 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
     const amount = parseInt(rpAmount);
     if (!selectedPlayer || isNaN(amount)) return;
     setAddingRp(true);
-    const res = rpAction === 'add' ? await addPlayerBalance(selectedPlayer.id, amount) : await setPlayerBalance(selectedPlayer.id, amount);
+    const res = rpAction === 'add' ? await addPlayerRP(selectedPlayer.id, amount) : await setPlayerRP(selectedPlayer.id, amount);
     if (res.success) {
-      setSelectedPlayer({ ...selectedPlayer, rp: res.newBalance });
+      setSelectedPlayer({ ...selectedPlayer, rp: res.newRp });
       setRpAmount("");
       
       // Update in search results so it matches
-      setSearchResults(prev => prev.map(p => p.id === selectedPlayer.id ? { ...p, rp: res.newBalance } : p));
+      setSearchResults(prev => prev.map(p => p.id === selectedPlayer.id ? { ...p, rp: res.newRp } : p));
     } else {
       alert(res.error);
     }
     setAddingRp(false);
   };
 
-  const handleSetWins = async () => {
-    const amount = parseInt(winsAmount);
+  const handleUpdateBalance = async () => {
+    const amount = parseInt(balanceAmount);
     if (!selectedPlayer || isNaN(amount)) return;
-    setAddingWins(true);
-    const res = await setPlayerWins(selectedPlayer.id, amount);
+    setAddingBalance(true);
+    const res = balanceAction === 'add' ? await addPlayerWalletBalance(selectedPlayer.id, amount) : await setPlayerWalletBalance(selectedPlayer.id, amount);
     if (res.success) {
-      setSelectedPlayer({ ...selectedPlayer, wins: res.newWins });
-      setWinsAmount("");
+      setSelectedPlayer({ ...selectedPlayer, balance: res.newBalance });
+      setBalanceAmount("");
       
       // Update in search results so it matches
-      setSearchResults(prev => prev.map(p => p.id === selectedPlayer.id ? { ...p, wins: res.newWins } : p));
+      setSearchResults(prev => prev.map(p => p.id === selectedPlayer.id ? { ...p, balance: res.newBalance } : p));
     } else {
       alert(res.error);
     }
-    setAddingWins(false);
+    setAddingBalance(false);
   };
 
   return (
@@ -190,7 +192,7 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
                     <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.1)", backgroundImage: p.avatar_url ? `url(${p.avatar_url})` : "none", backgroundSize: "cover" }} />
                     <div>
                       <div style={{ color: "white", fontWeight: 700 }}>{p.username}</div>
-                      <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{p.rp} RP • {p.wins || 0} Wins</div>
+                      <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{p.rp || 0} RP • {p.balance || 0} Wallet</div>
                     </div>
                   </div>
                   <div style={{ color: "var(--neon)", fontSize: 12, fontWeight: 700 }}>View Locker ➔</div>
@@ -208,23 +210,23 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
                 <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{inventory.length} items owned</div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                <div style={{ color: "var(--neon)", fontSize: 20, fontWeight: 800 }}>{selectedPlayer.wins || 0} WINS</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.05em" }}>Current Rank/Wins</div>
+                <div style={{ color: "var(--neon)", fontSize: 20, fontWeight: 800 }}>{selectedPlayer.rp || 0} RP</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.05em" }}>Current Rank (RP)</div>
               </div>
               <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.1)" }} />
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                <div style={{ color: "var(--neon)", fontSize: 20, fontWeight: 800 }}>{selectedPlayer.rp} RP</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.05em" }}>Current Balance</div>
+                <div style={{ color: "#4ade80", fontSize: 20, fontWeight: 800 }}>${selectedPlayer.balance || 0}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.05em" }}>Wallet Balance</div>
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-              {/* Edit Balance */}
-              <div className="settings-card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "center" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: 13, width: 60 }}>Balance:</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+              {/* Edit RP */}
+              <div className="settings-card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ color: "white", fontWeight: 700, fontSize: 13, width: 80 }}>Rank (RP):</div>
                 <select 
                   className="search-input" 
-                  style={{ width: 80, padding: "8px", fontSize: 13 }}
+                  style={{ width: 100, padding: "8px", fontSize: 13 }}
                   value={rpAction}
                   onChange={e => setRpAction(e.target.value as any)}
                 >
@@ -234,8 +236,8 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
                 <input 
                   type="number"
                   className="search-input" 
-                  style={{ flex: 1, padding: "8px 12px", fontSize: 13 }}
-                  placeholder="Amount"
+                  style={{ flex: 1, minWidth: 120, padding: "8px 12px", fontSize: 13 }}
+                  placeholder="RP Amount"
                   value={rpAmount}
                   onChange={e => setRpAmount(e.target.value)}
                 />
@@ -249,25 +251,33 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
                 </button>
               </div>
 
-              {/* Edit Rank / Wins */}
-              <div className="settings-card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "center" }}>
-                <div style={{ color: "white", fontWeight: 700, fontSize: 13, width: 60 }}>Rank:</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 13, padding: "8px", width: 80, textAlign: "center" }}>Set Exact</div>
+              {/* Edit Wallet */}
+              <div className="settings-card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ color: "white", fontWeight: 700, fontSize: 13, width: 80 }}>Wallet:</div>
+                <select 
+                  className="search-input" 
+                  style={{ width: 100, padding: "8px", fontSize: 13 }}
+                  value={balanceAction}
+                  onChange={e => setBalanceAction(e.target.value as any)}
+                >
+                  <option value="add">Add (+/-)</option>
+                  <option value="set">Set Exact</option>
+                </select>
                 <input 
                   type="number"
                   className="search-input" 
-                  style={{ flex: 1, padding: "8px 12px", fontSize: 13 }}
-                  placeholder="New Wins/Rank"
-                  value={winsAmount}
-                  onChange={e => setWinsAmount(e.target.value)}
+                  style={{ flex: 1, minWidth: 120, padding: "8px 12px", fontSize: 13 }}
+                  placeholder="Wallet Amount"
+                  value={balanceAmount}
+                  onChange={e => setBalanceAmount(e.target.value)}
                 />
                 <button 
                   className="btn-lobby-play" 
                   style={{ padding: "8px 12px", height: "auto", fontSize: 13 }}
-                  onClick={handleSetWins}
-                  disabled={addingWins || !winsAmount}
+                  onClick={handleUpdateBalance}
+                  disabled={addingBalance || !balanceAmount}
                 >
-                  {addingWins ? <Loader2 className="mly-spinner" size={14} /> : "Save"}
+                  {addingBalance ? <Loader2 className="mly-spinner" size={14} /> : "Save"}
                 </button>
               </div>
             </div>
