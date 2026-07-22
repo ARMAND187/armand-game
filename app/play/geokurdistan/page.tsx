@@ -694,9 +694,22 @@ function GeoKurdistanInner() {
               const saveKey = roomId ? `geo_state_${roomId}` : "geo_state_singleplayer";
               localStorage.removeItem(saveKey);
             }}
-            style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", textDecoration: "none" }}
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 6, 
+              color: "#fff", 
+              textDecoration: "none",
+              background: "#ef4444", // Red color
+              padding: "6px 12px",
+              borderRadius: "6px",
+              fontWeight: 600,
+              fontSize: "14px",
+              boxShadow: "0 2px 4px rgba(239, 68, 68, 0.3)"
+            }}
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} />
+            Leave Match
           </Link>
           <div style={{ textAlign: "center" }}>
             <div className="geo-round-badge">Round {round} / {totalRounds}</div>
