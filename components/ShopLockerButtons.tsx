@@ -127,10 +127,12 @@ export function renderIcon(item: ShopItem, isPreview: boolean = false) {
   }
 
   if (item.type === 'Avatar Frame') {
+    // Generate a unique ID to prevent gradient referencing bugs when both Shop and Locker are in the DOM
+    const gradId = `grad-${item.id}-${Math.random().toString(36).substring(2, 9)}`;
     return (
       <svg width="100%" height="100%" viewBox="0 0 64 64" style={{ overflow: "visible", filter: `drop-shadow(0 0 8px ${color})` }}>
         <defs>
-          <linearGradient id={`grad-${item.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#ffffff" />
             <stop offset="40%" stopColor={color} />
             <stop offset="100%" stopColor={color} />
@@ -139,7 +141,7 @@ export function renderIcon(item: ShopItem, isPreview: boolean = false) {
         <circle 
           cx="32" cy="32" r="28" 
           fill="none" 
-          stroke={`url(#grad-${item.id})`} 
+          stroke={`url(#${gradId})`} 
           strokeWidth="4" 
         />
       </svg>
