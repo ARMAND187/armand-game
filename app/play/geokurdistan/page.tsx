@@ -285,8 +285,8 @@ function GeoKurdistanInner() {
         const elapsed = Math.floor((Date.now() - savedState.timestamp) / 1000);
         setTimer(Math.max(1, (savedState.timer || 30) - elapsed));
       }
-      setHasGuessed(false);
-      setGuessMarker(null);
+      setHasGuessed(savedState.hasGuessed || false);
+      setGuessMarker(savedState.guessMarker || null);
       setShowScoreboard(false);
     }
 
@@ -486,9 +486,11 @@ function GeoKurdistanInner() {
       roundGuesses,
       locationIndices, // we must save locationIndices for singleplayer because it's non-deterministic
       timer,
+      hasGuessed,
+      guessMarker,
       timestamp: Date.now()
     }));
-  }, [roomId, round, gameState, totalScores, roundGuesses, locationIndices, timer]);
+  }, [roomId, round, gameState, totalScores, roundGuesses, locationIndices, timer, hasGuessed, guessMarker]);
 
   // Timer logic
   useEffect(() => {
