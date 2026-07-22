@@ -1,72 +1,96 @@
 <svg width="400" height="90" viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Deep night-blue sky -->
-    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0f25"/>
-      <stop offset="60%" stop-color="#141e46"/>
-      <stop offset="100%" stop-color="#2a3b68"/>
+    <linearGradient id="fr2Bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#071420"/>
+      <stop offset="55%" stop-color="#0f2c40"/>
+      <stop offset="100%" stop-color="#1f4a5f"/>
     </linearGradient>
-
-    <!-- Aurora Waves -->
-    <linearGradient id="aurora1" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#4facfe" stop-opacity="0"/>
+    <linearGradient id="fr2Border" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5fd3f3"/>
+      <stop offset="50%" stop-color="#e8f4fb"/>
+      <stop offset="100%" stop-color="#5fd3f3"/>
     </linearGradient>
-    <linearGradient id="aurora2" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0%" stop-color="#b026ff" stop-opacity="0.7"/>
-      <stop offset="100%" stop-color="#fdfbfb" stop-opacity="0"/>
+    <linearGradient id="fr2Aurora1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5fd3f3" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#7fe3c0" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#5fd3f3" stop-opacity="0"/>
     </linearGradient>
-
-    <!-- Smooth Mountain silhouettes -->
-    <linearGradient id="mtBack" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#152042"/>
-      <stop offset="100%" stop-color="#0d142b"/>
+    <linearGradient id="fr2Aurora2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a68cff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#c4a8ff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#a68cff" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="mtFront" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0d142b"/>
-      <stop offset="100%" stop-color="#050812"/>
+    <linearGradient id="fr2MtBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a5f78"/>
+      <stop offset="100%" stop-color="#22405a"/>
     </linearGradient>
-    
-    <clipPath id="bannerClip">
+    <linearGradient id="fr2MtFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8f4fb"/>
+      <stop offset="100%" stop-color="#9fc4d6"/>
+    </linearGradient>
+    <radialGradient id="fr2Moon" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cfe8f5"/>
+    </radialGradient>
+    <clipPath id="fr2Clip">
       <rect x="0" y="0" width="400" height="90" rx="10"/>
     </clipPath>
   </defs>
 
-  <g clip-path="url(#bannerClip)">
-    <!-- Sky background -->
-    <rect width="400" height="90" fill="url(#skyGrad)"/>
+  <g clip-path="url(#fr2Clip)">
+    <rect width="400" height="90" fill="url(#fr2Bg)"/>
 
-    <!-- Stars -->
-    <g fill="#ffffff" opacity="0.8">
-      <circle cx="45" cy="15" r="0.8"/>
-      <circle cx="85" cy="25" r="0.6"/>
-      <circle cx="120" cy="10" r="1"/>
-      <circle cx="180" cy="20" r="0.7"/>
-      <circle cx="220" cy="8" r="0.5"/>
-      <circle cx="270" cy="28" r="0.8"/>
-      <circle cx="310" cy="12" r="1.2"/>
-      <circle cx="360" cy="22" r="0.6"/>
-      <circle cx="390" cy="15" r="0.9"/>
+    <!-- moon -->
+    <circle cx="335" cy="20" r="12" fill="url(#fr2Moon)" opacity="0.95"/>
+    <circle cx="339" cy="17" r="10" fill="#0f2c40" opacity="0.25"/>
+
+    <!-- aurora waves, smooth curves -->
+    <path d="M0 18 C 70 2, 150 32, 230 12 C 290 -2, 345 20, 400 6 L 400 40 C 335 26, 280 50, 210 36 C 140 20, 70 42, 0 26 Z" fill="url(#fr2Aurora1)"/>
+    <path d="M0 32 C 85 16, 160 46, 250 26 C 310 14, 355 34, 400 24 L 400 52 C 330 40, 260 60, 190 46 C 120 32, 60 52, 0 40 Z" fill="url(#fr2Aurora2)"/>
+
+    <!-- stars -->
+    <g fill="#e8f4fb" opacity="0.75">
+      <circle cx="30" cy="12" r="0.8"/>
+      <circle cx="70" cy="7" r="0.6"/>
+      <circle cx="130" cy="14" r="0.7"/>
+      <circle cx="180" cy="6" r="0.5"/>
+      <circle cx="15" cy="24" r="0.5"/>
     </g>
 
-    <!-- Aurora Waves -->
-    <path d="M-20 40 Q 80 0, 180 30 T 300 20 T 420 40 L 420 0 L -20 0 Z" fill="url(#aurora1)" opacity="0.8"/>
-    <path d="M-20 60 Q 100 10, 200 45 T 350 15 T 420 50 L 420 0 L -20 0 Z" fill="url(#aurora2)" opacity="0.7"/>
+    <!-- back mountain ridge, smooth curve -->
+    <path d="M0 62
+             C 25 46, 55 42, 80 50
+             C 105 58, 120 34, 150 30
+             C 180 26, 200 46, 230 54
+             C 260 62, 285 40, 315 36
+             C 345 32, 370 52, 400 56
+             L 400 90 L 0 90 Z" fill="url(#fr2MtBack)" opacity="0.55"/>
 
-    <!-- Smooth Layered Hills/Mountains (Back) -->
-    <path d="M0 65 
-             C 40 40, 80 40, 120 55 
-             C 160 70, 200 30, 240 45 
-             C 280 60, 320 35, 360 45 
-             C 380 50, 390 55, 400 60 
-             L 400 90 L 0 90 Z" fill="url(#mtBack)"/>
+    <!-- front icy mountain ridge, smooth curve -->
+    <path d="M0 76
+             C 30 58, 65 54, 95 66
+             C 120 76, 140 50, 175 46
+             C 205 42, 225 64, 255 72
+             C 285 80, 310 58, 345 60
+             C 365 61, 385 72, 400 68
+             L 400 90 L 0 90 Z" fill="url(#fr2MtFront)"/>
 
-    <!-- Smooth Layered Hills/Mountains (Front) -->
-    <path d="M-10 90 
-             C 30 70, 70 60, 110 75 
-             C 150 90, 190 55, 230 65 
-             C 270 75, 310 50, 350 65 
-             C 380 75, 390 80, 410 90 Z" fill="url(#mtFront)"/>
+    <!-- soft peak highlights -->
+    <path d="M155 47 C 160 42, 168 42, 173 47 C 168 49, 160 49, 155 47 Z" fill="#ffffff" opacity="0.6"/>
+    <path d="M340 60 C 344 56, 350 56, 354 60 C 350 61.5, 344 61.5, 340 60 Z" fill="#ffffff" opacity="0.5"/>
 
+    <!-- falling snow particles -->
+    <g fill="#ffffff" opacity="0.85">
+      <circle cx="50" cy="35" r="1"/>
+      <circle cx="120" cy="20" r="0.8"/>
+      <circle cx="200" cy="45" r="1.1"/>
+      <circle cx="260" cy="15" r="0.7"/>
+      <circle cx="300" cy="50" r="0.9"/>
+      <circle cx="90" cy="60" r="0.8"/>
+      <circle cx="370" cy="35" r="0.9"/>
+      <circle cx="30" cy="55" r="0.7"/>
+    </g>
   </g>
+
+  <rect x="0" y="0" width="400" height="90" rx="10" fill="none" stroke="url(#fr2Border)" stroke-width="2.2"/>
 </svg>
