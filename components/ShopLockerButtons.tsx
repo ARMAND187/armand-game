@@ -63,7 +63,7 @@ function renderIcon(item: ShopItem, isPreview: boolean = false) {
     return (
       <div style={{ 
         color: color, 
-        fontSize: isPreview ? 32 : 16, 
+        fontSize: isPreview ? 32 : 14, 
         fontWeight: 900, 
         textTransform: "uppercase", 
         letterSpacing: "0.05em", 
@@ -1009,7 +1009,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
               >
                 <div
                   style={{
-                    width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? 120 : 54,
+                    width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? 140 : 54,
                     height: item.type === 'Banner' ? 40 : (item.type === 'Name Flair' || item.type === 'Title' ? 30 : 54),
                     borderRadius: item.type === 'Banner' ? 4 : (item.type === 'Name Flair' ? 14 : 14),
                     background: item.type === 'Title' ? "transparent" : `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
