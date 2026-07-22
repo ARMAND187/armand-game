@@ -78,7 +78,13 @@ export function renderIcon(item: ShopItem, isPreview: boolean = false) {
 
   if (item.image_url) {
     if (item.image_url.trim().startsWith("<svg")) {
-      const svgHtml = item.image_url;
+      let svgHtml = item.image_url;
+      const uniqueSuffix = `-${Math.random().toString(36).substring(2, 9)}`;
+
+      // Ensure all IDs inside the SVG are completely unique to this render 
+      // to prevent DOM collisions with hidden overlays (which breaks gradients).
+      svgHtml = svgHtml.replace(/id="([^"]+)"/g, `id="$1${uniqueSuffix}"`);
+      svgHtml = svgHtml.replace(/url\(['"]?#([^)'"]+)['"]?\)/g, `url(#$1${uniqueSuffix})`);
 
       return (
         <div 
