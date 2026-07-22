@@ -55,15 +55,15 @@ export interface ShopItem {
   expires_at?: string | null;
 }
 
-function renderIcon(item: ShopItem) {
+function renderIcon(item: ShopItem, isPreview: boolean = false) {
   const size = 28;
   const color = item.rarity_color;
   if (item.image_url) {
     if (item.image_url.trim().startsWith("<svg")) {
       let svgHtml = item.image_url;
 
-      // If this is a Name Flair pill, extract just the icon for the preview
-      if (item.type === 'Name Flair') {
+      // If this is a Name Flair pill and NOT in preview, extract just the icon
+      if (item.type === 'Name Flair' && !isPreview) {
         const bgMatch = svgHtml.match(/<rect[^>]*fill="([^"]+)"/);
         const textMatch = svgHtml.match(/<text[^>]*fill="([^"]+)"/);
         if (bgMatch && textMatch) {
@@ -474,8 +474,8 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                     FREE
                   </div>
                 )}
-                <div style={{ transform: "scale(2.5)", transformOrigin: "center" }}>
-                  {renderIcon(previewItem)}
+                <div style={{ transform: previewItem.type === 'Name Flair' ? "scale(1.5)" : "scale(2.5)", transformOrigin: "center" }}>
+                  {renderIcon(previewItem, true)}
                 </div>
               </div>
 
