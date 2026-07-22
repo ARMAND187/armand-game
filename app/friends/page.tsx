@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import PlayerNameFlair from "@/components/PlayerNameFlair";
+import { timeAgo } from "@/utils/timeAgo";
 
 import { usePartyContext } from "@/context/PartyContext";
 import { usePresenceStore } from "@/store/usePresenceStore";
@@ -22,6 +23,7 @@ interface Friend {
   online: boolean;
   score: number;
   currentParty: string | null;
+  lastSeen: string | null;
 }
 interface Request {
   id: string; // ID of the friend_request row
@@ -98,8 +100,8 @@ export default function FriendsPage() {
         id,
         user1_id,
         user2_id,
-        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url, current_party, equipped_flair),
-        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url, current_party, equipped_flair)
+        u1:profiles!friends_user1_id_fkey(id, username, wins, avatar_url, current_party, equipped_flair, last_seen),
+        u2:profiles!friends_user2_id_fkey(id, username, wins, avatar_url, current_party, equipped_flair, last_seen)
       `)
       .or(`user1_id.eq.${myUserId},user2_id.eq.${myUserId}`);
 
@@ -120,6 +122,7 @@ export default function FriendsPage() {
             online: false,
             score: other?.wins || 0,
             currentParty: other?.current_party || null,
+            lastSeen: other?.last_seen || null,
           };
         })
       );
@@ -680,6 +683,13 @@ export default function FriendsPage() {
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="friend-name font-bold text-white text-base flex items-center">
                         <PlayerNameFlair username={friend.username} flair={friend.equippedFlair} />
+                      </div>
+                      <div className="text-xs text-zinc-500 font-medium">
+                        {isOnline ? (
+                          <span className="text-emerald-400">Online</span>
+                        ) : (
+                          <span>{friend.lastSeen ? `Last seen ${timeAgo(friend.lastSeen)}` : "Offline"}</span>
+                        )}
                       </div>
                     </div>
                     

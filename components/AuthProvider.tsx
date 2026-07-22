@@ -92,6 +92,16 @@ export default function AuthProvider() {
               online_at: new Date().toISOString(),
               status: window.location.pathname.startsWith('/play') ? 'in-game' : 'online',
             });
+            
+            if (user?.id) {
+              supabase.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', user.id).then();
+              const intv = setInterval(() => {
+                if (document.hasFocus()) {
+                  supabase.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', user.id).then();
+                }
+              }, 60000);
+              (channel as any)._lastSeenInterval = intv;
+            }
           }
         });
     };
@@ -101,6 +111,9 @@ export default function AuthProvider() {
     return () => {
       subscription.unsubscribe();
       if (presenceChannelRef.current) {
+        if ((presenceChannelRef.current as any)._lastSeenInterval) {
+          clearInterval((presenceChannelRef.current as any)._lastSeenInterval);
+        }
         supabase.removeChannel(presenceChannelRef.current);
       }
     };

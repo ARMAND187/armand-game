@@ -353,7 +353,7 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
       </div>
 
       {showFullInventory && selectedPlayer && (
-        <FullScreenOverlay onClose={() => setShowFullInventory(false)}>
+        <FullScreenOverlay onClose={() => setShowFullInventory(false)} title={`${selectedPlayer.username}'s Locker`}>
           <div className="game-panel" style={{ width: 1000, maxWidth: "90vw", height: "80vh", display: "flex", flexDirection: "column", padding: 0 }}>
             <div style={{ padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>

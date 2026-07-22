@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronLeft, Trophy, Users } from "lucide-react";
 import { getRankFromRP } from "@/utils/RankSystem";
 import PlayerNameFlair from "@/components/PlayerNameFlair";
+import ProfileStatus from "@/components/ProfileStatus";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -14,7 +15,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   // Fetch the public profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, wins, rp, avatar_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame")
+    .select("id, username, wins, rp, avatar_url, equipped_flair, equipped_title, equipped_banner, equipped_avatar_frame, last_seen")
     .eq("username", decodedUsername)
     .maybeSingle();
 
@@ -96,6 +97,8 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
               {rankInfo.icon} {rankInfo.tier}
             </span>
           </div>
+          
+          <ProfileStatus userId={profile.id} lastSeen={profile.last_seen} />
         </div>
         
         <div className="profile-fields" style={{ marginTop: 24, display: "flex", flexDirection: "column" }}>
