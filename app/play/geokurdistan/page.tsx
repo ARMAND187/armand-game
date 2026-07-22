@@ -229,12 +229,8 @@ function GeoKurdistanInner() {
     if (!hasGuessed) {
       submitGuess(null);
     }
-    // We defer the state update to avoid cascading renders warning
-    setTimeout(() => {
-      setGameState("ROUND_END");
-      updateTotalScores();
-    }, 0);
-  }, [hasGuessed, submitGuess, updateTotalScores]);
+    setGameState("REVEALING");
+  }, [hasGuessed, submitGuess]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -516,13 +512,20 @@ function GeoKurdistanInner() {
     if (gameState === "PLAYING" && roundGuesses.length > 0) {
       if (!roomId || (players.length > 0 && roundGuesses.length >= players.length)) {
         setGameState("REVEALING");
-        setTimeout(() => {
-          setGameState("ROUND_END");
-          updateTotalScores();
-        }, 2000);
       }
     }
-  }, [roundGuesses, players, gameState, updateTotalScores, roomId]);
+  }, [roundGuesses, players, gameState, roomId]);
+
+  // Advance REVEALING to ROUND_END automatically
+  useEffect(() => {
+    if (gameState === "REVEALING") {
+      const t = setTimeout(() => {
+        setGameState("ROUND_END");
+        updateTotalScores();
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [gameState, updateTotalScores]);
 
   const handleGuessBtn = () => {
     if (!guessMarker || hasGuessed) return;
