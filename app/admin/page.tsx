@@ -52,7 +52,9 @@ export default function AdminDashboard() {
   const [sendingNotif, setSendingNotif] = useState(false);
   const [notifStatus, setNotifStatus] = useState("");
 
-  const [bulkJson, setBulkJson] = useState("");
+  const [panoImageFile, setPanoImageFile] = useState<File | null>(null);
+  const [mapsUrl, setMapsUrl] = useState("");
+  const [selectedCity, setSelectedCity] = useState("Erbil");
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadingLocations, setUploadingLocations] = useState(false);
 
@@ -196,68 +198,71 @@ export default function AdminDashboard() {
     setUploadingImage(false);
   };
 
-  const handleBulkUpload = async () => {
+  const handleSuperUpload = async () => {
     setUploadStatus("");
+    if (!panoImageFile) {
+      setUploadStatus("Error: Please select or drop a panorama image.");
+      return;
+    }
+    if (!mapsUrl.trim()) {
+      setUploadStatus("Error: Please paste a Google Maps URL.");
+      return;
+    }
+
+    setUploadingLocations(true);
     try {
-      const parsed = JSON.parse(bulkJson);
-      if (!Array.isArray(parsed)) throw new Error("JSON must be an array of locations.");
-      
-      setUploadingLocations(true);
+      const match = mapsUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+).*?(?:(\d+(?:\.\d+)?)h).*?(?:(-?\d+(?:\.\d+)?)t)/);
+      if (!match) {
+        throw new Error("Invalid Google Maps URL. Make sure it contains @lat,lng and heading/pitch parameters.");
+      }
 
-      const { data: existingData } = await supabase.from('locations').select('lat, lng, name');
-      const existingLocs = new Set(existingData?.map(l => `${l.lat},${l.lng}`) || []);
-      const existingNames = new Set(existingData?.map(l => l.name) || []);
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      const heading = parseFloat(match[3]);
+      const pitch = parseFloat(match[4]);
 
-      const newLocations = [];
-      let skippedCount = 0;
-
-      for (const loc of parsed) {
-        if (!loc.name || !loc.lat || !loc.lng || !loc.source_type) {
-          throw new Error(`Location missing required fields: ${JSON.stringify(loc)}`);
-        }
-        
-        if (loc.source_type === "mapillary" && !loc.image_id) {
-          throw new Error(`Mapillary location requires an image_id: ${loc.name}`);
-        }
-        if (loc.source_type === "custom" && !loc.image_url) {
-          throw new Error(`Custom location requires an image_url: ${loc.name}`);
-        }
-
-        const isDupCoords = existingLocs.has(`${loc.lat},${loc.lng}`);
-        const isDupName = existingNames.has(loc.name);
-
-        if (isDupCoords || isDupName) {
-          skippedCount++;
-          continue;
-        }
-
-        newLocations.push({
-          name: loc.name,
-          city: loc.city || null,
-          country: loc.country || null,
-          lat: loc.lat,
-          lng: loc.lng,
-          image_id: loc.image_id || null,
-          image_url: loc.image_url || null,
-          source_type: loc.source_type,
-          created_at: new Date().toISOString()
+      const fileExt = panoImageFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('pano_images')
+        .upload(fileName, panoImageFile, {
+          cacheControl: '3600',
+          upsert: false
         });
+
+      if (uploadError) {
+        throw new Error(`Failed to upload image: ${uploadError.message}`);
       }
 
-      if (newLocations.length === 0) {
-        setUploadStatus(`Skipped ${skippedCount} existing locations. Nothing new to add.`);
-        setUploadingLocations(false);
-        return;
+      const { data: publicUrlData } = supabase.storage
+        .from('pano_images')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData.publicUrl;
+      const locName = `${selectedCity} Custom - ${Math.floor(Date.now() / 1000)}`;
+
+      const { error: dbError } = await supabase.from('locations').insert([{
+        name: locName,
+        city: selectedCity,
+        lat,
+        lng,
+        heading,
+        pitch,
+        source_type: "custom",
+        image_url: publicUrl,
+        created_at: new Date().toISOString()
+      }]);
+
+      if (dbError) {
+        throw new Error(`Failed to save location: ${dbError.message}`);
       }
 
-      const { error } = await supabase.from("locations").insert(newLocations);
-      if (error) throw error;
-      
-      setUploadStatus(`Successfully imported ${newLocations.length} locations! Skipped ${skippedCount} duplicates.`);
-      setBulkJson("");
+      setUploadStatus("Successfully uploaded and saved location!");
+      setPanoImageFile(null);
+      setMapsUrl("");
       fetchData(); // Refresh the counts
     } catch (err: any) {
-      setUploadStatus(err.message || "Failed to parse or upload locations.");
+      setUploadStatus(`Error: ${err.message}`);
     } finally {
       setUploadingLocations(false);
     }
@@ -322,32 +327,71 @@ export default function AdminDashboard() {
 
       <AdminDashboardStats totalRegistered={totalUsers} totalLocations={totalLocations} />
 
-      {/* Location Bulk Uploader */}
+      {/* Location Super-Uploader */}
       <div className="settings-card" style={{ padding: 20, marginBottom: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-          <UploadCloud size={18} color="var(--neon)" /> Location Bulk-Uploader
+          <UploadCloud size={18} color="var(--neon)" /> Location Super-Uploader
         </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
-            Paste a JSON array of hybrid locations here. Must include <code style={{ color: "var(--neon)" }}>source_type</code> ('mapillary' or 'custom'). 
-            Mapillary locations require <code style={{ color: "var(--neon)" }}>image_id</code>, while custom locations require <code style={{ color: "var(--neon)" }}>image_url</code>.
-          </p>
-          <textarea 
-            className="search-input" 
-            placeholder={'[\n  {\n    "name": "Erbil Citadel",\n    "city": "Erbil",\n    "lat": 36.1911,\n    "lng": 44.0091,\n    "source_type": "mapillary",\n    "image_id": "12345"\n  }\n]'} 
-            value={bulkJson}
-            onChange={e => setBulkJson(e.target.value)}
-            style={{ background: "var(--bg-base)", minHeight: 140, resize: "vertical", fontFamily: "monospace", fontSize: 12 }}
-          />
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <label style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>Google Maps URL</label>
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="Paste long Google Maps URL containing coordinates and heading/pitch..." 
+              value={mapsUrl}
+              onChange={e => setMapsUrl(e.target.value)}
+              style={{ background: "var(--bg-base)" }}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>City/Region</label>
+              <select 
+                className="search-input"
+                value={selectedCity}
+                onChange={e => setSelectedCity(e.target.value)}
+                style={{ background: "var(--bg-base)", appearance: "none" }}
+              >
+                <option value="Erbil">Erbil</option>
+                <option value="Sulaymaniyah">Sulaymaniyah</option>
+                <option value="Duhok">Duhok</option>
+                <option value="Halabja">Halabja</option>
+                <option value="Kirkuk">Kirkuk</option>
+              </select>
+            </div>
+            
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>Panorama Image (.jpg, .png)</label>
+              <label style={{
+                background: panoImageFile ? "rgba(74, 222, 128, 0.1)" : "var(--bg-base)",
+                border: panoImageFile ? "1px solid rgba(74, 222, 128, 0.3)" : "1px dashed rgba(255,255,255,0.2)",
+                borderRadius: 12, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", color: panoImageFile ? "#4ade80" : "var(--text-muted)", fontSize: 13, fontWeight: 600,
+                transition: "all 0.2s ease", height: "100%"
+              }}>
+                {panoImageFile ? `Selected: ${panoImageFile.name}` : "Click to select or drop file"}
+                <input 
+                  type="file" 
+                  accept=".jpg,.jpeg,.png"
+                  onChange={e => e.target.files && setPanoImageFile(e.target.files[0])}
+                  style={{ display: "none" }}
+                />
+              </label>
+            </div>
+          </div>
+
           <button 
             className="btn-lobby-play" 
-            onClick={handleBulkUpload}
-            disabled={uploadingLocations || !bulkJson.trim()}
-            style={{ justifyContent: "center" }}
+            onClick={handleSuperUpload}
+            disabled={uploadingLocations}
+            style={{ justifyContent: "center", padding: "14px 0" }}
           >
-            {uploadingLocations ? <Loader2 className="mly-spinner" size={18} /> : "Upload Locations"}
+            {uploadingLocations ? <Loader2 className="mly-spinner" size={18} /> : "Upload & Save Location"}
           </button>
-          {uploadStatus && <div style={{ fontSize: 12, color: uploadStatus.includes("Failed") || uploadStatus.includes("Missing") || uploadStatus.includes("requires") ? "#ef4444" : "#4ade80", textAlign: "center" }}>{uploadStatus}</div>}
+          {uploadStatus && <div style={{ fontSize: 13, fontWeight: 600, color: uploadStatus.includes("Error") ? "#ef4444" : "#4ade80", textAlign: "center" }}>{uploadStatus}</div>}
         </div>
       </div>
 
