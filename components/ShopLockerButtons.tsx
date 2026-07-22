@@ -1056,9 +1056,9 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                 >
                   {renderIcon(item)}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{item.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.type}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.type}</div>
                 </div>
                 
                 {['Map Pin', 'Name Flair', 'Title', 'Banner', 'Avatar Frame'].includes(item.type) ? (
@@ -1075,12 +1075,13 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                       padding: "6px 14px",
                       borderRadius: 999,
                       cursor: isEquipped ? "default" : "pointer",
+                      flexShrink: 0,
                     }}
                   >
                     {isEquipping ? "..." : isEquipped ? "Equipped" : "Equip"}
                   </button>
                 ) : (
-                  <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Non-equippable</span>
+                  <span style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>Non-equippable</span>
                 )}
               </div>
             );
