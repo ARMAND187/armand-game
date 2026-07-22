@@ -56,30 +56,29 @@ export interface ShopItem {
 }
 
 function renderIcon(item: ShopItem, isPreview: boolean = false) {
-  const size = 28;
+  const size = isPreview ? 64 : 28;
   const color = item.rarity_color;
+
+  if (item.type === 'Title') {
+    return (
+      <div style={{ 
+        color: color, 
+        fontSize: isPreview ? 32 : 16, 
+        fontWeight: 900, 
+        textTransform: "uppercase", 
+        letterSpacing: "0.05em", 
+        textShadow: `0 0 10px ${color}88`,
+        textAlign: "center",
+        width: "100%"
+      }}>
+        {item.name}
+      </div>
+    );
+  }
+
   if (item.image_url) {
     if (item.image_url.trim().startsWith("<svg")) {
       let svgHtml = item.image_url;
-
-      // If this is a Name Flair pill and NOT in preview, extract just the icon
-      if (item.type === 'Name Flair' && !isPreview) {
-        const bgMatch = svgHtml.match(/<rect[^>]*fill="([^"]+)"/);
-        const textMatch = svgHtml.match(/<text[^>]*fill="([^"]+)"/);
-        if (bgMatch && textMatch) {
-          let viewBoxMatch = svgHtml.match(/viewBox="0 0 \d+ (\d+)"/);
-          let vh = 56;
-          if (viewBoxMatch) vh = parseInt(viewBoxMatch[1], 10);
-
-          let iconInner = svgHtml
-            .replace(/<rect[^>]*>/, '')
-            .replace(/<text[^>]*>.*?<\/text>/, '')
-            .replace(/<svg[^>]*>/, '')
-            .replace(/<\/svg>/, '')
-            .trim();
-          svgHtml = `<svg width="100%" height="100%" viewBox="0 0 ${vh} ${vh}" xmlns="http://www.w3.org/2000/svg">${iconInner}</svg>`;
-        }
-      }
 
       svgHtml = svgHtml
         .replace(/width="[^"]*"/, 'width="100%"')
@@ -87,12 +86,12 @@ function renderIcon(item: ShopItem, isPreview: boolean = false) {
 
       return (
         <div 
-          style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
           dangerouslySetInnerHTML={{ __html: svgHtml }}
         />
       );
     }
-    return <img src={item.image_url} alt={item.name} style={{ width: size, height: size, objectFit: "contain" }} />;
+    return <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />;
   }
   switch (item.icon_name) {
     case "Star": return <Star size={size} color={color} />;
@@ -326,15 +325,16 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                 >
                   <div
                     style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: "50%",
-                      background: `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
+                      width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? "100%" : 64,
+                      height: item.type === 'Banner' ? 80 : (item.type === 'Name Flair' || item.type === 'Title' ? 40 : 64),
+                      borderRadius: item.type === 'Banner' ? 8 : (item.type === 'Name Flair' ? 20 : "50%"),
+                      background: item.type === 'Title' ? "transparent" : `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       marginBottom: 4,
-                      boxShadow: `0 0 20px ${item.rarity_color}11`
+                      boxShadow: item.type === 'Title' ? "none" : `0 0 20px ${item.rarity_color}11`,
+                      overflow: "hidden"
                     }}
                   >
                     {renderIcon(item)}
@@ -474,7 +474,15 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                     FREE
                   </div>
                 )}
-                <div style={{ transform: previewItem.type === 'Name Flair' ? "scale(1.5)" : "scale(2.5)", transformOrigin: "center" }}>
+                <div style={{ 
+                  width: previewItem.type === 'Name Flair' || previewItem.type === 'Banner' || previewItem.type === 'Title' ? "100%" : "auto",
+                  height: previewItem.type === 'Banner' ? 160 : (previewItem.type === 'Name Flair' ? 80 : "auto"),
+                  transform: previewItem.type === 'Name Flair' || previewItem.type === 'Banner' || previewItem.type === 'Title' ? "scale(1)" : "scale(2.5)", 
+                  transformOrigin: "center",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center"
+                }}>
                   {renderIcon(previewItem, true)}
                 </div>
               </div>
@@ -970,15 +978,16 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
               >
                 <div
                   style={{
-                    width: 54,
-                    height: 54,
-                    borderRadius: 14,
-                    background: `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
+                    width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? 120 : 54,
+                    height: item.type === 'Banner' ? 40 : (item.type === 'Name Flair' || item.type === 'Title' ? 30 : 54),
+                    borderRadius: item.type === 'Banner' ? 4 : (item.type === 'Name Flair' ? 14 : 14),
+                    background: item.type === 'Title' ? "transparent" : `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
-                    boxShadow: `0 0 15px ${item.rarity_color}11`
+                    boxShadow: item.type === 'Title' ? "none" : `0 0 15px ${item.rarity_color}11`,
+                    overflow: "hidden"
                   }}
                 >
                   {renderIcon(item)}
