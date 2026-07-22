@@ -200,10 +200,12 @@ function GeoKurdistanInner() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        round_stats: [{
           playerId: myUsername,
           score: Math.round(score),
-          distanceKm: distanceKm,
+          distance: distanceKm,
           time: timeLimit === 0 ? 0 : timeLimit - timer
+        }]
       })
     }).catch(console.error);
 
