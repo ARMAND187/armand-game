@@ -397,32 +397,66 @@ function GeoKurdistanInner() {
           if (status === "SUBSCRIBED") {
             await channel.track({ online_at: new Date().toISOString() });
             
+            const savedStateStr = localStorage.getItem(`geo_state_${roomId}`);
+            let savedState: any = null;
+            if (savedStateStr) {
+               try {
+                 const parsed = JSON.parse(savedStateStr);
+                 // If less than 2 hours old and not GAME_OVER
+                 if (Date.now() - parsed.timestamp < 2 * 60 * 60 * 1000 && parsed.gameState !== "GAME_OVER") {
+                   savedState = parsed;
+                 }
+               } catch (e) {}
+            }
+
             if (isPublicRoom) {
                // Deterministic start
                const indices = generateDeterministicIndices(roomId, room.total_rounds || 5, availableLocations.length);
                setLocationIndices(indices);
-               setGameState("PLAYING");
-               setTimer(fetchedTimeLimit);
-               setRound(1);
-               setRoundGuesses([]);
-               setTotalScores({});
+               
+               if (savedState && savedState.round <= (room.total_rounds || 5)) {
+                 setRound(savedState.round);
+                 setGameState(savedState.gameState);
+                 setTotalScores(savedState.totalScores || {});
+                 setRoundGuesses(savedState.roundGuesses || []);
+                 if (savedState.gameState === "PLAYING") setTimer(fetchedTimeLimit);
+               } else {
+                 setGameState("PLAYING");
+                 setTimer(fetchedTimeLimit);
+                 setRound(1);
+                 setRoundGuesses([]);
+                 setTotalScores({});
+               }
                setHasGuessed(false);
                setGuessMarker(null);
                setShowScoreboard(false);
             } else {
+               if (savedState) {
+                 setRound(savedState.round);
+                 setGameState(savedState.gameState);
+                 setTotalScores(savedState.totalScores || {});
+                 setRoundGuesses(savedState.roundGuesses || []);
+                 if (savedState.gameState === "PLAYING") setTimer(fetchedTimeLimit);
+                 setHasGuessed(false);
+                 setGuessMarker(null);
+                 setShowScoreboard(false);
+               }
+
                if (isRoomHost) {
-                 setTimeout(async () => {
-                   const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
-                   const indices = shuffled.slice(0, room.total_rounds || 5);
-                   channel.send({
-                     type: "broadcast",
-                     event: "GAME_START",
-                     payload: { indices, players: [] }, // Players tracked via presence
-                   });
-                   setLocationIndices(indices);
-                   setGameState("PLAYING");
-                   setTimer(fetchedTimeLimit);
-                 }, 2000);
+                 if (!savedState) {
+                   setTimeout(async () => {
+                     const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
+                     const indices = shuffled.slice(0, room.total_rounds || 5);
+                     channel.send({
+                       type: "broadcast",
+                       event: "GAME_START",
+                       payload: { indices, players: [] }, // Players tracked via presence
+                     });
+                     setLocationIndices(indices);
+                     setGameState("PLAYING");
+                     setTimer(fetchedTimeLimit);
+                   }, 2000);
+                 }
                } else {
                  setTimeout(() => {
                    channel.send({ type: "broadcast", event: "REQUEST_SYNC" });
@@ -439,6 +473,18 @@ function GeoKurdistanInner() {
       if (channelRef.current) supabase.removeChannel(channelRef.current);
     };
   }, [roomId, myUsername, supabase, availableLocations.length]);
+
+  // Save state to localStorage to persist across refreshes
+  useEffect(() => {
+    if (gameState === "WAITING" || !roomId) return;
+    localStorage.setItem(`geo_state_${roomId}`, JSON.stringify({
+      round,
+      gameState,
+      totalScores,
+      roundGuesses,
+      timestamp: Date.now()
+    }));
+  }, [roomId, round, gameState, totalScores, roundGuesses]);
 
   // Timer logic
   useEffect(() => {
