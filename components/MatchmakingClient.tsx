@@ -769,13 +769,13 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                     <img 
                       src={avatarUrl} 
                       alt={player} 
-                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)" }} 
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)", position: "relative", zIndex: 1 }} 
                     />
                     {frameUrl && (
                       <img 
                         src={frameUrl} 
                         alt="frame" 
-                        style={{ position: "absolute", top: "-9%", left: "-9%", width: "118%", height: "118%", pointerEvents: "none", zIndex: 2 }} 
+                        style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "120%", height: "120%", pointerEvents: "none", zIndex: 2 }} 
                       />
                     )}
                   </div>
