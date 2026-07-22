@@ -55,7 +55,7 @@ export interface ShopItem {
   expires_at?: string | null;
 }
 
-function renderIcon(item: ShopItem, isPreview: boolean = false) {
+export function renderIcon(item: ShopItem, isPreview: boolean = false) {
   const size = isPreview ? 64 : 28;
   const color = item.rarity_color;
 

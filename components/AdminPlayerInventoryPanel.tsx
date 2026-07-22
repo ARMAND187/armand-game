@@ -14,6 +14,7 @@ import {
   addPlayerWalletBalance,
   setPlayerWalletBalance
 } from "@/app/actions/admin-inventory";
+import { renderIcon } from "@/components/ShopLockerButtons";
 
 export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +32,7 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
   // Selection for grant
   const [grantCategory, setGrantCategory] = useState<'shop' | 'challenge' | 'streak'>('shop');
   const [grantItemId, setGrantItemId] = useState("");
+  const [showFullInventory, setShowFullInventory] = useState(false);
 
   const [rpAmount, setRpAmount] = useState("");
   const [rpAction, setRpAction] = useState<'add' | 'set'>('add');
@@ -321,50 +323,98 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
               </button>
             </div>
 
-            {/* Items Grid */}
-            <div style={{ flex: 1, overflowY: "auto", paddingRight: 4 }}>
+            {/* View Inventory Button */}
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
               {loadingInv ? (
-                <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 className="mly-spinner" color="var(--neon)" /></div>
+                <Loader2 className="mly-spinner" color="var(--neon)" />
               ) : inventory.length === 0 ? (
-                <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>This player's locker is empty.</div>
+                <div style={{ color: "var(--text-muted)" }}>This player's locker is empty.</div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-                  {inventory.map(inv => {
-                    const item = inv.shop_items || inv.challenge_items || inv.streak_items;
-                    if (!item) return null;
-                    const typeLabel = inv.shop_items ? "Shop" : (inv.challenge_items ? "Challenge" : "Streak");
-                    
-                    return (
-                      <div key={inv.id} className="settings-card" style={{ padding: 12, position: "relative" }}>
-                        <button 
-                          onClick={() => handleRemove(inv.id)}
-                          disabled={removing === inv.id}
-                          style={{ position: "absolute", top: 8, right: 8, background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "none", borderRadius: 6, padding: 6, cursor: "pointer" }}
-                          title="Revoke Item"
-                        >
-                          {removing === inv.id ? <Loader2 size={14} className="mly-spinner" /> : <Trash2 size={14} />}
-                        </button>
-                        
-                        <div style={{ 
-                          width: 48, height: 48, borderRadius: 8, marginBottom: 12,
-                          background: item.image_url ? `url(${item.image_url})` : "rgba(255,255,255,0.05)",
-                          backgroundSize: "cover", backgroundPosition: "center"
-                        }} />
-                        
-                        <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 800, marginBottom: 4 }}>{typeLabel} • {item.title || item.type}</div>
-                        <div style={{ color: item.rarity_color || "white", fontWeight: 700, fontSize: 14 }}>{item.name}</div>
-                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 8 }}>
-                          Acquired: {new Date(inv.acquired_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <button 
+                  onClick={() => setShowFullInventory(true)}
+                  style={{
+                    background: "rgba(168, 85, 247, 0.15)",
+                    border: "1px solid rgba(168, 85, 247, 0.3)",
+                    borderRadius: 12,
+                    padding: "16px 32px",
+                    color: "var(--neon)",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    boxShadow: "0 0 20px rgba(168, 85, 247, 0.2)"
+                  }}
+                >
+                  View Full Inventory ({inventory.length} Items)
+                </button>
               )}
             </div>
           </div>
         )}
       </div>
+
+      {showFullInventory && selectedPlayer && (
+        <FullScreenOverlay onClose={() => setShowFullInventory(false)}>
+          <div className="game-panel" style={{ width: 1000, maxWidth: "90vw", height: "80vh", display: "flex", flexDirection: "column", padding: 0 }}>
+            <div style={{ padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fff", textTransform: "uppercase" }}>{selectedPlayer.username}'s Locker</h2>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>{inventory.length} items owned</div>
+              </div>
+              <button onClick={() => setShowFullInventory(false)} className="icon-btn"><X size={24} /></button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+                {inventory.map(inv => {
+                  const item = inv.shop_items || inv.challenge_items || inv.streak_items;
+                  if (!item) return null;
+                  const typeLabel = inv.shop_items ? "Shop" : (inv.challenge_items ? "Challenge" : "Streak");
+                  
+                  return (
+                    <div key={inv.id} style={{
+                      background: "rgba(24, 24, 27, 0.4)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 16,
+                      padding: "14px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      position: "relative"
+                    }}>
+                      <div style={{
+                        width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? 120 : 54,
+                        height: item.type === 'Banner' ? 40 : (item.type === 'Name Flair' || item.type === 'Title' ? 30 : 54),
+                        borderRadius: item.type === 'Banner' ? 4 : (item.type === 'Name Flair' ? 14 : (item.type === 'Avatar Frame' ? "50%" : 14)),
+                        background: item.type === 'Title' ? "transparent" : `radial-gradient(circle at center, ${item.rarity_color || '#fff'}22 0%, transparent 70%)`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        overflow: "hidden"
+                      }}>
+                        {renderIcon(item)}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 800, marginBottom: 2 }}>{typeLabel} • {item.title || item.type}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: item.rarity_color || "#fff" }}>{item.name}</div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleRemove(inv.id)}
+                        disabled={removing === inv.id}
+                        style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "none", borderRadius: 8, padding: 8, cursor: "pointer", flexShrink: 0 }}
+                        title="Revoke Item"
+                      >
+                        {removing === inv.id ? <Loader2 size={16} className="mly-spinner" /> : <Trash2 size={16} />}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </FullScreenOverlay>
+      )}
     </FullScreenOverlay>
   );
 }
