@@ -261,8 +261,6 @@ function GeoKurdistanInner() {
 
   // Initialise Multiplayer Connection
   useEffect(() => {
-    if (availableLocations.length === 0) return;
-
     const saveKey = roomId ? `geo_state_${roomId}` : "geo_state_singleplayer";
     const savedStateStr = localStorage.getItem(saveKey);
     let savedState: any = null;
@@ -289,6 +287,8 @@ function GeoKurdistanInner() {
       setGuessMarker(savedState.guessMarker || null);
       setShowScoreboard(false);
     }
+
+    if (availableLocations.length === 0) return;
 
     if (!roomId) {
       // Single player fallback if no room ID provided
