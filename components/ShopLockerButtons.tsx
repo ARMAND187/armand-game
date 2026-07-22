@@ -124,6 +124,17 @@ function renderIcon(item: ShopItem, isPreview: boolean = false) {
     );
   }
 
+  if (item.type === 'Avatar Frame') {
+    return (
+      <div style={{
+        width: "100%", height: "100%", 
+        borderRadius: "50%",
+        border: `4px solid ${color}`,
+        boxShadow: `0 0 12px ${color}, inset 0 0 12px ${color}`
+      }} />
+    );
+  }
+
   switch (item.icon_name) {
     case "Star": return <Star size={size} color={color} />;
     case "Zap": return <Zap size={size} color={color} />;
@@ -1011,7 +1022,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                   style={{
                     width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? 140 : 54,
                     height: item.type === 'Banner' ? 40 : (item.type === 'Name Flair' || item.type === 'Title' ? 30 : 54),
-                    borderRadius: item.type === 'Banner' ? 4 : (item.type === 'Name Flair' ? 14 : 14),
+                    borderRadius: item.type === 'Banner' ? 4 : (item.type === 'Name Flair' ? 14 : (item.type === 'Avatar Frame' ? "50%" : 14)),
                     background: item.type === 'Title' ? "transparent" : `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
                     display: "flex",
                     alignItems: "center",
