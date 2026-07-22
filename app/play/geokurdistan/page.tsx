@@ -267,34 +267,37 @@ function GeoKurdistanInner() {
   useEffect(() => {
     if (availableLocations.length === 0) return;
 
+    const saveKey = roomId ? `geo_state_${roomId}` : "geo_state_singleplayer";
+    const savedStateStr = localStorage.getItem(saveKey);
+    let savedState: any = null;
+    if (savedStateStr) {
+       try {
+         const parsed = JSON.parse(savedStateStr);
+         if (Date.now() - parsed.timestamp < 2 * 60 * 60 * 1000 && parsed.gameState !== "GAME_OVER") {
+           savedState = parsed;
+         }
+       } catch (e) {}
+    }
+
+    if (savedState && savedState.locationIndices && savedState.locationIndices.length > 0) {
+      setLocationIndices(savedState.locationIndices);
+      setRound(savedState.round || 1);
+      setGameState(savedState.gameState || "PLAYING");
+      setTotalScores(savedState.totalScores || {});
+      setRoundGuesses(savedState.roundGuesses || []);
+      if (savedState.gameState === "PLAYING") {
+        const elapsed = Math.floor((Date.now() - savedState.timestamp) / 1000);
+        setTimer(Math.max(1, (savedState.timer || 30) - elapsed));
+      }
+      setHasGuessed(false);
+      setGuessMarker(null);
+      setShowScoreboard(false);
+    }
+
     if (!roomId) {
       // Single player fallback if no room ID provided
-      const savedStateStr = localStorage.getItem("geo_state_singleplayer");
-      let savedState: any = null;
-      if (savedStateStr) {
-         try {
-           const parsed = JSON.parse(savedStateStr);
-           if (Date.now() - parsed.timestamp < 2 * 60 * 60 * 1000 && parsed.gameState !== "GAME_OVER") {
-             savedState = parsed;
-           }
-         } catch (e) {}
-      }
-
-      setTimeout(() => {
-        if (savedState && savedState.locationIndices && savedState.locationIndices.length > 0) {
-          setLocationIndices(savedState.locationIndices);
-          setRound(savedState.round || 1);
-          setGameState(savedState.gameState || "PLAYING");
-          setTotalScores(savedState.totalScores || {});
-          setRoundGuesses(savedState.roundGuesses || []);
-          if (savedState.gameState === "PLAYING") {
-            const elapsed = Math.floor((Date.now() - savedState.timestamp) / 1000);
-            setTimer(Math.max(1, (savedState.timer || 30) - elapsed));
-          }
-          setHasGuessed(false);
-          setGuessMarker(null);
-          setShowScoreboard(false);
-        } else {
+      if (!savedState) {
+        setTimeout(() => {
           const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
           const indices = shuffled.slice(0, totalRounds);
           setLocationIndices(indices);
@@ -303,8 +306,8 @@ function GeoKurdistanInner() {
           setRound(1);
           setRoundGuesses([]);
           setTotalScores({});
-        }
-      }, 0);
+        }, 0);
+      }
       return;
     }
 
@@ -426,59 +429,22 @@ function GeoKurdistanInner() {
         .subscribe(async (status) => {
           if (status === "SUBSCRIBED") {
             await channel.track({ online_at: new Date().toISOString() });
-            
-            const savedStateStr = localStorage.getItem(`geo_state_${roomId}`);
-            let savedState: any = null;
-            if (savedStateStr) {
-               try {
-                 const parsed = JSON.parse(savedStateStr);
-                 // If less than 2 hours old and not GAME_OVER
-                 if (Date.now() - parsed.timestamp < 2 * 60 * 60 * 1000 && parsed.gameState !== "GAME_OVER") {
-                   savedState = parsed;
-                 }
-               } catch (e) {}
-            }
 
             if (isPublicRoom) {
                // Deterministic start
-               const indices = generateDeterministicIndices(roomId, room.total_rounds || 5, availableLocations.length);
-               setLocationIndices(indices);
-               
-               if (savedState && savedState.round <= (room.total_rounds || 5)) {
-                 setRound(savedState.round);
-                 setGameState(savedState.gameState);
-                 setTotalScores(savedState.totalScores || {});
-                 setRoundGuesses(savedState.roundGuesses || []);
-                 if (savedState.gameState === "PLAYING") {
-                   const elapsed = Math.floor((Date.now() - savedState.timestamp) / 1000);
-                   setTimer(Math.max(1, (savedState.timer || fetchedTimeLimit) - elapsed));
-                 }
-               } else {
+               if (!savedState) {
+                 const indices = generateDeterministicIndices(roomId, room.total_rounds || 5, availableLocations.length);
+                 setLocationIndices(indices);
                  setGameState("PLAYING");
                  setTimer(fetchedTimeLimit);
                  setRound(1);
                  setRoundGuesses([]);
                  setTotalScores({});
-               }
-               setHasGuessed(false);
-               setGuessMarker(null);
-               setShowScoreboard(false);
-            } else {
-               if (savedState) {
-                 if (savedState.locationIndices) setLocationIndices(savedState.locationIndices);
-                 setRound(savedState.round);
-                 setGameState(savedState.gameState);
-                 setTotalScores(savedState.totalScores || {});
-                 setRoundGuesses(savedState.roundGuesses || []);
-                 if (savedState.gameState === "PLAYING") {
-                   const elapsed = Math.floor((Date.now() - savedState.timestamp) / 1000);
-                   setTimer(Math.max(1, (savedState.timer || fetchedTimeLimit) - elapsed));
-                 }
                  setHasGuessed(false);
                  setGuessMarker(null);
                  setShowScoreboard(false);
                }
-
+            } else {
                if (isRoomHost) {
                  if (!savedState) {
                    setTimeout(async () => {
@@ -495,9 +461,11 @@ function GeoKurdistanInner() {
                    }, 2000);
                  }
                } else {
-                 setTimeout(() => {
-                   channel.send({ type: "broadcast", event: "REQUEST_SYNC" });
-                 }, 500);
+                 if (!savedState) {
+                   setTimeout(() => {
+                     channel.send({ type: "broadcast", event: "REQUEST_SYNC" });
+                   }, 500);
+                 }
                }
             }
           }
