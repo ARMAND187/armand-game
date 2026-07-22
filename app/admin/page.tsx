@@ -371,6 +371,7 @@ export default function AdminDashboard() {
                 <option value="Said Sadiq">Said Sadiq</option>
                 <option value="Darbandikhan">Darbandikhan</option>
                 <option value="Shaqlawa">Shaqlawa</option>
+                <option value="Dukan">Dukan</option>
               </select>
             </div>
             
