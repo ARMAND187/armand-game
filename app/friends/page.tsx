@@ -10,6 +10,7 @@ import Link from "next/link";
 import PlayerNameFlair from "@/components/PlayerNameFlair";
 
 import { usePartyContext } from "@/context/PartyContext";
+import { usePresenceStore } from "@/store/usePresenceStore";
 
 interface Friend {
   id: string; // ID of the friendship row or the user profile
@@ -43,6 +44,7 @@ export default function FriendsPage() {
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
+  const activeUsers = usePresenceStore((state) => state.activeUsers);
 
   // Voice Party — from global context (connection lives in layout)
   const { activeParty, myUsername: ctxUsername, joinParty, leaveParty: ctxLeaveParty, sendInvite } = usePartyContext();
@@ -527,11 +529,16 @@ export default function FriendsPage() {
                           borderRadius: 14, padding: "12px 14px",
                         }}
                       >
-                        <img
-                          src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`}
-                          alt={f.username}
-                          style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", flexShrink: 0 }}
-                        />
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          <img
+                            src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`}
+                            alt={f.username}
+                            style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", display: "block" }}
+                          />
+                          {activeUsers.some(u => u.userId === f.profile_id) && (
+                            <div style={{ position: "absolute", bottom: 0, right: 0, width: 12, height: 12, background: "#4ade80", border: "2px solid #111113", borderRadius: "50%", zIndex: 10 }} />
+                          )}
+                        </div>
                         <div className="flex flex-col flex-1 justify-center min-w-0">
                           <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center" }}>
                             <PlayerNameFlair username={f.username} flair={f.equippedFlair} />
@@ -591,11 +598,16 @@ export default function FriendsPage() {
             {activeFriends.map(f => (
               <div key={f.id} className="w-full flex items-center justify-between bg-zinc-950 border border-purple-500/40 rounded-xl p-3 md:p-4 mb-2">
                 <div className="flex items-center gap-3">
-                  <img 
-                    src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`} 
-                    alt="Avatar" 
-                    className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800"
-                  />
+                  <div style={{ position: "relative" }}>
+                    <img 
+                      src={f.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${f.username}`} 
+                      alt="Avatar" 
+                      className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800 block"
+                    />
+                    {activeUsers.some(u => u.userId === f.profile_id) && (
+                      <div style={{ position: "absolute", bottom: 0, right: 0, width: 12, height: 12, background: "#4ade80", border: "2px solid #09090b", borderRadius: "50%", zIndex: 10 }} />
+                    )}
+                  </div>
                   <div className="flex-1 flex flex-col justify-center min-w-0 pl-1">
                     <div className="text-sm font-bold text-white flex items-center">
                       <PlayerNameFlair username={f.username} flair={f.equippedFlair} />
@@ -655,10 +667,15 @@ export default function FriendsPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {filtered.map((friend) => (
+                {filtered.map((friend) => {
+                  const isOnline = activeUsers.some(u => u.userId === friend.profile_id);
+                  return (
                   <Link href={`/profile/${friend.username}`} key={friend.id} className="friend-row bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors p-4 rounded-xl flex items-center" style={{ textDecoration: "none", color: "inherit", cursor: "pointer", display: "flex", alignItems: "center" }}>
-                    <div className="friend-avatar mr-4" style={{ border: "none", background: "none", padding: 0 }}>
-                      <img src={friend.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${friend.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-800" />
+                    <div className="friend-avatar mr-4" style={{ border: "none", background: "none", padding: 0, position: "relative" }}>
+                      <img src={friend.avatarUrl || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${friend.username}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-zinc-800 block" />
+                      {isOnline && (
+                        <div style={{ position: "absolute", bottom: 0, right: 0, width: 12, height: 12, background: "#4ade80", border: "2px solid #18181b", borderRadius: "50%", zIndex: 10 }} />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="friend-name font-bold text-white text-base flex items-center">
@@ -675,7 +692,7 @@ export default function FriendsPage() {
                       </button>
                     )}
                   </Link>
-                ))}
+                )})}
               </div>
             )}
           </>
