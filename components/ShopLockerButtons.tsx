@@ -1006,7 +1006,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginTop: 10, marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Owned Items
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
           {ownedItems.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             // Determine if equipped
             let isEquipped = false;
@@ -1030,35 +1030,46 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                 style={{
                   background: "rgba(24, 24, 27, 0.4)",
                   border: `1px solid ${isEquipped ? "rgba(74, 222, 128, 0.4)" : "rgba(255,255,255,0.08)"}`,
-                  borderRadius: 16,
-                  padding: "14px 16px",
+                  borderRadius: 20,
+                  padding: 16,
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 14,
+                  gap: 10,
                   backdropFilter: "blur(24px)",
                   WebkitBackdropFilter: "blur(24px)",
                   boxShadow: "0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
+                  position: "relative",
+                  overflow: "hidden"
                 }}
               >
+                {/* EQUIPPED GLOW */}
+                {isEquipped && (
+                  <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${item.rarity_color}22, transparent)`, pointerEvents: "none" }} />
+                )}
+
                 <div
                   style={{
-                    width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? 140 : 54,
-                    height: item.type === 'Banner' ? 40 : (item.type === 'Name Flair' || item.type === 'Title' ? 30 : 54),
-                    borderRadius: item.type === 'Banner' ? 4 : (item.type === 'Name Flair' ? 14 : (item.type === 'Avatar Frame' ? "50%" : 14)),
+                    width: item.type === 'Name Flair' || item.type === 'Banner' || item.type === 'Title' ? "100%" : 64,
+                    height: item.type === 'Banner' ? 80 : (item.type === 'Name Flair' || item.type === 'Title' ? 40 : 64),
+                    borderRadius: item.type === 'Banner' ? 8 : (item.type === 'Name Flair' ? 20 : "50%"),
                     background: item.type === 'Title' ? "transparent" : `radial-gradient(circle at center, ${item.rarity_color}22 0%, transparent 70%)`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    marginBottom: 4,
+                    boxShadow: item.type === 'Title' ? "none" : `0 0 20px ${item.rarity_color}11`,
+                    overflow: "hidden",
                     flexShrink: 0,
-                    boxShadow: item.type === 'Title' ? "none" : `0 0 15px ${item.rarity_color}11`,
-                    overflow: "hidden"
+                    zIndex: 1
                   }}
                 >
                   {renderIcon(item)}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                
+                <div style={{ textAlign: "center", flex: 1, minWidth: 0, width: "100%", zIndex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.type}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 2 }}>{item.type}</div>
                 </div>
                 
                 {['Map Pin', 'Name Flair', 'Title', 'Banner', 'Avatar Frame'].includes(item.type) ? (
@@ -1067,21 +1078,26 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                     disabled={isEquipped || isEquipping}
                     className={isEquipped ? "" : "btn-redeem-small"}
                     style={{
-                      fontSize: 11,
+                      width: "100%",
+                      fontSize: 12,
                       fontWeight: 800,
                       color: isEquipped ? "#4ade80" : "",
                       background: isEquipped ? "rgba(74, 222, 128, 0.1)" : "",
                       border: isEquipped ? "1px solid rgba(74, 222, 128, 0.3)" : "",
-                      padding: "6px 14px",
+                      padding: "8px 0",
                       borderRadius: 999,
                       cursor: isEquipped ? "default" : "pointer",
-                      flexShrink: 0,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      marginTop: 4,
+                      zIndex: 1
                     }}
                   >
                     {isEquipping ? "..." : isEquipped ? "Equipped" : "Equip"}
                   </button>
                 ) : (
-                  <span style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>Non-equippable</span>
+                  <span style={{ fontSize: 10, color: "var(--text-muted)", width: "100%", textAlign: "center", marginTop: 4, zIndex: 1 }}>Non-equippable</span>
                 )}
               </div>
             );
