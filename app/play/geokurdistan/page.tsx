@@ -269,11 +269,38 @@ function GeoKurdistanInner() {
 
     if (!roomId) {
       // Single player fallback if no room ID provided
+      const savedStateStr = localStorage.getItem("geo_state_singleplayer");
+      let savedState: any = null;
+      if (savedStateStr) {
+         try {
+           const parsed = JSON.parse(savedStateStr);
+           if (Date.now() - parsed.timestamp < 2 * 60 * 60 * 1000 && parsed.gameState !== "GAME_OVER") {
+             savedState = parsed;
+           }
+         } catch (e) {}
+      }
+
       setTimeout(() => {
-        const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
-        const indices = shuffled.slice(0, totalRounds);
-        setLocationIndices(indices);
-        setGameState("PLAYING");
+        if (savedState && savedState.locationIndices && savedState.locationIndices.length > 0) {
+          setLocationIndices(savedState.locationIndices);
+          setRound(savedState.round || 1);
+          setGameState(savedState.gameState || "PLAYING");
+          setTotalScores(savedState.totalScores || {});
+          setRoundGuesses(savedState.roundGuesses || []);
+          if (savedState.gameState === "PLAYING") setTimer(30);
+          setHasGuessed(false);
+          setGuessMarker(null);
+          setShowScoreboard(false);
+        } else {
+          const shuffled = shuffleArray([...availableLocations].map((_, i) => i));
+          const indices = shuffled.slice(0, totalRounds);
+          setLocationIndices(indices);
+          setGameState("PLAYING");
+          setTimer(30);
+          setRound(1);
+          setRoundGuesses([]);
+          setTotalScores({});
+        }
       }, 0);
       return;
     }
@@ -432,6 +459,7 @@ function GeoKurdistanInner() {
                setShowScoreboard(false);
             } else {
                if (savedState) {
+                 if (savedState.locationIndices) setLocationIndices(savedState.locationIndices);
                  setRound(savedState.round);
                  setGameState(savedState.gameState);
                  setTotalScores(savedState.totalScores || {});
@@ -476,15 +504,17 @@ function GeoKurdistanInner() {
 
   // Save state to localStorage to persist across refreshes
   useEffect(() => {
-    if (gameState === "WAITING" || !roomId) return;
-    localStorage.setItem(`geo_state_${roomId}`, JSON.stringify({
+    if (gameState === "WAITING") return;
+    const saveKey = roomId ? `geo_state_${roomId}` : "geo_state_singleplayer";
+    localStorage.setItem(saveKey, JSON.stringify({
       round,
       gameState,
       totalScores,
       roundGuesses,
+      locationIndices, // we must save locationIndices for singleplayer because it's non-deterministic
       timestamp: Date.now()
     }));
-  }, [roomId, round, gameState, totalScores, roundGuesses]);
+  }, [roomId, round, gameState, totalScores, roundGuesses, locationIndices]);
 
   // Timer logic
   useEffect(() => {
