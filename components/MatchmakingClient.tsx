@@ -669,7 +669,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
             )}
           </div>
           
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 400, margin: "0 auto" }}>
             {Array.from({ length: displayCode ? customMaxPlayers : publicMaxPlayers }).map((_, slotIndex) => {
               const player = players[slotIndex];
               const profile = player ? playerProfiles[player] : null;
