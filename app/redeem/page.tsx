@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Gift, Tag, Sparkles, CheckCircle, AlertCircle, Lock } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 
 type ShopPackage = {
   id: string;
@@ -13,6 +13,7 @@ type ShopPackage = {
 };
 
 export default function RedeemPage() {
+  const supabase = createClient();
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
