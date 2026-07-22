@@ -112,3 +112,18 @@ export async function getAllItems() {
     }
   };
 }
+
+export async function addPlayerBalance(userId: string, amountToAdd: number) {
+  const admin = await getAdminClient();
+  if (!admin) return { success: false, error: "Unauthorized" };
+
+  const { data: profile, error: fetchErr } = await admin.from("profiles").select("rp").eq("id", userId).single();
+  if (fetchErr) return { success: false, error: fetchErr.message };
+
+  const newBalance = (profile?.rp || 0) + amountToAdd;
+
+  const { error: updateErr } = await admin.from("profiles").update({ rp: newBalance }).eq("id", userId);
+  
+  if (updateErr) return { success: false, error: updateErr.message };
+  return { success: true, newBalance };
+}

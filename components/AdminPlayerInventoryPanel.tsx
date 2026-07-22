@@ -8,7 +8,8 @@ import {
   getPlayerInventory, 
   removeInventoryItem, 
   addInventoryItem, 
-  getAllItems 
+  getAllItems,
+  addPlayerBalance
 } from "@/app/actions/admin-inventory";
 
 export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) {
@@ -27,6 +28,9 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
   // Selection for grant
   const [grantCategory, setGrantCategory] = useState<'shop' | 'challenge' | 'streak'>('shop');
   const [grantItemId, setGrantItemId] = useState("");
+
+  const [rpAmount, setRpAmount] = useState("");
+  const [addingRp, setAddingRp] = useState(false);
 
   useEffect(() => {
     // Load all possible items for the dropdown
@@ -88,6 +92,23 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
       alert(res.error);
     }
     setGranting(false);
+  };
+
+  const handleAddRp = async () => {
+    const amount = parseInt(rpAmount);
+    if (!selectedPlayer || isNaN(amount) || amount === 0) return;
+    setAddingRp(true);
+    const res = await addPlayerBalance(selectedPlayer.id, amount);
+    if (res.success) {
+      setSelectedPlayer({ ...selectedPlayer, rp: res.newBalance });
+      setRpAmount("");
+      
+      // Update in search results so it matches
+      setSearchResults(prev => prev.map(p => p.id === selectedPlayer.id ? { ...p, rp: res.newBalance } : p));
+    } else {
+      alert(res.error);
+    }
+    setAddingRp(false);
   };
 
   return (
@@ -158,11 +179,36 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
           // INVENTORY VIEW
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, padding: 16, background: "rgba(255,255,255,0.03)", borderRadius: 12 }}>
-              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.1)", backgroundImage: selectedPlayer.avatar_url ? `url(${selectedPlayer.avatar_url})` : "none", backgroundSize: "cover" }} />
-              <div>
+              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.1)", backgroundImage: selectedPlayer.avatar_url ? `url(${selectedPlayer.avatar_url})` : "none", backgroundSize: "cover", flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
                 <h3 style={{ margin: 0, color: "white", fontSize: 18 }}>{selectedPlayer.username}'s Locker</h3>
                 <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{inventory.length} items owned</div>
               </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                <div style={{ color: "var(--neon)", fontSize: 20, fontWeight: 800 }}>{selectedPlayer.rp} RP</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.05em" }}>Current Balance</div>
+              </div>
+            </div>
+
+            {/* Edit Balance */}
+            <div className="settings-card" style={{ padding: 16, marginBottom: 16, display: "flex", gap: 12, alignItems: "center" }}>
+              <div style={{ color: "white", fontWeight: 700, fontSize: 13 }}>Modify Balance:</div>
+              <input 
+                type="number"
+                className="search-input" 
+                style={{ flex: 1, padding: "8px 12px", fontSize: 13 }}
+                placeholder="Amount (e.g. 500 or -500)"
+                value={rpAmount}
+                onChange={e => setRpAmount(e.target.value)}
+              />
+              <button 
+                className="btn-lobby-play" 
+                style={{ padding: "8px 16px", height: "auto", fontSize: 13 }}
+                onClick={handleAddRp}
+                disabled={addingRp || !rpAmount}
+              >
+                {addingRp ? <Loader2 className="mly-spinner" size={14} /> : "Update RP"}
+              </button>
             </div>
 
             {/* Grant Tool */}
