@@ -292,6 +292,26 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                     opacity: 0.7,
                   }}
                 />
+                {item.price === 0 && !isOwned && (
+                  <div style={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    background: "rgba(239, 68, 68, 0.9)",
+                    color: "white",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: "2px 6px",
+                    borderRadius: 6,
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    zIndex: 10,
+                    boxShadow: "0 2px 8px rgba(239, 68, 68, 0.4)"
+                  }}>
+                    FREE
+                  </div>
+                )}
                 <div
                   style={{
                     display: "flex",
@@ -431,8 +451,29 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                 flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 background: `radial-gradient(circle at center, ${previewItem.rarity_color}15 0%, transparent 70%)`,
-                padding: 32
+                padding: 32,
+                position: "relative"
               }}>
+                {previewItem.price === 0 && !isOwned && (
+                  <div style={{
+                    position: "absolute",
+                    top: 20,
+                    left: 20,
+                    background: "rgba(239, 68, 68, 0.9)",
+                    color: "white",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    padding: "4px 10px",
+                    borderRadius: 8,
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    zIndex: 10,
+                    boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)"
+                  }}>
+                    FREE
+                  </div>
+                )}
                 <div style={{ transform: "scale(2.5)", transformOrigin: "center" }}>
                   {renderIcon(previewItem)}
                 </div>
