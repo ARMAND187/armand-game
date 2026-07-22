@@ -403,7 +403,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
         return (
           <div style={{
             position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.85)", zIndex: 1000,
+            background: "rgba(0,0,0,0.85)", zIndex: 100000,
             display: "flex", alignItems: "center", justifyContent: "center",
             backdropFilter: "blur(12px)", padding: 24
           }}>
@@ -412,6 +412,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
               border: `1px solid ${previewItem.rarity_color}55`,
               borderRadius: 24,
               width: "100%", maxWidth: 460,
+              maxHeight: "90vh",
               display: "flex", flexDirection: "column",
               overflow: "hidden",
               boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 40px ${previewItem.rarity_color}22`
@@ -426,7 +427,8 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
 
               {/* Preview Area */}
               <div style={{ 
-                height: 240, 
+                height: 240,
+                flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 background: `radial-gradient(circle at center, ${previewItem.rarity_color}15 0%, transparent 70%)`,
                 padding: 32
@@ -437,7 +439,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
               </div>
 
               {/* Details */}
-              <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
                 <div>
                   <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 4 }}>
                     {previewItem.name}
