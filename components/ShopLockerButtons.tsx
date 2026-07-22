@@ -306,7 +306,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
       {loading ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading shop...</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(105px, 1fr))", gap: 10 }}>
           {items.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             let isOwned = ownedIds.has(item.id);
             let displayPrice = item.price;
@@ -329,8 +329,8 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                   cursor: "pointer",
                   background: "rgba(24, 24, 27, 0.5)",
                   border: `1px solid ${isOwned ? "rgba(74, 222, 128, 0.3)" : "rgba(255, 255, 255, 0.1)"}`,
-                  borderRadius: 20,
-                  padding: 16,
+                  borderRadius: 16,
+                  padding: "12px 8px",
                   display: "flex",
                   flexDirection: "column",
                   gap: 8,
@@ -401,9 +401,9 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                   >
                     {renderIcon(item)}
                   </div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{item.type}</div>
+                  <div style={{ width: "100%", padding: "0 4px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.type}</div>
                   </div>
                   <div
                     style={{
@@ -1006,7 +1006,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginTop: 10, marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Owned Items
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(105px, 1fr))", gap: 10 }}>
           {ownedItems.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             // Determine if equipped
             let isEquipped = false;
@@ -1030,8 +1030,8 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
                 style={{
                   background: "rgba(24, 24, 27, 0.4)",
                   border: `1px solid ${isEquipped ? "rgba(74, 222, 128, 0.4)" : "rgba(255,255,255,0.08)"}`,
-                  borderRadius: 20,
-                  padding: 16,
+                  borderRadius: 16,
+                  padding: "12px 8px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
