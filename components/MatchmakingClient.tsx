@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Users, Globe, Loader2, Play, UserPlus, X, Check, Share } from "lucide-react";
+import PlayerNameFlair from "@/components/PlayerNameFlair";
 
 type MatchState = "idle" | "searching" | "waiting" | "friends" | "public-setup" | "solo-setup";
 
@@ -21,6 +22,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   const [matchState, setMatchState] = useState<MatchState>("idle");
   const [roomId, setRoomId] = useState<string | null>(null);
   const [players, setPlayers] = useState<string[]>([]);
+  const [playerProfiles, setPlayerProfiles] = useState<Record<string, any>>({});
   const [myUsername, setMyUsername] = useState<string>("Player");
   const [isUsernameLoaded, setIsUsernameLoaded] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState("");
@@ -386,6 +388,23 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
     }
   }, [joinParam, myUsername, hasAutoJoined, router, gameId]);
 
+  useEffect(() => {
+    if (players.length > 0) {
+      supabase.from("profiles")
+        .select("username, avatar_url, equipped_banner, equipped_title, equipped_frame, equipped_flair")
+        .in("username", players)
+        .then(({ data }) => {
+          if (data) {
+            const map: Record<string, any> = {};
+            data.forEach(p => map[p.username] = p);
+            setPlayerProfiles(map);
+          }
+        });
+    } else {
+      setPlayerProfiles({});
+    }
+  }, [players, supabase]);
+
   if (matchState === "idle") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 16 }}>
@@ -653,32 +672,110 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
           <div style={{ display: "grid", gridTemplateColumns: displayCode ? "repeat(auto-fit, minmax(120px, 1fr))" : "1fr 1fr", gap: 10 }}>
             {Array.from({ length: displayCode ? customMaxPlayers : publicMaxPlayers }).map((_, slotIndex) => {
               const player = players[slotIndex];
+              const profile = player ? playerProfiles[player] : null;
+              
+              if (!player) {
+                return (
+                  <div
+                    key={slotIndex}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "56px",
+                      background: "var(--bg-base)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      color: "var(--text-muted)",
+                      animation: "pulse-dot 2s infinite",
+                    }}
+                  >
+                    Waiting...
+                  </div>
+                );
+              }
+
+              const avatarUrl = profile?.avatar_url || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${player}`;
+              
               return (
                 <div
                   key={slotIndex}
                   style={{
+                    position: "relative",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    height: "48px",
-                    background: player ? "rgba(167,139,250,0.1)" : "var(--bg-base)",
-                    border: `1px solid ${player ? "rgba(167,139,250,0.3)" : "var(--border)"}`,
+                    gap: 12,
+                    height: "56px",
+                    background: profile?.equipped_banner 
+                      ? "transparent" 
+                      : "linear-gradient(90deg, rgba(167,139,250,0.1) 0%, rgba(167,139,250,0.05) 100%)",
+                    border: "1px solid rgba(167,139,250,0.3)",
                     borderRadius: "12px",
-                    fontSize: "12px",
-                    fontWeight: player ? 700 : 500,
-                    color: player ? "var(--neon)" : "var(--text-muted)",
-                    animation: !player ? "pulse-dot 2s infinite" : "none",
+                    overflow: "hidden",
+                    padding: "0 12px",
+                    color: "var(--neon)",
                   }}
                 >
-                  {player ? (
-                    <>
-                      <div className="lb-avatar" style={{ width: 24, height: 24, fontSize: 10, flexShrink: 0 }}>{player[0]}</div>
-                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{player}</span>
-                    </>
-                  ) : (
-                    "Waiting..."
+                  {/* Background Banner */}
+                  {profile?.equipped_banner && (
+                    <div 
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${profile.equipped_banner})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        opacity: 0.6,
+                        zIndex: 0
+                      }}
+                    />
                   )}
+                  {/* Gradient Overlay for Readability */}
+                  {profile?.equipped_banner && (
+                    <div 
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)",
+                        zIndex: 0
+                      }}
+                    />
+                  )}
+
+                  {/* Avatar */}
+                  <div style={{ position: "relative", zIndex: 1, width: 36, height: 36, flexShrink: 0 }}>
+                    <img 
+                      src={avatarUrl} 
+                      alt={player} 
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)" }} 
+                    />
+                    {profile?.equipped_frame && (
+                      <img 
+                        src={profile.equipped_frame} 
+                        alt="frame" 
+                        style={{ position: "absolute", top: "-15%", left: "-15%", width: "130%", height: "130%", pointerEvents: "none" }} 
+                      />
+                    )}
+                  </div>
+
+                  {/* Text Details */}
+                  <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "center", minWidth: 0 }}>
+                    {profile?.equipped_title && (
+                      <div style={{ fontSize: 9, fontWeight: 800, color: "var(--neon)", textTransform: "uppercase", letterSpacing: "0.05em", lineHeight: 1, marginBottom: 2 }}>
+                        {profile.equipped_title}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+                      <div style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <PlayerNameFlair 
+                          username={player} 
+                          flair={profile?.equipped_flair} 
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}
