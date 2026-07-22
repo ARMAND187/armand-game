@@ -391,7 +391,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
   useEffect(() => {
     if (players.length > 0) {
       supabase.from("profiles")
-        .select("username, avatar_url, equipped_banner, equipped_title, equipped_frame, equipped_flair")
+        .select("username, avatar_url, equipped_banner, equipped_title, equipped_avatar_frame, equipped_flair")
         .in("username", players)
         .then(({ data }) => {
           if (data) {
@@ -751,9 +751,9 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                       alt={player} 
                       style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)" }} 
                     />
-                    {profile?.equipped_frame && (
+                    {profile?.equipped_avatar_frame && (
                       <img 
-                        src={profile.equipped_frame} 
+                        src={profile.equipped_avatar_frame} 
                         alt="frame" 
                         style={{ position: "absolute", top: "-15%", left: "-15%", width: "130%", height: "130%", pointerEvents: "none" }} 
                       />
