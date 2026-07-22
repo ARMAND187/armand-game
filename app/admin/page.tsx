@@ -360,6 +360,17 @@ export default function AdminDashboard() {
                 <option value="Duhok">Duhok</option>
                 <option value="Halabja">Halabja</option>
                 <option value="Kirkuk">Kirkuk</option>
+                <option value="Zakho">Zakho</option>
+                <option value="Koya">Koya</option>
+                <option value="Ranya">Ranya</option>
+                <option value="Chamchamal">Chamchamal</option>
+                <option value="Amedi">Amedi</option>
+                <option value="Soran">Soran</option>
+                <option value="Choman">Choman</option>
+                <option value="Penjwen">Penjwen</option>
+                <option value="Said Sadiq">Said Sadiq</option>
+                <option value="Darbandikhan">Darbandikhan</option>
+                <option value="Shaqlawa">Shaqlawa</option>
               </select>
             </div>
             
