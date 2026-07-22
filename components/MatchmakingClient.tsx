@@ -699,6 +699,18 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
 
               const avatarUrl = profile?.avatar_url || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${player}`;
               
+              const bannerUrl = profile?.equipped_banner 
+                ? (profile.equipped_banner.trim().startsWith("<svg") 
+                    ? `data:image/svg+xml;utf8,${encodeURIComponent(profile.equipped_banner)}` 
+                    : profile.equipped_banner)
+                : null;
+
+              const frameUrl = profile?.equipped_avatar_frame
+                ? (profile.equipped_avatar_frame.trim().startsWith("<svg")
+                    ? `data:image/svg+xml;utf8,${encodeURIComponent(profile.equipped_avatar_frame)}`
+                    : profile.equipped_avatar_frame)
+                : null;
+              
               return (
                 <div
                   key={slotIndex}
@@ -719,12 +731,12 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                   }}
                 >
                   {/* Background Banner */}
-                  {profile?.equipped_banner && (
+                  {bannerUrl && (
                     <div 
                       style={{
                         position: "absolute",
                         inset: 0,
-                        backgroundImage: `url(${profile.equipped_banner})`,
+                        backgroundImage: `url("${bannerUrl}")`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         opacity: 0.6,
@@ -733,7 +745,7 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                     />
                   )}
                   {/* Gradient Overlay for Readability */}
-                  {profile?.equipped_banner && (
+                  {bannerUrl && (
                     <div 
                       style={{
                         position: "absolute",
@@ -751,9 +763,9 @@ export default function MatchmakingClient({ gameId, playRoute }: Props) {
                       alt={player} 
                       style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", background: "var(--bg-elevated)" }} 
                     />
-                    {profile?.equipped_avatar_frame && (
+                    {frameUrl && (
                       <img 
-                        src={profile.equipped_avatar_frame} 
+                        src={frameUrl} 
                         alt="frame" 
                         style={{ position: "absolute", top: "-15%", left: "-15%", width: "130%", height: "130%", pointerEvents: "none" }} 
                       />
