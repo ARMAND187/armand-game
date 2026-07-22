@@ -78,17 +78,19 @@ export function renderIcon(item: ShopItem, isPreview: boolean = false) {
 
   if (item.image_url) {
     if (item.image_url.trim().startsWith("<svg")) {
-      let svgHtml = item.image_url;
-
-      svgHtml = svgHtml
-        .replace(/width="[^"]*"/, 'width="100%"')
-        .replace(/height="[^"]*"/, 'height="100%"');
+      const svgHtml = item.image_url;
 
       return (
         <div 
+          className="dynamic-svg-wrapper"
           style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
-          dangerouslySetInnerHTML={{ __html: svgHtml }}
-        />
+        >
+          <style>{`.dynamic-svg-wrapper svg { width: 100% !important; height: 100% !important; object-fit: contain; }`}</style>
+          <div 
+            style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+            dangerouslySetInnerHTML={{ __html: svgHtml }}
+          />
+        </div>
       );
     }
     return <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />;
