@@ -93,6 +93,37 @@ function renderIcon(item: ShopItem, isPreview: boolean = false) {
     }
     return <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />;
   }
+  if (item.type === 'Name Flair') {
+    let IconComp = Star;
+    switch (item.icon_name) {
+      case "Zap": IconComp = Zap; break;
+      case "Sparkles": IconComp = Sparkles; break;
+      case "Package": IconComp = Package; break;
+      case "Tag": IconComp = Tag; break;
+      case "Shirt": IconComp = Shirt; break;
+      case "Crown": IconComp = Crown; break;
+      case "Gem": IconComp = Gem; break;
+      case "Circle": IconComp = Circle; break;
+    }
+    return (
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8,
+        background: `linear-gradient(to right, ${color}30, transparent)`,
+        border: `1px solid ${color}50`,
+        borderRadius: 999,
+        padding: "4px 16px",
+        height: "100%", 
+        maxHeight: 36,
+        width: "100%", 
+        boxSizing: "border-box",
+        justifyContent: "flex-start"
+      }}>
+        <IconComp size={16} color={color} />
+        <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>PlayerName</span>
+      </div>
+    );
+  }
+
   switch (item.icon_name) {
     case "Star": return <Star size={size} color={color} />;
     case "Zap": return <Zap size={size} color={color} />;
