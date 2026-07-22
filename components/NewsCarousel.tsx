@@ -32,16 +32,13 @@ export default function NewsCarousel() {
 
   useEffect(() => {
     const loadSlides = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
-      const { data } = await supabase
-        .from("notifications")
-        .select("id, title, body, created_at, image_url")
-        .eq("type", "broadcast")
-        .eq("receiver_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(3);
-      if (data && data.length > 0) setSlides(data as Broadcast[]);
+      try {
+        const { getGlobalBroadcasts } = await import("@/app/actions/broadcasts");
+        const data = await getGlobalBroadcasts();
+        if (data && data.length > 0) setSlides(data as Broadcast[]);
+      } catch (err) {
+        console.error("Failed to fetch global broadcasts", err);
+      }
       setLoading(false);
     };
     loadSlides();
