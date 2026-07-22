@@ -91,7 +91,7 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
   };
 
   return (
-    <FullScreenOverlay>
+    <FullScreenOverlay title="Player Lockers" onClose={onClose}>
       <div className="settings-panel" style={{ width: 800, maxWidth: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
         
         {/* Header */}

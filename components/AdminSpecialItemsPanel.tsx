@@ -15,8 +15,6 @@ interface SpecialItem {
   image_url: string;
   rarity: string;
   rarity_color: string;
-  rarity: string;
-  rarity_color: string;
   required_streak?: number;
 }
 

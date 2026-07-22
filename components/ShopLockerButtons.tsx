@@ -108,12 +108,38 @@ function renderIcon(item: ShopItem) {
   }
 }
 
-// ─── Shop Screen ──────────────────────────────────────────────────────────────
+const BUNDLE_CONTENTS: Record<string, string[]> = {
+  "Aurora Frost Bundle": ["Aurora Peaks", "Glacier Ring", "Frostbite", "Frostbite Pin", "Aurora"]
+};
+
+function getDynamicBundlePrice(bundle: ShopItem, items: ShopItem[], ownedIds: Set<string>): { price: number, fullyOwned: boolean, ownedCount: number, totalContents: number } {
+  const contents = BUNDLE_CONTENTS[bundle.name];
+  if (!contents) return { price: bundle.price, fullyOwned: false, ownedCount: 0, totalContents: 0 };
+  
+  let discount = 0;
+  let ownedCount = 0;
+
+  for (const itemName of contents) {
+    const item = items.find(i => i.name === itemName);
+    if (item && ownedIds.has(item.id)) {
+      ownedCount++;
+      discount += item.price;
+    }
+  }
+
+  const finalPrice = Math.max(0, bundle.price - discount);
+  const fullyOwned = ownedCount === contents.length;
+
+  return { price: finalPrice, fullyOwned, ownedCount, totalContents: contents.length };
+}
+
+// 🛒 Shop Screen 🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒🛒──────────────────────────────────────────────────────────────
 function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: () => void }) {
   const [items, setItems] = useState<ShopItem[]>([]);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [previewItem, setPreviewItem] = useState<ShopItem | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const supabase = createClient();
   
@@ -171,8 +197,16 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
       alert(error?.message || data?.error || "Failed to purchase item.");
     } else {
       // Success! Update local UI
-      setOwnedIds(prev => new Set([...prev, item.id]));
+      const newOwned = new Set([...ownedIds, item.id]);
+      if (item.type === "Bundle" && BUNDLE_CONTENTS[item.name]) {
+        for (const childName of BUNDLE_CONTENTS[item.name]) {
+          const child = items.find(i => i.name === childName);
+          if (child) newOwned.add(child.id);
+        }
+      }
+      setOwnedIds(newOwned);
       onPurchase();
+      setPreviewItem(null);
       alert(`Successfully purchased ${item.name}! Check your Locker.`);
     }
     
@@ -213,13 +247,25 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
           {items.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
-            const isOwned = ownedIds.has(item.id);
+            let isOwned = ownedIds.has(item.id);
+            let displayPrice = item.price;
+
+            if (item.type === "Bundle") {
+              const bundleInfo = getDynamicBundlePrice(item, items, ownedIds);
+              displayPrice = bundleInfo.price;
+              if (bundleInfo.fullyOwned) {
+                isOwned = true;
+              }
+            }
+
             const isPurchasing = purchasing === item.id;
             
             return (
               <div
                 key={item.id}
+                onClick={() => setPreviewItem(item)}
                 style={{
+                  cursor: "pointer",
                   background: "rgba(24, 24, 27, 0.5)",
                   border: `1px solid ${isOwned ? "rgba(74, 222, 128, 0.3)" : "rgba(255, 255, 255, 0.1)"}`,
                   borderRadius: 20,
@@ -300,9 +346,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                     <TimerCountdown expiresAt={item.expires_at} />
                   </div>
                 )}
-                <button
-                  onClick={() => buyItem(item)}
-                  disabled={isOwned || isPurchasing}
+                <div
                   className={isOwned ? "" : "btn-redeem-small"}
                   style={isOwned ? {
                     marginTop: 4,
@@ -313,7 +357,6 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                     color: "#4ade80",
                     fontSize: 12,
                     fontWeight: 700,
-                    cursor: "default",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -322,7 +365,8 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                   } : {
                     marginTop: 4,
                     justifyContent: "center",
-                    width: "100%"
+                    width: "100%",
+                    pointerEvents: "none"
                   }}
                 >
                   {isOwned ? (
@@ -331,15 +375,135 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                     </>
                   ) : (
                     <>
-                      <Lock size={12} /> {isPurchasing ? "..." : item.price.toLocaleString()} Coins
+                      <Lock size={12} /> {displayPrice.toLocaleString()} Coins
                     </>
                   )}
-                </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Item Preview Modal */}
+      {previewItem && (() => {
+        let isOwned = ownedIds.has(previewItem.id);
+        let displayPrice = previewItem.price;
+
+        if (previewItem.type === "Bundle") {
+          const bundleInfo = getDynamicBundlePrice(previewItem, items, ownedIds);
+          displayPrice = bundleInfo.price;
+          if (bundleInfo.fullyOwned) {
+            isOwned = true;
+          }
+        }
+        
+        const isPurchasing = purchasing === previewItem.id;
+
+        return (
+          <div style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.85)", zIndex: 1000,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            backdropFilter: "blur(12px)", padding: 24
+          }}>
+            <div style={{
+              background: "var(--bg-panel)",
+              border: `1px solid ${previewItem.rarity_color}55`,
+              borderRadius: 24,
+              width: "100%", maxWidth: 460,
+              display: "flex", flexDirection: "column",
+              overflow: "hidden",
+              boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 40px ${previewItem.rarity_color}22`
+            }}>
+              {/* Header */}
+              <div style={{ padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>Item Preview</div>
+                <button onClick={() => setPreviewItem(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Preview Area */}
+              <div style={{ 
+                height: 240, 
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: `radial-gradient(circle at center, ${previewItem.rarity_color}15 0%, transparent 70%)`,
+                padding: 32
+              }}>
+                <div style={{ transform: "scale(2.5)", transformOrigin: "center" }}>
+                  {renderIcon(previewItem)}
+                </div>
+              </div>
+
+              {/* Details */}
+              <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+                <div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 4 }}>
+                    {previewItem.name}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{previewItem.type}</span>
+                    <span style={{
+                      fontSize: 11, fontWeight: 800, color: previewItem.rarity_color,
+                      background: `${previewItem.rarity_color}15`, padding: "2px 8px", borderRadius: 12, textTransform: "uppercase"
+                    }}>
+                      {previewItem.rarity}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                  {previewItem.description || "A mysterious item from the shop."}
+                </div>
+
+                {/* Bundle Contents List */}
+                {previewItem.type === "Bundle" && BUNDLE_CONTENTS[previewItem.name] && (
+                  <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Bundle Contents:</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {BUNDLE_CONTENTS[previewItem.name].map(childName => {
+                        const child = items.find(i => i.name === childName);
+                        const ownsChild = child && ownedIds.has(child.id);
+                        return (
+                          <div key={childName} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+                            <span style={{ color: ownsChild ? "var(--text-muted)" : "#fff", textDecoration: ownsChild ? "line-through" : "none" }}>
+                              {childName}
+                            </span>
+                            {ownsChild ? (
+                              <span style={{ color: "#4ade80", fontSize: 11, fontWeight: 700 }}>Owned</span>
+                            ) : (
+                              <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{child?.price} Coins</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Buy Button */}
+                <button
+                  onClick={() => buyItem(previewItem)}
+                  disabled={isOwned || isPurchasing}
+                  className={isOwned ? "" : "btn-redeem-large"}
+                  style={isOwned ? {
+                    background: "rgba(74, 222, 128, 0.1)", border: "1px solid rgba(74, 222, 128, 0.25)",
+                    borderRadius: 12, padding: 16, color: "#4ade80", fontSize: 16, fontWeight: 800,
+                    cursor: "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%"
+                  } : { width: "100%", justifyContent: "center" }}
+                >
+                  {isOwned ? (
+                    <><CheckCircle2 size={18} /> Owned</>
+                  ) : (
+                    <><Lock size={16} /> {isPurchasing ? "Purchasing..." : `Purchase for ${displayPrice.toLocaleString()} Coins`}</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </FullScreenOverlay>
   );
 }

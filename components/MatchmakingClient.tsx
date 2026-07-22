@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Users, Globe, Loader2, Play, UserPlus, X, Check, Share } from "lucide-react";
 
-type MatchState = "idle" | "searching" | "waiting" | "friends";
+type MatchState = "idle" | "searching" | "waiting" | "friends" | "public-setup";
 
 interface Props {
   gameId: string;
