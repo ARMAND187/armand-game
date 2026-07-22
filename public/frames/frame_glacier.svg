@@ -1,0 +1,13 @@
+<svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glacier" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#0a1930"/>
+    </linearGradient>
+    <filter id="glacierGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#00f2fe" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+  <circle cx="70" cy="70" r="62" fill="none" stroke="url(#glacier)" stroke-width="8" filter="url(#glacierGlow)"/>
+</svg>
