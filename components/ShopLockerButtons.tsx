@@ -274,10 +274,11 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
   };
 
   return (
-    <FullScreenOverlay title="🛒 Shop" onClose={onClose}>
-      <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 16, marginTop: 0 }}>
-        Spend your coins to unlock exclusive cosmetics and map pins.
-      </p>
+    <FullScreenOverlay onClose={onClose} title="Shop">
+      <div style={{ padding: "clamp(12px, 4vw, 24px)", paddingBottom: 100 }}>
+        <div style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
+          Spend your coins to unlock exclusive cosmetics and map pins.
+        </div>
 
       {/* Categories */}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, marginBottom: 12, scrollbarWidth: "none" }}>
@@ -305,7 +306,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
       {loading ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>Loading shop...</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
           {items.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             let isOwned = ownedIds.has(item.id);
             let displayPrice = item.price;
@@ -616,6 +617,7 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
           </div>
         );
       })()}
+      </div>
     </FullScreenOverlay>
   );
 }
@@ -858,10 +860,11 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
   };
 
   return (
-    <FullScreenOverlay title="🎒 Locker" onClose={onClose}>
-      <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 16, marginTop: 0 }}>
-        Manage your owned cosmetics and equip your favorites.
-      </p>
+    <FullScreenOverlay onClose={onClose} title="Locker">
+      <div style={{ padding: "clamp(12px, 4vw, 24px)", paddingBottom: 100 }}>
+        <div style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
+          Equip and manage your cosmetic items.
+        </div>
 
       {/* Categories */}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, marginBottom: 12, scrollbarWidth: "none" }}>
@@ -1003,7 +1006,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginTop: 10, marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Owned Items
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
           {ownedItems.filter(item => activeCategory === "All" || item.type === activeCategory).map((item) => {
             // Determine if equipped
             let isEquipped = false;
@@ -1085,6 +1088,7 @@ function LockerScreen({ onClose, refreshKey }: { onClose: () => void, refreshKey
           </div>
         </div>
       )}
+      </div>
     </FullScreenOverlay>
   );
 }
