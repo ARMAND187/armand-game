@@ -9,7 +9,9 @@ import {
   removeInventoryItem, 
   addInventoryItem, 
   getAllItems,
-  addPlayerBalance
+  addPlayerBalance,
+  setPlayerBalance,
+  setPlayerWins
 } from "@/app/actions/admin-inventory";
 
 export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) {
@@ -30,7 +32,11 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
   const [grantItemId, setGrantItemId] = useState("");
 
   const [rpAmount, setRpAmount] = useState("");
+  const [rpAction, setRpAction] = useState<'add' | 'set'>('add');
   const [addingRp, setAddingRp] = useState(false);
+
+  const [winsAmount, setWinsAmount] = useState("");
+  const [addingWins, setAddingWins] = useState(false);
 
   useEffect(() => {
     // Load all possible items for the dropdown
@@ -96,9 +102,9 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
 
   const handleAddRp = async () => {
     const amount = parseInt(rpAmount);
-    if (!selectedPlayer || isNaN(amount) || amount === 0) return;
+    if (!selectedPlayer || isNaN(amount)) return;
     setAddingRp(true);
-    const res = await addPlayerBalance(selectedPlayer.id, amount);
+    const res = rpAction === 'add' ? await addPlayerBalance(selectedPlayer.id, amount) : await setPlayerBalance(selectedPlayer.id, amount);
     if (res.success) {
       setSelectedPlayer({ ...selectedPlayer, rp: res.newBalance });
       setRpAmount("");
@@ -109,6 +115,23 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
       alert(res.error);
     }
     setAddingRp(false);
+  };
+
+  const handleSetWins = async () => {
+    const amount = parseInt(winsAmount);
+    if (!selectedPlayer || isNaN(amount)) return;
+    setAddingWins(true);
+    const res = await setPlayerWins(selectedPlayer.id, amount);
+    if (res.success) {
+      setSelectedPlayer({ ...selectedPlayer, wins: res.newWins });
+      setWinsAmount("");
+      
+      // Update in search results so it matches
+      setSearchResults(prev => prev.map(p => p.id === selectedPlayer.id ? { ...p, wins: res.newWins } : p));
+    } else {
+      alert(res.error);
+    }
+    setAddingWins(false);
   };
 
   return (
@@ -167,7 +190,7 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
                     <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.1)", backgroundImage: p.avatar_url ? `url(${p.avatar_url})` : "none", backgroundSize: "cover" }} />
                     <div>
                       <div style={{ color: "white", fontWeight: 700 }}>{p.username}</div>
-                      <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{p.rp} RP</div>
+                      <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{p.rp} RP • {p.wins || 0} Wins</div>
                     </div>
                   </div>
                   <div style={{ color: "var(--neon)", fontSize: 12, fontWeight: 700 }}>View Locker ➔</div>
@@ -185,30 +208,68 @@ export function AdminPlayerInventoryPanel({ onClose }: { onClose: () => void }) 
                 <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{inventory.length} items owned</div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                <div style={{ color: "var(--neon)", fontSize: 20, fontWeight: 800 }}>{selectedPlayer.wins || 0} WINS</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.05em" }}>Current Rank/Wins</div>
+              </div>
+              <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.1)" }} />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
                 <div style={{ color: "var(--neon)", fontSize: 20, fontWeight: 800 }}>{selectedPlayer.rp} RP</div>
                 <div style={{ color: "var(--text-muted)", fontSize: 10, textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.05em" }}>Current Balance</div>
               </div>
             </div>
 
-            {/* Edit Balance */}
-            <div className="settings-card" style={{ padding: 16, marginBottom: 16, display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ color: "white", fontWeight: 700, fontSize: 13 }}>Modify Balance:</div>
-              <input 
-                type="number"
-                className="search-input" 
-                style={{ flex: 1, padding: "8px 12px", fontSize: 13 }}
-                placeholder="Amount (e.g. 500 or -500)"
-                value={rpAmount}
-                onChange={e => setRpAmount(e.target.value)}
-              />
-              <button 
-                className="btn-lobby-play" 
-                style={{ padding: "8px 16px", height: "auto", fontSize: 13 }}
-                onClick={handleAddRp}
-                disabled={addingRp || !rpAmount}
-              >
-                {addingRp ? <Loader2 className="mly-spinner" size={14} /> : "Update RP"}
-              </button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+              {/* Edit Balance */}
+              <div className="settings-card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "center" }}>
+                <div style={{ color: "white", fontWeight: 700, fontSize: 13, width: 60 }}>Balance:</div>
+                <select 
+                  className="search-input" 
+                  style={{ width: 80, padding: "8px", fontSize: 13 }}
+                  value={rpAction}
+                  onChange={e => setRpAction(e.target.value as any)}
+                >
+                  <option value="add">Add (+/-)</option>
+                  <option value="set">Set Exact</option>
+                </select>
+                <input 
+                  type="number"
+                  className="search-input" 
+                  style={{ flex: 1, padding: "8px 12px", fontSize: 13 }}
+                  placeholder="Amount"
+                  value={rpAmount}
+                  onChange={e => setRpAmount(e.target.value)}
+                />
+                <button 
+                  className="btn-lobby-play" 
+                  style={{ padding: "8px 12px", height: "auto", fontSize: 13 }}
+                  onClick={handleAddRp}
+                  disabled={addingRp || !rpAmount}
+                >
+                  {addingRp ? <Loader2 className="mly-spinner" size={14} /> : "Save"}
+                </button>
+              </div>
+
+              {/* Edit Rank / Wins */}
+              <div className="settings-card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "center" }}>
+                <div style={{ color: "white", fontWeight: 700, fontSize: 13, width: 60 }}>Rank:</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, padding: "8px", width: 80, textAlign: "center" }}>Set Exact</div>
+                <input 
+                  type="number"
+                  className="search-input" 
+                  style={{ flex: 1, padding: "8px 12px", fontSize: 13 }}
+                  placeholder="New Wins/Rank"
+                  value={winsAmount}
+                  onChange={e => setWinsAmount(e.target.value)}
+                />
+                <button 
+                  className="btn-lobby-play" 
+                  style={{ padding: "8px 12px", height: "auto", fontSize: 13 }}
+                  onClick={handleSetWins}
+                  disabled={addingWins || !winsAmount}
+                >
+                  {addingWins ? <Loader2 className="mly-spinner" size={14} /> : "Save"}
+                </button>
+              </div>
             </div>
 
             {/* Grant Tool */}

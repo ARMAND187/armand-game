@@ -26,7 +26,7 @@ export async function searchPlayers(query: string) {
 
   const { data, error } = await admin
     .from("profiles")
-    .select("id, username, avatar_url, rp")
+    .select("id, username, avatar_url, rp, wins")
     .ilike("username", `%${query}%`)
     .limit(10);
 
@@ -126,4 +126,22 @@ export async function addPlayerBalance(userId: string, amountToAdd: number) {
   
   if (updateErr) return { success: false, error: updateErr.message };
   return { success: true, newBalance };
+}
+
+export async function setPlayerBalance(userId: string, newBalance: number) {
+  const admin = await getAdminClient();
+  if (!admin) return { success: false, error: "Unauthorized" };
+
+  const { error: updateErr } = await admin.from("profiles").update({ rp: newBalance }).eq("id", userId);
+  if (updateErr) return { success: false, error: updateErr.message };
+  return { success: true, newBalance };
+}
+
+export async function setPlayerWins(userId: string, newWins: number) {
+  const admin = await getAdminClient();
+  if (!admin) return { success: false, error: "Unauthorized" };
+
+  const { error: updateErr } = await admin.from("profiles").update({ wins: newWins }).eq("id", userId);
+  if (updateErr) return { success: false, error: updateErr.message };
+  return { success: true, newWins };
 }
