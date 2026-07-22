@@ -475,9 +475,9 @@ function ShopScreen({ onClose, onPurchase }: { onClose: () => void, onPurchase: 
                   </div>
                 )}
                 <div style={{ 
-                  width: previewItem.type === 'Name Flair' || previewItem.type === 'Banner' || previewItem.type === 'Title' ? "100%" : "auto",
-                  height: previewItem.type === 'Banner' ? 160 : (previewItem.type === 'Name Flair' ? 80 : "auto"),
-                  transform: previewItem.type === 'Name Flair' || previewItem.type === 'Banner' || previewItem.type === 'Title' ? "scale(1)" : "scale(2.5)", 
+                  width: previewItem.type === 'Name Flair' || previewItem.type === 'Banner' || previewItem.type === 'Title' ? "100%" : 120,
+                  height: previewItem.type === 'Banner' ? 160 : (previewItem.type === 'Name Flair' ? 80 : 120),
+                  transform: "scale(1)", 
                   transformOrigin: "center",
                   display: "flex",
                   justifyContent: "center",
