@@ -688,7 +688,14 @@ function GeoKurdistanInner() {
           </div>
         )}
         <div className="geo-top-bar">
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", textDecoration: "none" }}>
+          <Link 
+            href="/" 
+            onClick={() => {
+              const saveKey = roomId ? `geo_state_${roomId}` : "geo_state_singleplayer";
+              localStorage.removeItem(saveKey);
+            }}
+            style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", textDecoration: "none" }}
+          >
             <ArrowLeft size={18} />
           </Link>
           <div style={{ textAlign: "center" }}>
@@ -819,7 +826,15 @@ function GeoKurdistanInner() {
                   Waiting for host to restart...
                 </div>
               )}
-              <Link href="/" className="btn-lobby-play" style={{ display: "flex", justifyContent: "center", textDecoration: "none", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+              <Link 
+                href="/" 
+                onClick={() => {
+                  const saveKey = roomId ? `geo_state_${roomId}` : "geo_state_singleplayer";
+                  localStorage.removeItem(saveKey);
+                }}
+                className="btn-lobby-play" 
+                style={{ display: "flex", justifyContent: "center", textDecoration: "none", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}
+              >
                 Return to Lobby
               </Link>
             </div>
